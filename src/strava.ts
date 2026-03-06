@@ -1,0 +1,125 @@
+const CLIENT_ID = import.meta.env.VITE_STRAVA_CLIENT_ID;
+const CLIENT_SECRET = import.meta.env.VITE_STRAVA_CLIENT_SECRET;
+const REDIRECT_URI = import.meta.env.VITE_STRAVA_REDIRECT_URI;
+
+const TOKEN_KEY = "strava_tokens";
+
+interface Tokens {
+  access_token: string;
+  refresh_token: string;
+  expires_at: number;
+}
+
+export interface Activity {
+  id: number;
+  name: string;
+  type: string;
+  sport_type: string;
+  distance: number;
+  moving_time: number;
+  elapsed_time: number;
+  total_elevation_gain: number;
+  start_date: string;
+  start_date_local: string;
+  average_speed: number;
+  max_speed: number;
+  average_heartrate?: number;
+  max_heartrate?: number;
+  kudos_count: number;
+  suffer_score?: number;
+}
+
+export function getAuthUrl(): string {
+  const scope = "read,activity:read_all";
+  return `https://www.strava.com/oauth/authorize?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&scope=${scope}`;
+}
+
+export function getStoredTokens(): Tokens | null {
+  const raw = localStorage.getItem(TOKEN_KEY);
+  if (!raw) return null;
+  return JSON.parse(raw);
+}
+
+function storeTokens(tokens: Tokens) {
+  localStorage.setItem(TOKEN_KEY, JSON.stringify(tokens));
+}
+
+export function logout() {
+  localStorage.removeItem(TOKEN_KEY);
+  window.location.href = "/";
+}
+
+export async function exchangeCode(code: string): Promise<Tokens> {
+  const res = await fetch("https://www.strava.com/oauth/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      client_id: CLIENT_ID,
+      client_secret: CLIENT_SECRET,
+      code,
+      grant_type: "authorization_code",
+    }),
+  });
+  const data = await res.json();
+  const tokens: Tokens = {
+    access_token: data.access_token,
+    refresh_token: data.refresh_token,
+    expires_at: data.expires_at,
+  };
+  storeTokens(tokens);
+  return tokens;
+}
+
+async function refreshTokens(refreshToken: string): Promise<Tokens> {
+  const res = await fetch("https://www.strava.com/oauth/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      client_id: CLIENT_ID,
+      client_secret: CLIENT_SECRET,
+      refresh_token: refreshToken,
+      grant_type: "refresh_token",
+    }),
+  });
+  const data = await res.json();
+  const tokens: Tokens = {
+    access_token: data.access_token,
+    refresh_token: data.refresh_token,
+    expires_at: data.expires_at,
+  };
+  storeTokens(tokens);
+  return tokens;
+}
+
+async function getValidToken(): Promise<string> {
+  let tokens = getStoredTokens();
+  if (!tokens) throw new Error("Not authenticated");
+
+  const now = Math.floor(Date.now() / 1000);
+  if (tokens.expires_at < now + 60) {
+    tokens = await refreshTokens(tokens.refresh_token);
+  }
+  return tokens.access_token;
+}
+
+export async function fetchActivities(page = 1, perPage = 200): Promise<Activity[]> {
+  const token = await getValidToken();
+  const res = await fetch(
+    `https://www.strava.com/api/v3/athlete/activities?page=${page}&per_page=${perPage}`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+  if (!res.ok) throw new Error(`Strava API error: ${res.status}`);
+  return res.json();
+}
+
+export async function fetchAllActivities(): Promise<Activity[]> {
+  const all: Activity[] = [];
+  let page = 1;
+  while (true) {
+    const batch = await fetchActivities(page, 200);
+    all.push(...batch);
+    if (batch.length < 200) break;
+    page++;
+  }
+  return all;
+}

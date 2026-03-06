@@ -1,0 +1,247 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: #0f1117;
+  color: #e1e4e8;
+  min-height: 100vh;
+}
+
+.app {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #2d333b;
+}
+
+.header h1 {
+  font-size: 1.5rem;
+  color: #fc4c02;
+}
+
+.btn-logout {
+  background: none;
+  border: 1px solid #444;
+  color: #aaa;
+  padding: 0.4rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.btn-logout:hover {
+  border-color: #888;
+  color: #fff;
+}
+
+/* Login page */
+.login {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  gap: 1rem;
+}
+
+.login h1 {
+  font-size: 2.5rem;
+  color: #fc4c02;
+}
+
+.login p {
+  color: #8b949e;
+  margin-bottom: 1rem;
+}
+
+.btn-strava {
+  display: inline-block;
+  background: #fc4c02;
+  color: #fff;
+  padding: 0.75rem 2rem;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: background 0.2s;
+}
+
+.btn-strava:hover {
+  background: #e04402;
+}
+
+/* Loading / Error */
+.loading, .error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  font-size: 1.2rem;
+  color: #8b949e;
+}
+
+.error {
+  color: #f85149;
+}
+
+/* Dashboard */
+.period-toggle {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.period-toggle button {
+  background: #1c2028;
+  border: 1px solid #2d333b;
+  color: #8b949e;
+  padding: 0.4rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.period-toggle button.active {
+  background: #fc4c02;
+  border-color: #fc4c02;
+  color: #fff;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  background: #1c2028;
+  border: 1px solid #2d333b;
+  border-radius: 12px;
+  padding: 1.25rem;
+}
+
+.stat-card .label {
+  font-size: 0.8rem;
+  color: #8b949e;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+}
+
+.stat-card .value {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #e1e4e8;
+}
+
+.stat-card .unit {
+  font-size: 0.85rem;
+  color: #8b949e;
+  font-weight: 400;
+  margin-left: 0.25rem;
+}
+
+.chart-section {
+  background: #1c2028;
+  border: 1px solid #2d333b;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.chart-section h3 {
+  font-size: 1rem;
+  color: #8b949e;
+  margin-bottom: 1rem;
+  font-weight: 500;
+}
+
+.sport-breakdown {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.sport-card {
+  background: #1c2028;
+  border: 1px solid #2d333b;
+  border-radius: 12px;
+  padding: 1rem;
+}
+
+.sport-card .sport-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #fc4c02;
+  margin-bottom: 0.75rem;
+}
+
+.sport-card .sport-stat {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: #8b949e;
+  margin-bottom: 0.3rem;
+}
+
+.sport-card .sport-stat span:last-child {
+  color: #e1e4e8;
+  font-weight: 500;
+}
+
+.recent-activities {
+  margin-top: 2rem;
+}
+
+.recent-activities h3 {
+  font-size: 1rem;
+  color: #8b949e;
+  margin-bottom: 1rem;
+  font-weight: 500;
+}
+
+.activity-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background: #1c2028;
+  border: 1px solid #2d333b;
+  border-radius: 8px;
+  margin-bottom: 0.5rem;
+}
+
+.activity-row .activity-name {
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.activity-row .activity-type {
+  font-size: 0.75rem;
+  color: #8b949e;
+}
+
+.activity-row .activity-stats {
+  display: flex;
+  gap: 1.5rem;
+  font-size: 0.85rem;
+  color: #8b949e;
+}
+
+.activity-row .activity-stats span {
+  color: #e1e4e8;
+}
