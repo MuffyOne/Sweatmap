@@ -274,6 +274,14 @@ body {
   border: 1px solid #2d333b;
   border-radius: 8px;
   margin-bottom: 0.5rem;
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.activity-row:hover {
+  border-color: #fc4c02;
+  background: #222830;
 }
 
 .activity-row .activity-name {

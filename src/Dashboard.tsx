@@ -294,7 +294,7 @@ export function Dashboard({ activities }: Props) {
       <div className="recent-activities">
         <h3>Recent Activities</h3>
         {filtered.slice(0, 10).map((a) => (
-          <div key={a.id} className="activity-row">
+          <a key={a.id} className="activity-row" href={`https://www.strava.com/activities/${a.id}`} target="_blank" rel="noopener noreferrer" title="View on Strava">
             <div>
               <div className="activity-name">{a.name}</div>
               <div className="activity-type">
@@ -318,7 +318,7 @@ export function Dashboard({ activities }: Props) {
                 </div>
               )}
             </div>
-          </div>
+          </a>
         ))}
       </div>
     </div>
