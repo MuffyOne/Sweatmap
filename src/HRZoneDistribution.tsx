@@ -211,9 +211,9 @@ export function HRZoneDistribution({ activities }: Props) {
                 itemStyle={{ color: "#e8eaf0" }}
                 formatter={(value: unknown) => [formatTime(Number(value)), "Time"]}
               />
-              <Bar dataKey="seconds" radius={[0, 6, 6, 0]} maxBarSize={28}>
+              <Bar dataKey="seconds" radius={[0, 6, 6, 0]} maxBarSize={28} isAnimationActive={false}>
                 {data.map((entry, index) => (
-                  <Cell key={index} fill={entry.color} />
+                  <Cell key={`cell-${index}`} fill={entry.color} />
                 ))}
               </Bar>
             </BarChart>
