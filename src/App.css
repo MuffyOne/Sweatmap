@@ -170,6 +170,70 @@ body {
   color: #fff;
 }
 
+.stats-section-header {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.5rem;
+}
+
+.stats-filter-wrapper {
+  position: relative;
+}
+
+.stats-filter-btn {
+  background: none;
+  border: 1px solid #2d333b;
+  color: #8b949e;
+  padding: 0.3rem 0.75rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.78rem;
+}
+
+.stats-filter-btn:hover {
+  border-color: #888;
+  color: #e1e4e8;
+}
+
+.stats-filter-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+}
+
+.stats-filter-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  background: #1c2028;
+  border: 1px solid #2d333b;
+  border-radius: 10px;
+  padding: 0.5rem;
+  z-index: 11;
+  min-width: 160px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+}
+
+.stats-filter-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.5rem;
+  font-size: 0.85rem;
+  color: #e1e4e8;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.stats-filter-item:hover {
+  background: #2d333b;
+}
+
+.stats-filter-item input[type="checkbox"] {
+  accent-color: #fc4c02;
+  cursor: pointer;
+}
+
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));

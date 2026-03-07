@@ -26,6 +26,18 @@ import type { Activity } from "./strava";
 
 type Period = "week" | "month" | "year" | "last7" | "last30";
 
+const ALL_STATS = [
+  { id: "count",     label: "Activities"     },
+  { id: "distance",  label: "Distance"       },
+  { id: "time",      label: "Moving Time"    },
+  { id: "elevation", label: "Elevation"      },
+  { id: "heartrate", label: "Avg Heart Rate" },
+  { id: "watts",     label: "Avg Power"      },
+] as const;
+
+type StatId = typeof ALL_STATS[number]["id"];
+const DEFAULT_STATS = new Set<StatId>(["count", "distance", "time", "heartrate", "watts"]);
+
 function formatDuration(seconds: number): string {
   const h = Math.floor(seconds / 3600);
   const m = Math.floor((seconds % 3600) / 60);
@@ -80,6 +92,17 @@ interface Props {
 
 export function Dashboard({ activities }: Props) {
   const [period, setPeriod] = useState<Period>("week");
+  const [enabledStats, setEnabledStats] = useState<Set<StatId>>(DEFAULT_STATS);
+  const [statsMenuOpen, setStatsMenuOpen] = useState(false);
+
+  function toggleStat(id: StatId) {
+    setEnabledStats(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
 
   const filtered = useMemo(
     () => filterActivities(activities, period),
@@ -186,30 +209,63 @@ export function Dashboard({ activities }: Props) {
         ))}
       </div>
 
+      <div className="stats-section-header">
+        <div className="stats-filter-wrapper">
+          <button className="stats-filter-btn" onClick={() => setStatsMenuOpen(o => !o)}>
+            Customize
+          </button>
+          {statsMenuOpen && (
+            <>
+              <div className="stats-filter-backdrop" onClick={() => setStatsMenuOpen(false)} />
+              <div className="stats-filter-menu">
+                {ALL_STATS.map(s => (
+                  <label key={s.id} className="stats-filter-item">
+                    <input
+                      type="checkbox"
+                      checked={enabledStats.has(s.id)}
+                      onChange={() => toggleStat(s.id)}
+                    />
+                    {s.label}
+                  </label>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+
       <div className="stats-grid">
-        <div className="stat-card">
-          <div className="label">Activities</div>
-          <div className="value">{stats.count}</div>
-        </div>
-        <div className="stat-card">
-          <div className="label">Distance</div>
-          <div className="value">
-            {formatDistance(stats.totalDistance)}
-            <span className="unit">km</span>
+        {enabledStats.has("count") && (
+          <div className="stat-card">
+            <div className="label">Activities</div>
+            <div className="value">{stats.count}</div>
           </div>
-        </div>
-        <div className="stat-card">
-          <div className="label">Moving Time</div>
-          <div className="value">{formatDuration(stats.totalTime)}</div>
-        </div>
-        <div className="stat-card">
-          <div className="label">Elevation</div>
-          <div className="value">
-            {Math.round(stats.totalElevation)}
-            <span className="unit">m</span>
+        )}
+        {enabledStats.has("distance") && (
+          <div className="stat-card">
+            <div className="label">Distance</div>
+            <div className="value">
+              {formatDistance(stats.totalDistance)}
+              <span className="unit">km</span>
+            </div>
           </div>
-        </div>
-        {stats.avgHeartrate && (
+        )}
+        {enabledStats.has("time") && (
+          <div className="stat-card">
+            <div className="label">Moving Time</div>
+            <div className="value">{formatDuration(stats.totalTime)}</div>
+          </div>
+        )}
+        {enabledStats.has("elevation") && (
+          <div className="stat-card">
+            <div className="label">Elevation</div>
+            <div className="value">
+              {Math.round(stats.totalElevation)}
+              <span className="unit">m</span>
+            </div>
+          </div>
+        )}
+        {enabledStats.has("heartrate") && stats.avgHeartrate && (
           <div className="stat-card">
             <div className="label">Avg Heart Rate</div>
             <div className="value">
@@ -218,7 +274,7 @@ export function Dashboard({ activities }: Props) {
             </div>
           </div>
         )}
-        {stats.avgWatts && (
+        {enabledStats.has("watts") && stats.avgWatts && (
           <div className="stat-card">
             <div className="label">Avg Power</div>
             <div className="value">
