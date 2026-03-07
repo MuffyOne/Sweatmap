@@ -23,6 +23,7 @@ import {
   parseISO,
 } from "date-fns";
 import type { Activity } from "./strava";
+import { PowerCurve } from "./PowerCurve";
 
 type Period = "week" | "month" | "year" | "last7" | "last30";
 
@@ -352,6 +353,8 @@ export function Dashboard({ activities }: Props) {
           </BarChart>
         </ResponsiveContainer>
       </div>
+
+      <PowerCurve activities={activities} />
 
       <div className="recent-activities">
         <h3>Recent Activities</h3>
