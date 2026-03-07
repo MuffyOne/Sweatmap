@@ -195,28 +195,6 @@ export async function fetchActivityWatts(activityId: number): Promise<number[] |
   return data.watts?.data ?? null;
 }
 
-interface ZoneBucket {
-  min: number;
-  max: number;
-  time: number;
-}
-
-export interface ActivityZoneData {
-  type: string;
-  distribution_buckets: ZoneBucket[];
-}
-
-export async function fetchActivityZones(activityId: number): Promise<ActivityZoneData[]> {
-  const token = await getValidToken();
-  const res = await fetch(
-    `https://www.strava.com/api/v3/activities/${activityId}/zones`,
-    { headers: { Authorization: `Bearer ${token}` } }
-  );
-  if (res.status === 429) throw new Error("rate_limited");
-  if (!res.ok) return [];
-  return res.json();
-}
-
 export async function fetchAndCache(onProgress?: (count: number) => void): Promise<{ activities: Activity[]; athlete: Athlete }> {
   const [athlete, activities] = await Promise.all([fetchAthlete(), fetchAllActivities(onProgress)]);
   setCache({ athlete, activities });

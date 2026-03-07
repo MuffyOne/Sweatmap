@@ -11,8 +11,9 @@ import {
   ReferenceLine,
 } from "recharts";
 import { format, eachDayOfInterval, subDays } from "date-fns";
-import type { Activity } from "./strava";
+import type { Activity } from "../api/strava";
 import { FTP_KEY } from "./Settings";
+import { TOOLTIP_STYLE } from "../lib/utils";
 
 const CTL_DECAY = Math.exp(-1 / 42);
 const ATL_DECAY = Math.exp(-1 / 7);
@@ -85,13 +86,6 @@ function computePMC(activities: Activity[], ftp: number | null): DayPoint[] {
     };
   });
 }
-
-const TOOLTIP_STYLE = {
-  background: "rgba(12, 15, 24, 0.92)",
-  border: "1px solid rgba(255, 255, 255, 0.1)",
-  borderRadius: 10,
-  color: "#e8eaf0",
-};
 
 interface Props {
   activities: Activity[];

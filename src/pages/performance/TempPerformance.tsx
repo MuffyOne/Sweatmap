@@ -8,13 +8,11 @@ import {
   ResponsiveContainer,
   CartesianGrid,
 } from "recharts";
-import type { Activity } from "./strava";
+import type { Activity } from "../../api/strava";
+import { TOOLTIP_STYLE, RUN_TYPES, RIDE_TYPES } from "../../lib/utils";
 
 type Metric = "speed" | "watts";
 type SportFilter = "all" | "run" | "ride";
-
-const RUN_TYPES = new Set(["Run", "TrailRun", "Treadmill", "VirtualRun"]);
-const RIDE_TYPES = new Set(["Ride", "VirtualRide", "EBikeRide", "GravelRide", "MountainBikeRide"]);
 
 interface Props {
   activities: Activity[];
@@ -90,12 +88,7 @@ export function TempPerformance({ activities }: Props) {
                 tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 12 }}
               />
               <Tooltip
-                contentStyle={{
-                  background: "rgba(12, 15, 24, 0.92)",
-                  border: "1px solid rgba(255, 255, 255, 0.1)",
-                  borderRadius: 10,
-                  color: "#e8eaf0",
-                }}
+                contentStyle={TOOLTIP_STYLE}
                 labelStyle={{ color: "#e8eaf0" }}
                 itemStyle={{ color: "#e8eaf0" }}
                 formatter={(value: unknown, name: unknown) => {

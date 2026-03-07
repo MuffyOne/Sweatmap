@@ -10,8 +10,9 @@ import {
   Cell,
 } from "recharts";
 import { subDays, parseISO, isAfter } from "date-fns";
-import { fetchActivityHeartrate, type Activity } from "./strava";
-import { AGE_KEY } from "./Settings";
+import { fetchActivityHeartrate, type Activity } from "../../api/strava";
+import { AGE_KEY } from "../Settings";
+import { formatTime, TOOLTIP_STYLE } from "../../lib/utils";
 
 type Range = "30d" | "90d";
 
@@ -33,14 +34,6 @@ function getHRZoneIndex(bpm: number, maxHR: number): number {
   return 0;
 }
 
-function formatTime(seconds: number): string {
-  if (seconds === 0) return "0m";
-  const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  if (h === 0) return `${m}m`;
-  if (m === 0) return `${h}h`;
-  return `${h}h ${m}m`;
-}
 
 interface ZonePoint {
   label: string;
@@ -225,12 +218,7 @@ export function HRZoneDistribution({ activities, onNavigate }: Props) {
               />
               <Tooltip
                 cursor={{ fill: "rgba(255, 255, 255, 0.04)" }}
-                contentStyle={{
-                  background: "rgba(12, 15, 24, 0.92)",
-                  border: "1px solid rgba(255, 255, 255, 0.1)",
-                  borderRadius: 10,
-                  color: "#e8eaf0",
-                }}
+                contentStyle={TOOLTIP_STYLE}
                 labelStyle={{ color: "#e8eaf0" }}
                 itemStyle={{ color: "#e8eaf0" }}
                 formatter={(value: unknown) => [formatTime(Number(value)), "Time"]}

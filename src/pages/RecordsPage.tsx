@@ -10,32 +10,12 @@ import {
   Cell,
 } from "recharts";
 import { format, parseISO, startOfMonth, subMonths, endOfMonth, isWithinInterval, startOfWeek, endOfWeek, subWeeks } from "date-fns";
-import type { Activity } from "./strava";
+import type { Activity } from "../api/strava";
+import { TOOLTIP_STYLE, formatDistance, normalizeSportLabel } from "../lib/utils";
 
 interface Props {
   activities: Activity[];
 }
-
-function normalizeSport(raw: string): string {
-  if (raw === "VirtualRide") return "Virtual Ride";
-  if (raw === "EBikeRide") return "E-Bike Ride";
-  if (raw === "GravelRide") return "Gravel Ride";
-  if (raw === "MountainBikeRide") return "MTB";
-  if (raw === "TrailRun") return "Trail Run";
-  if (raw === "VirtualRun") return "Virtual Run";
-  return raw;
-}
-
-function formatDistance(meters: number): string {
-  return (meters / 1000).toFixed(1);
-}
-
-const TOOLTIP_STYLE = {
-  background: "rgba(12, 15, 24, 0.92)",
-  border: "1px solid rgba(255, 255, 255, 0.1)",
-  borderRadius: 10,
-  color: "#e8eaf0",
-};
 
 const SPORT_COLORS = [
   "#fc4c02", "#4a9eca", "#9b7ec8", "#4aaa7a", "#c4943a",
@@ -133,7 +113,7 @@ export function RecordsPage({ activities }: Props) {
     const map = new Map<string, { prs: number; acts: number }>();
     for (const a of activities) {
       if ((a.pr_count ?? 0) === 0) continue;
-      const sport = normalizeSport(a.sport_type || a.type);
+      const sport = normalizeSportLabel(a.sport_type || a.type);
       const cur = map.get(sport) ?? { prs: 0, acts: 0 };
       cur.prs += a.pr_count ?? 0;
       cur.acts += 1;
@@ -307,7 +287,7 @@ export function RecordsPage({ activities }: Props) {
               >
                 <span className="records-activity-name">
                   {a.name}
-                  <span className="records-sport-tag">{normalizeSport(a.sport_type || a.type)}</span>
+                  <span className="records-sport-tag">{normalizeSportLabel(a.sport_type || a.type)}</span>
                 </span>
                 <span className="records-cell-muted">
                   {format(parseISO(a.start_date_local), "MMM d, yyyy")}

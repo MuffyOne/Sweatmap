@@ -10,22 +10,23 @@ import {
   Cell,
 } from "recharts";
 import { subDays, parseISO, isAfter } from "date-fns";
-import { fetchActivityWatts, type Activity } from "./strava";
+import { fetchActivityWatts, type Activity } from "../../api/strava";
+import { FTP_KEY } from "../Settings";
+import { formatTime, TOOLTIP_STYLE } from "../../lib/utils";
 
 type Range = "30d" | "90d";
 
 // Standard 7-zone power model (% of FTP)
 const POWER_ZONES = [
-  { label: "Z1 · Recovery",    min: 0,    max: 0.55,  color: "#4a5568" },
-  { label: "Z2 · Endurance",   min: 0.55, max: 0.75,  color: "#2d6a9f" },
-  { label: "Z3 · Tempo",       min: 0.75, max: 0.90,  color: "#276d4e" },
-  { label: "Z4 · Threshold",   min: 0.90, max: 1.05,  color: "#92780f" },
-  { label: "Z5 · VO2 Max",     min: 1.05, max: 1.20,  color: "#b05a18" },
-  { label: "Z6 · Anaerobic",   min: 1.20, max: 1.50,  color: "#9b2c2c" },
-  { label: "Z7 · Neuromuscular", min: 1.50, max: Infinity, color: "#6b35a8" },
+  { label: "Z1 · Recovery",      min: 0,    max: 0.55,       color: "#4a5568" },
+  { label: "Z2 · Endurance",     min: 0.55, max: 0.75,       color: "#2d6a9f" },
+  { label: "Z3 · Tempo",         min: 0.75, max: 0.90,       color: "#276d4e" },
+  { label: "Z4 · Threshold",     min: 0.90, max: 1.05,       color: "#92780f" },
+  { label: "Z5 · VO2 Max",       min: 1.05, max: 1.20,       color: "#b05a18" },
+  { label: "Z6 · Anaerobic",     min: 1.20, max: 1.50,       color: "#9b2c2c" },
+  { label: "Z7 · Neuromuscular", min: 1.50, max: Infinity,   color: "#6b35a8" },
 ];
 
-const FTP_KEY = "power_zones_ftp";
 const CACHE_KEY_PREFIX = "power_zones_";
 
 function getZoneIndex(watts: number, ftp: number): number {
@@ -34,15 +35,6 @@ function getZoneIndex(watts: number, ftp: number): number {
     if (ratio >= POWER_ZONES[i].min) return i;
   }
   return 0;
-}
-
-function formatTime(seconds: number): string {
-  if (seconds === 0) return "0m";
-  const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  if (h === 0) return `${m}m`;
-  if (m === 0) return `${h}h`;
-  return `${h}h ${m}m`;
 }
 
 interface ZonePoint {
@@ -226,12 +218,7 @@ export function ZoneDistribution({ activities, onNavigate }: Props) {
               />
               <Tooltip
                 cursor={{ fill: "rgba(255, 255, 255, 0.04)" }}
-                contentStyle={{
-                  background: "rgba(12, 15, 24, 0.92)",
-                  border: "1px solid rgba(255, 255, 255, 0.1)",
-                  borderRadius: 10,
-                  color: "#e8eaf0",
-                }}
+                contentStyle={TOOLTIP_STYLE}
                 labelStyle={{ color: "#e8eaf0" }}
                 itemStyle={{ color: "#e8eaf0" }}
                 formatter={(value: unknown) => [formatTime(Number(value)), "Time"]}

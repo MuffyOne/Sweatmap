@@ -9,7 +9,7 @@ import {
   CartesianGrid,
 } from "recharts";
 import { subDays, parseISO, isAfter } from "date-fns";
-import { fetchActivityWatts, type Activity } from "./strava";
+import { fetchActivityWatts, type Activity } from "../../api/strava";
 
 const DURATIONS = [1, 5, 10, 30, 60, 120, 300, 600, 1200, 1800, 3600];
 
