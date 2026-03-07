@@ -52,6 +52,14 @@ function LogOutIcon() {
   );
 }
 
+function FitnessIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="22,12 18,12 15,21 9,3 6,12 2,12" />
+    </svg>
+  );
+}
+
 function SettingsIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -79,6 +87,7 @@ function ChevronRightIcon() {
 
 const NAV_ITEMS: { id: Page; label: string; Icon: () => React.ReactElement }[] = [
   { id: "home", label: "Home", Icon: HomeIcon },
+  { id: "fitness", label: "Fitness", Icon: FitnessIcon },
   { id: "performance", label: "Performance", Icon: ZapIcon },
   { id: "activities", label: "Activities", Icon: ListIcon },
   { id: "settings", label: "Settings", Icon: SettingsIcon },
@@ -86,6 +95,7 @@ const NAV_ITEMS: { id: Page; label: string; Icon: () => React.ReactElement }[] =
 
 const PAGE_TITLES: Record<Page, string> = {
   home: "Overview",
+  fitness: "Fitness",
   performance: "Performance",
   activities: "Activities",
   settings: "Settings",
