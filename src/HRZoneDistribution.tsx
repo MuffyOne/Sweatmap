@@ -15,11 +15,11 @@ import { fetchActivityZones, type Activity } from "./strava";
 type Range = "30d" | "90d";
 
 const HR_ZONES = [
-  { label: "Z1 · Recovery",    color: "#6b7280" },
-  { label: "Z2 · Aerobic",     color: "#3b82f6" },
-  { label: "Z3 · Tempo",       color: "#22c55e" },
-  { label: "Z4 · Threshold",   color: "#f97316" },
-  { label: "Z5 · Max",         color: "#ef4444" },
+  { label: "Z1 · Recovery",    color: "#4a5568" },
+  { label: "Z2 · Aerobic",     color: "#2d6a9f" },
+  { label: "Z3 · Tempo",       color: "#276d4e" },
+  { label: "Z4 · Threshold",   color: "#b05a18" },
+  { label: "Z5 · Max",         color: "#9b2c2c" },
 ];
 
 const CACHE_KEY_PREFIX = "hr_zones_";
@@ -96,7 +96,7 @@ export function HRZoneDistribution({ activities }: Props) {
         }
       } catch (e: unknown) {
         if (e instanceof Error && e.message === "rate_limited") {
-          setError(`Rate limited after ${i} activities. Wait 15 min and try again.`);
+          setError(`Strava's API rate limit was reached after ${i} activities. This happens when too many requests are made in a short period — please wait 15 minutes and try again.`);
           setLoading(false);
           return;
         }

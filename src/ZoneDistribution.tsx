@@ -16,13 +16,13 @@ type Range = "30d" | "90d";
 
 // Standard 7-zone power model (% of FTP)
 const POWER_ZONES = [
-  { label: "Z1 · Recovery",    min: 0,    max: 0.55,  color: "#6b7280" },
-  { label: "Z2 · Endurance",   min: 0.55, max: 0.75,  color: "#3b82f6" },
-  { label: "Z3 · Tempo",       min: 0.75, max: 0.90,  color: "#22c55e" },
-  { label: "Z4 · Threshold",   min: 0.90, max: 1.05,  color: "#eab308" },
-  { label: "Z5 · VO2 Max",     min: 1.05, max: 1.20,  color: "#f97316" },
-  { label: "Z6 · Anaerobic",   min: 1.20, max: 1.50,  color: "#ef4444" },
-  { label: "Z7 · Neuromuscular", min: 1.50, max: Infinity, color: "#a855f7" },
+  { label: "Z1 · Recovery",    min: 0,    max: 0.55,  color: "#4a5568" },
+  { label: "Z2 · Endurance",   min: 0.55, max: 0.75,  color: "#2d6a9f" },
+  { label: "Z3 · Tempo",       min: 0.75, max: 0.90,  color: "#276d4e" },
+  { label: "Z4 · Threshold",   min: 0.90, max: 1.05,  color: "#92780f" },
+  { label: "Z5 · VO2 Max",     min: 1.05, max: 1.20,  color: "#b05a18" },
+  { label: "Z6 · Anaerobic",   min: 1.20, max: 1.50,  color: "#9b2c2c" },
+  { label: "Z7 · Neuromuscular", min: 1.50, max: Infinity, color: "#6b35a8" },
 ];
 
 const FTP_KEY = "power_zones_ftp";
@@ -121,7 +121,7 @@ export function ZoneDistribution({ activities }: Props) {
         }
       } catch (e: unknown) {
         if (e instanceof Error && e.message === "rate_limited") {
-          setError(`Rate limited after ${i} activities. Wait 15 min and try again.`);
+          setError(`Strava's API rate limit was reached after ${i} activities. This happens when too many requests are made in a short period — please wait 15 minutes and try again.`);
           setLoading(false);
           return;
         }

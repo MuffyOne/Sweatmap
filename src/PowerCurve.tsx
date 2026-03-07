@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   LineChart,
   Line,
@@ -66,7 +66,7 @@ export function PowerCurve({ activities }: Props) {
 
   const curve = curves[range] ?? null;
 
-  async function compute() {
+  const compute = useCallback(async () => {
     const now = new Date();
     const since = range === "30d" ? subDays(now, 30) : subDays(now, 90);
 
@@ -114,7 +114,13 @@ export function PowerCurve({ activities }: Props) {
     setCurves((prev) => ({ ...prev, [range]: chartData }));
     saveCurveCache(range, chartData);
     setLoading(false);
-  }
+  }, [activities, range]);
+
+  useEffect(() => {
+    if (!curves[range] && !loading) {
+      compute();
+    }
+  }, [range, curves, loading, compute]);
 
   return (
     <div className="chart-section">
@@ -122,7 +128,7 @@ export function PowerCurve({ activities }: Props) {
         <h3>Power Curve</h3>
         <div className="power-curve-controls">
           <div className="period-toggle" style={{ marginBottom: 0 }}>
-            {(["30d", "year"] as CurveRange[]).map((r) => (
+            {(["30d", "90d"] as CurveRange[]).map((r) => (
               <button key={r} className={range === r ? "active" : ""} onClick={() => setRange(r)}>
                 {r === "30d" ? "Last 30 days" : "Last 90 days"}
               </button>
