@@ -16,6 +16,7 @@ function App() {
   const [authenticated, setAuthenticated] = useState(false);
   const [activities, setActivities] = useState<Activity[]>([]);
   const [athleteName, setAthleteName] = useState<string>("");
+  const [athleteAvatar, setAthleteAvatar] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [fetchedCount, setFetchedCount] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
@@ -49,6 +50,7 @@ function App() {
       const cache = getCache();
       if (cache) {
         setAthleteName(`${cache.athlete.firstname} ${cache.athlete.lastname}`);
+        setAthleteAvatar(cache.athlete.profile_medium ?? "");
         setActivities(cache.activities);
         setLoading(false);
         if (isCacheFresh(cache)) return; // Cache is fresh, skip refetch
@@ -58,6 +60,7 @@ function App() {
       try {
         const { athlete, activities: data } = await fetchAndCache(setFetchedCount);
         setAthleteName(`${athlete.firstname} ${athlete.lastname}`);
+        setAthleteAvatar(athlete.profile_medium ?? "");
         setActivities(data);
       } catch (e) {
         if (!cache) setError(`Failed to fetch activities: ${e}`);
@@ -114,6 +117,9 @@ function App() {
     <div className="app">
       <header className="header">
         <h1>
+          {athleteAvatar && (
+            <img src={athleteAvatar} alt="" className="athlete-avatar" />
+          )}
           {athleteName ? `${athleteName}'s Dashboard` : "Strava Dashboard"}
           {refreshing && <span className="refreshing-badge">Updating…</span>}
         </h1>
