@@ -330,7 +330,7 @@ export function Dashboard({ activities, page, onNavigate }: Props) {
 
       <div className="stats-grid">
         {enabledStats.has("count") && (
-          <div className="stat-card">
+          <div className="stat-card stat-card--clickable" onClick={() => onNavigate("activities")}>
             <div className="label">Activities</div>
             <div className="value">{stats.count}</div>
           </div>
@@ -360,7 +360,7 @@ export function Dashboard({ activities, page, onNavigate }: Props) {
           </div>
         )}
         {enabledStats.has("heartrate") && stats.avgHeartrate && (
-          <div className="stat-card">
+          <div className="stat-card stat-card--clickable" onClick={() => onNavigate("performance")}>
             <div className="label">Avg Heart Rate</div>
             <div className="value">
               {Math.round(stats.avgHeartrate)}
@@ -369,7 +369,7 @@ export function Dashboard({ activities, page, onNavigate }: Props) {
           </div>
         )}
         {enabledStats.has("watts") && stats.avgWatts && (
-          <div className="stat-card">
+          <div className="stat-card stat-card--clickable" onClick={() => onNavigate("performance")}>
             <div className="label">Avg Power</div>
             <div className="value">
               {Math.round(stats.avgWatts)}

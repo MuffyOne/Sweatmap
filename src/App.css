@@ -473,6 +473,10 @@ body {
   box-shadow: 0 12px 40px rgba(252, 76, 2, 0.1), 0 0 0 1px rgba(252, 76, 2, 0.12);
 }
 
+.stat-card--clickable {
+  cursor: pointer;
+}
+
 .stat-card .label {
   font-size: 0.72rem;
   color: rgba(255, 255, 255, 0.32);
