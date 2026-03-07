@@ -26,8 +26,9 @@ import type { Activity } from "./strava";
 import { PowerCurve } from "./PowerCurve";
 import { ZoneDistribution } from "./ZoneDistribution";
 import { HRZoneDistribution } from "./HRZoneDistribution";
+import { Settings } from "./Settings";
 
-export type Page = "home" | "performance" | "activities";
+export type Page = "home" | "performance" | "activities" | "settings";
 
 type Period = "week" | "month" | "year" | "last7" | "last30";
 
@@ -214,6 +215,10 @@ export function Dashboard({ activities, page }: Props) {
     }
     return months;
   }, [activities]);
+
+  if (page === "settings") {
+    return <Settings />;
+  }
 
   if (page === "performance") {
     return (

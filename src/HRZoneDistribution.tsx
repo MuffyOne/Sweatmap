@@ -10,19 +10,28 @@ import {
   Cell,
 } from "recharts";
 import { subDays, parseISO, isAfter } from "date-fns";
-import { fetchActivityZones, type Activity } from "./strava";
+import { fetchActivityHeartrate, type Activity } from "./strava";
+import { AGE_KEY } from "./Settings";
 
 type Range = "30d" | "90d";
 
-const HR_ZONES = [
-  { label: "Z1 · Recovery",    color: "#4a5568" },
-  { label: "Z2 · Aerobic",     color: "#2d6a9f" },
-  { label: "Z3 · Tempo",       color: "#276d4e" },
-  { label: "Z4 · Threshold",   color: "#b05a18" },
-  { label: "Z5 · Max",         color: "#9b2c2c" },
+const HR_ZONE_DEFS = [
+  { label: "Z1 · Recovery",  min: 0,    max: 0.60, color: "#4a5568" },
+  { label: "Z2 · Aerobic",   min: 0.60, max: 0.70, color: "#2d6a9f" },
+  { label: "Z3 · Tempo",     min: 0.70, max: 0.80, color: "#276d4e" },
+  { label: "Z4 · Threshold", min: 0.80, max: 0.90, color: "#b05a18" },
+  { label: "Z5 · Max",       min: 0.90, max: 1.00, color: "#9b2c2c" },
 ];
 
-const CACHE_KEY_PREFIX = "hr_zones_";
+const CACHE_KEY_PREFIX = "hr_zones_v2_";
+
+function getHRZoneIndex(bpm: number, maxHR: number): number {
+  const ratio = bpm / maxHR;
+  for (let i = HR_ZONE_DEFS.length - 1; i >= 0; i--) {
+    if (ratio >= HR_ZONE_DEFS[i].min) return i;
+  }
+  return 0;
+}
 
 function formatTime(seconds: number): string {
   if (seconds === 0) return "0m";
@@ -64,8 +73,13 @@ export function HRZoneDistribution({ activities }: Props) {
   const [error, setError] = useState<string | null>(null);
 
   const data = zones[range] ?? null;
+  const ageVal = parseInt(localStorage.getItem(AGE_KEY) ?? "", 10);
+  const ageValid = !isNaN(ageVal) && ageVal > 0 && ageVal < 120;
+  const maxHR = ageValid ? 220 - ageVal : null;
 
   const compute = useCallback(async () => {
+    if (!maxHR) return;
+
     const now = new Date();
     const since = subDays(now, range === "30d" ? 30 : 90);
     const eligible = activities.filter(
@@ -81,18 +95,17 @@ export function HRZoneDistribution({ activities }: Props) {
     setError(null);
     setProgress({ done: 0, total: eligible.length });
 
-    const zoneTotals = new Array<number>(HR_ZONES.length).fill(0);
+    const zoneTotals = new Array<number>(HR_ZONE_DEFS.length).fill(0);
 
     for (let i = 0; i < eligible.length; i++) {
       try {
-        const zoneData = await fetchActivityZones(eligible[i].id);
-        const hrZone = zoneData.find((z) => z.type === "heartrate");
-        if (hrZone) {
-          hrZone.distribution_buckets.forEach((bucket, idx) => {
-            if (idx < HR_ZONES.length) {
-              zoneTotals[idx] += bucket.time;
+        const hrStream = await fetchActivityHeartrate(eligible[i].id);
+        if (hrStream) {
+          for (const bpm of hrStream) {
+            if (bpm > 0) {
+              zoneTotals[getHRZoneIndex(bpm, maxHR)]++;
             }
-          });
+          }
         }
       } catch (e: unknown) {
         if (e instanceof Error && e.message === "rate_limited") {
@@ -105,12 +118,12 @@ export function HRZoneDistribution({ activities }: Props) {
     }
 
     if (zoneTotals.every((t) => t === 0)) {
-      setError("No heart rate zone data found for activities in this period.");
+      setError("No heart rate stream data found for activities in this period.");
       setLoading(false);
       return;
     }
 
-    const result: ZonePoint[] = HR_ZONES.map((z, i) => ({
+    const result: ZonePoint[] = HR_ZONE_DEFS.map((z, i) => ({
       label: z.label,
       seconds: zoneTotals[i],
       color: z.color,
@@ -119,13 +132,13 @@ export function HRZoneDistribution({ activities }: Props) {
     setZones((prev) => ({ ...prev, [range]: result }));
     saveCache(range, result);
     setLoading(false);
-  }, [activities, range]);
+  }, [activities, range, maxHR]);
 
   useEffect(() => {
-    if (!zones[range] && !loading) {
+    if (!zones[range] && !loading && ageValid) {
       compute();
     }
-  }, [range, zones, loading, compute]);
+  }, [range, zones, loading, ageValid, compute]);
 
   const totalSeconds = data?.reduce((s, z) => s + z.seconds, 0) ?? 0;
 
@@ -134,6 +147,9 @@ export function HRZoneDistribution({ activities }: Props) {
       <div className="power-curve-header">
         <h3>Time in HR Zones</h3>
         <div className="power-curve-controls">
+          {maxHR && (
+            <span style={{ fontSize: "0.78rem", opacity: 0.4 }}>Max HR {maxHR} bpm</span>
+          )}
           <div className="period-toggle" style={{ marginBottom: 0 }}>
             {(["30d", "90d"] as Range[]).map((r) => (
               <button key={r} className={range === r ? "active" : ""} onClick={() => setRange(r)}>
@@ -141,7 +157,7 @@ export function HRZoneDistribution({ activities }: Props) {
               </button>
             ))}
           </div>
-          <button className="btn-compute" onClick={compute} disabled={loading}>
+          <button className="btn-compute" onClick={compute} disabled={loading || !ageValid}>
             {loading ? `${progress.done} / ${progress.total}…` : data ? "Refresh" : "Compute"}
           </button>
         </div>
@@ -151,21 +167,22 @@ export function HRZoneDistribution({ activities }: Props) {
 
       {!data && !loading && !error && (
         <div className="power-curve-empty">
-          Click <strong>Compute</strong> to see how you distribute time across heart rate zones.
+          {ageValid
+            ? <>Computing your HR zone distribution…</>
+            : <>Set your <strong>Age</strong> in <strong>Settings</strong> to compute HR zones.</>}
         </div>
       )}
 
       {loading && (
         <div className="power-curve-empty">
-          Fetching zones… {progress.done} / {progress.total}
+          Fetching streams… {progress.done} / {progress.total}
           <div className="loading-bar-track" style={{ marginTop: "0.75rem" }}>
             <div
               className="loading-bar-fill"
               style={{
-                width:
-                  progress.total > 0
-                    ? `${Math.round((progress.done / progress.total) * 100)}%`
-                    : "5%",
+                width: progress.total > 0
+                  ? `${Math.round((progress.done / progress.total) * 100)}%`
+                  : "5%",
                 animation: "none",
                 opacity: 1,
               }}
@@ -179,7 +196,7 @@ export function HRZoneDistribution({ activities }: Props) {
           <div className="zone-summary">
             Total HR time: <strong>{formatTime(totalSeconds)}</strong>
           </div>
-          <ResponsiveContainer width="100%" height={HR_ZONES.length * 46 + 20}>
+          <ResponsiveContainer width="100%" height={HR_ZONE_DEFS.length * 46 + 20}>
             <BarChart
               data={data}
               layout="vertical"

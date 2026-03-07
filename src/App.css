@@ -737,3 +737,75 @@ body {
   font-size: 0.83rem;
   margin-bottom: 0.75rem;
 }
+
+/* Settings page */
+.settings-page {
+  max-width: 540px;
+}
+
+.settings-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.settings-field {
+  padding: 1.5rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.settings-field:last-child {
+  border-bottom: none;
+}
+
+.settings-field-label {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.75);
+  margin-bottom: 0.35rem;
+}
+
+.settings-field-hint {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.3);
+  margin-bottom: 0.9rem;
+  line-height: 1.5;
+}
+
+.settings-input-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.settings-input {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: #e8eaf0;
+  font-size: 1rem;
+  padding: 0.5rem 0.75rem;
+  width: 130px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.settings-input:focus {
+  border-color: rgba(252, 76, 2, 0.5);
+}
+
+.settings-input::-webkit-inner-spin-button,
+.settings-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+}
+
+.settings-unit {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.settings-computed {
+  margin-top: 0.6rem;
+  font-size: 0.78rem;
+  color: rgba(252, 76, 2, 0.65);
+}

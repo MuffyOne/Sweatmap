@@ -165,6 +165,18 @@ export async function fetchAllActivities(onProgress?: (count: number) => void): 
   return all;
 }
 
+export async function fetchActivityHeartrate(activityId: number): Promise<number[] | null> {
+  const token = await getValidToken();
+  const res = await fetch(
+    `https://www.strava.com/api/v3/activities/${activityId}/streams?keys=heartrate&key_by_type=true`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+  if (res.status === 429) throw new Error("rate_limited");
+  if (!res.ok) return null;
+  const data = await res.json();
+  return data.heartrate?.data ?? null;
+}
+
 export async function fetchActivityWatts(activityId: number): Promise<number[] | null> {
   const token = await getValidToken();
   const res = await fetch(

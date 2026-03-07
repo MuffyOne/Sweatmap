@@ -67,8 +67,6 @@ interface Props {
 
 export function ZoneDistribution({ activities }: Props) {
   const [range, setRange] = useState<Range>("30d");
-  const [ftp, setFtp] = useState<string>(() => localStorage.getItem(FTP_KEY) ?? "");
-  const [editingFtp, setEditingFtp] = useState(false);
   const [zones, setZones] = useState<Partial<Record<Range, ZonePoint[]>>>(() => ({
     "30d": loadCache("30d") ?? undefined,
     "90d": loadCache("90d") ?? undefined,
@@ -78,19 +76,11 @@ export function ZoneDistribution({ activities }: Props) {
   const [error, setError] = useState<string | null>(null);
 
   const data = zones[range] ?? null;
-  const ftpVal = parseInt(ftp, 10);
+  const ftpVal = parseInt(localStorage.getItem(FTP_KEY) ?? "", 10);
   const ftpValid = !isNaN(ftpVal) && ftpVal > 0;
 
-  function saveFtp(val: string) {
-    setFtp(val);
-    localStorage.setItem(FTP_KEY, val);
-  }
-
   const compute = useCallback(async () => {
-    if (!ftpValid) {
-      setError("Please enter your FTP before computing.");
-      return;
-    }
+    if (!ftpValid) return;
 
     const now = new Date();
     const since = subDays(now, range === "30d" ? 30 : 90);
@@ -159,27 +149,6 @@ export function ZoneDistribution({ activities }: Props) {
       <div className="power-curve-header">
         <h3>Time in Power Zones</h3>
         <div className="power-curve-controls">
-          {/* FTP input */}
-          <div className="ftp-input-wrapper">
-            {editingFtp ? (
-              <input
-                className="ftp-input"
-                type="number"
-                value={ftp}
-                min={1}
-                placeholder="FTP"
-                autoFocus
-                onChange={(e) => saveFtp(e.target.value)}
-                onBlur={() => setEditingFtp(false)}
-                onKeyDown={(e) => e.key === "Enter" && setEditingFtp(false)}
-              />
-            ) : (
-              <button className="ftp-display" onClick={() => setEditingFtp(true)}>
-                {ftpValid ? `FTP: ${ftpVal} W` : "Set FTP"}
-              </button>
-            )}
-          </div>
-
           <div className="period-toggle" style={{ marginBottom: 0 }}>
             {(["30d", "90d"] as Range[]).map((r) => (
               <button key={r} className={range === r ? "active" : ""} onClick={() => setRange(r)}>
@@ -198,8 +167,8 @@ export function ZoneDistribution({ activities }: Props) {
       {!data && !loading && !error && (
         <div className="power-curve-empty">
           {ftpValid
-            ? <>Click <strong>Compute</strong> to see how you distribute time across power zones.</>
-            : <>Set your <strong>FTP</strong> above, then click <strong>Compute</strong>.</>}
+            ? <>Computing your power zone distribution…</>
+            : <>Set your <strong>FTP</strong> in <strong>Settings</strong> to compute power zones.</>}
         </div>
       )}
 
@@ -226,7 +195,7 @@ export function ZoneDistribution({ activities }: Props) {
         <>
           <div className="zone-summary">
             Total power time: <strong>{formatTime(totalSeconds)}</strong>
-            {ftpValid && <span style={{ marginLeft: "0.75rem", opacity: 0.5 }}>FTP {ftpVal} W</span>}
+            <span style={{ marginLeft: "0.75rem", opacity: 0.5 }}>FTP {ftpVal} W</span>
           </div>
           <ResponsiveContainer width="100%" height={POWER_ZONES.length * 46 + 20}>
             <BarChart
