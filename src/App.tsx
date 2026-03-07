@@ -3,6 +3,7 @@ import {
   getAuthUrl,
   getStoredTokens,
   exchangeCode,
+  fetchAthlete,
   fetchAllActivities,
   logout,
   type Activity,
@@ -13,6 +14,7 @@ import "./App.css";
 function App() {
   const [authenticated, setAuthenticated] = useState(false);
   const [activities, setActivities] = useState<Activity[]>([]);
+  const [athleteName, setAthleteName] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -40,7 +42,8 @@ function App() {
 
       setAuthenticated(true);
       try {
-        const data = await fetchAllActivities();
+        const [athlete, data] = await Promise.all([fetchAthlete(), fetchAllActivities()]);
+        setAthleteName(`${athlete.firstname} ${athlete.lastname}`);
         setActivities(data);
       } catch (e) {
         setError(`Failed to fetch activities: ${e}`);
@@ -83,7 +86,7 @@ function App() {
   return (
     <div className="app">
       <header className="header">
-        <h1>Strava Dashboard</h1>
+        <h1>{athleteName ? `${athleteName}'s Dashboard` : "Strava Dashboard"}</h1>
         <button onClick={logout} className="btn-logout">
           Logout
         </button>

@@ -19,11 +19,12 @@ import {
   format,
   subWeeks,
   subMonths,
+  subDays,
   parseISO,
 } from "date-fns";
 import type { Activity } from "./strava";
 
-type Period = "week" | "month" | "year";
+type Period = "week" | "month" | "year" | "last7" | "last30";
 
 function formatDuration(seconds: number): string {
   const h = Math.floor(seconds / 3600);
@@ -53,6 +54,10 @@ function getInterval(period: Period): { start: Date; end: Date } {
       return { start: startOfMonth(now), end: endOfMonth(now) };
     case "year":
       return { start: startOfYear(now), end: endOfYear(now) };
+    case "last7":
+      return { start: subDays(now, 7), end: now };
+    case "last30":
+      return { start: subDays(now, 30), end: now };
   }
 }
 
@@ -88,7 +93,15 @@ export function Dashboard({ activities }: Props) {
           filtered.filter((a) => a.average_heartrate).length
         : null;
 
-    return { totalDistance, totalTime, totalElevation, count, avgHeartrate };
+    const avgWatts =
+      filtered.filter((a) => a.average_watts).length > 0
+        ? filtered
+            .filter((a) => a.average_watts)
+            .reduce((s, a) => s + (a.average_watts || 0), 0) /
+          filtered.filter((a) => a.average_watts).length
+        : null;
+
+    return { totalDistance, totalTime, totalElevation, count, avgHeartrate, avgWatts };
   }, [filtered]);
 
   const sportBreakdown = useMemo(() => {
@@ -153,15 +166,16 @@ export function Dashboard({ activities }: Props) {
   }, [activities]);
 
   return (
+    <>
     <div>
       <div className="period-toggle">
-        {(["week", "month", "year"] as Period[]).map((p) => (
+        {(["last7", "last30", "week", "month", "year"] as Period[]).map((p) => (
           <button
             key={p}
             className={period === p ? "active" : ""}
             onClick={() => setPeriod(p)}
           >
-            This {p}
+            {p === "last7" ? "Last 7 days" : p === "last30" ? "Last 30 days" : `This ${p}`}
           </button>
         ))}
       </div>
@@ -195,6 +209,15 @@ export function Dashboard({ activities }: Props) {
             <div className="value">
               {Math.round(stats.avgHeartrate)}
               <span className="unit">bpm</span>
+            </div>
+          </div>
+        )}
+        {stats.avgWatts && (
+          <div className="stat-card">
+            <div className="label">Avg Power</div>
+            <div className="value">
+              {Math.round(stats.avgWatts)}
+              <span className="unit">W</span>
             </div>
           </div>
         )}
@@ -289,10 +312,16 @@ export function Dashboard({ activities }: Props) {
               <div>
                 <span>{formatPace(a.average_speed)}</span> /km
               </div>
+              {a.average_watts && (
+                <div>
+                  <span>{Math.round(a.average_watts)}</span> W
+                </div>
+              )}
             </div>
           </div>
         ))}
       </div>
     </div>
+    </>
   );
 }

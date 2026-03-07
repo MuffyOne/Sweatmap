@@ -25,6 +25,7 @@ export interface Activity {
   max_speed: number;
   average_heartrate?: number;
   max_heartrate?: number;
+  average_watts?: number;
   kudos_count: number;
   suffer_score?: number;
 }
@@ -61,6 +62,7 @@ export async function exchangeCode(code: string): Promise<Tokens> {
     }),
   });
   const data = await res.json();
+  if (!res.ok) throw new Error(data.message || `Token exchange failed: ${res.status}`);
   const tokens: Tokens = {
     access_token: data.access_token,
     refresh_token: data.refresh_token,
@@ -100,6 +102,15 @@ async function getValidToken(): Promise<string> {
     tokens = await refreshTokens(tokens.refresh_token);
   }
   return tokens.access_token;
+}
+
+export async function fetchAthlete(): Promise<{ firstname: string; lastname: string }> {
+  const token = await getValidToken();
+  const res = await fetch("https://www.strava.com/api/v3/athlete", {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error(`Strava API error: ${res.status}`);
+  return res.json();
 }
 
 export async function fetchActivities(page = 1, perPage = 200): Promise<Activity[]> {
