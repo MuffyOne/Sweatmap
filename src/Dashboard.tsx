@@ -24,8 +24,10 @@ import {
 } from "date-fns";
 import type { Activity } from "./strava";
 import { PowerCurve } from "./PowerCurve";
+import { ZoneDistribution } from "./ZoneDistribution";
+import { HRZoneDistribution } from "./HRZoneDistribution";
 
-export type Page = "home" | "power" | "activities";
+export type Page = "home" | "performance" | "activities";
 
 type Period = "week" | "month" | "year" | "last7" | "last30";
 
@@ -213,8 +215,14 @@ export function Dashboard({ activities, page }: Props) {
     return months;
   }, [activities]);
 
-  if (page === "power") {
-    return <PowerCurve activities={activities} />;
+  if (page === "performance") {
+    return (
+      <>
+        <PowerCurve activities={activities} />
+        <ZoneDistribution activities={activities} />
+        <HRZoneDistribution activities={activities} />
+      </>
+    );
   }
 
   const periodToggle = (

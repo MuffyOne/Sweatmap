@@ -70,13 +70,13 @@ function ChevronRightIcon() {
 
 const NAV_ITEMS: { id: Page; label: string; Icon: () => React.ReactElement }[] = [
   { id: "home", label: "Home", Icon: HomeIcon },
-  { id: "power", label: "Power", Icon: ZapIcon },
+  { id: "performance", label: "Performance", Icon: ZapIcon },
   { id: "activities", label: "Activities", Icon: ListIcon },
 ];
 
 const PAGE_TITLES: Record<Page, string> = {
   home: "Overview",
-  power: "Power Curve",
+  performance: "Performance",
   activities: "Activities",
 };
 

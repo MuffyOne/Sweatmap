@@ -683,6 +683,55 @@ body {
   color: rgba(255, 255, 255, 0.55);
 }
 
+.ftp-input-wrapper {
+  display: flex;
+  align-items: center;
+}
+
+.ftp-display {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.55);
+  padding: 0.35rem 0.8rem;
+  border-radius: 50px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.ftp-display:hover {
+  border-color: rgba(255, 255, 255, 0.18);
+  color: #e8eaf0;
+}
+
+.ftp-input {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(252, 76, 2, 0.4);
+  color: #e8eaf0;
+  padding: 0.32rem 0.65rem;
+  border-radius: 50px;
+  font-size: 0.8rem;
+  width: 90px;
+  outline: none;
+  text-align: center;
+}
+
+.ftp-input::-webkit-inner-spin-button,
+.ftp-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+}
+
+.zone-summary {
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.32);
+  margin-bottom: 1rem;
+}
+
+.zone-summary strong {
+  color: rgba(255, 255, 255, 0.65);
+}
+
 .power-curve-error {
   color: rgba(248, 81, 73, 0.8);
   font-size: 0.83rem;
