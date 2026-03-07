@@ -56,6 +56,9 @@ export interface Activity {
   average_watts?: number;
   kudos_count: number;
   suffer_score?: number;
+  pr_count?: number;
+  achievement_count?: number;
+  average_temp?: number;
 }
 
 export function getAuthUrl(): string {

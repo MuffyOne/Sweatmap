@@ -27,18 +27,21 @@ import { PowerCurve } from "./PowerCurve";
 import { ZoneDistribution } from "./ZoneDistribution";
 import { HRZoneDistribution } from "./HRZoneDistribution";
 import { Settings } from "./Settings";
+import { TempPerformance } from "./TempPerformance";
 
 export type Page = "home" | "performance" | "activities" | "settings";
 
 type Period = "week" | "month" | "year" | "last7" | "last30";
 
 const ALL_STATS = [
-  { id: "count",     label: "Activities"     },
-  { id: "distance",  label: "Distance"       },
-  { id: "time",      label: "Moving Time"    },
-  { id: "elevation", label: "Elevation"      },
-  { id: "heartrate", label: "Avg Heart Rate" },
-  { id: "watts",     label: "Avg Power"      },
+  { id: "count",        label: "Activities"     },
+  { id: "distance",     label: "Distance"       },
+  { id: "time",         label: "Moving Time"    },
+  { id: "elevation",    label: "Elevation"      },
+  { id: "heartrate",    label: "Avg Heart Rate" },
+  { id: "watts",        label: "Avg Power"      },
+  { id: "prcount",      label: "PRs"            },
+  { id: "achievements", label: "Achievements"   },
 ] as const;
 
 type StatId = typeof ALL_STATS[number]["id"];
@@ -151,7 +154,9 @@ export function Dashboard({ activities, page, onNavigate }: Props) {
             .reduce((s, a) => s + (a.average_watts || 0), 0) /
           filtered.filter((a) => a.average_watts).length
         : null;
-    return { totalDistance, totalTime, totalElevation, count, avgHeartrate, avgWatts };
+    const totalPRs = filtered.reduce((s, a) => s + (a.pr_count ?? 0), 0);
+    const totalAchievements = filtered.reduce((s, a) => s + (a.achievement_count ?? 0), 0);
+    return { totalDistance, totalTime, totalElevation, count, avgHeartrate, avgWatts, totalPRs, totalAchievements };
   }, [filtered]);
 
   const sportBreakdown = useMemo(() => {
@@ -227,6 +232,7 @@ export function Dashboard({ activities, page, onNavigate }: Props) {
         <PowerCurve activities={activities} />
         <ZoneDistribution activities={activities} onNavigate={onNavigate} />
         <HRZoneDistribution activities={activities} onNavigate={onNavigate} />
+        <TempPerformance activities={activities} />
       </>
     );
   }
@@ -375,6 +381,18 @@ export function Dashboard({ activities, page, onNavigate }: Props) {
               {Math.round(stats.avgWatts)}
               <span className="unit">W</span>
             </div>
+          </div>
+        )}
+        {enabledStats.has("prcount") && (
+          <div className="stat-card">
+            <div className="label">PRs</div>
+            <div className="value">{stats.totalPRs}</div>
+          </div>
+        )}
+        {enabledStats.has("achievements") && (
+          <div className="stat-card">
+            <div className="label">Achievements</div>
+            <div className="value">{stats.totalAchievements}</div>
           </div>
         )}
       </div>
