@@ -71,6 +71,18 @@ function FitnessIcon() {
   );
 }
 
+function TrophyIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="8,21 16,21" />
+      <line x1="12" y1="17" x2="12" y2="21" />
+      <path d="M7 4H17V11C17 14.31 14.76 17 12 17C9.24 17 7 14.31 7 11Z" />
+      <path d="M17 5H20C20 5 20 9 17 11" />
+      <path d="M7 5H4C4 5 4 9 7 11" />
+    </svg>
+  );
+}
+
 function SettingsIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -111,12 +123,14 @@ const NAV_ITEMS: { id: Page; label: string; Icon: () => React.ReactElement }[] =
   { id: "fitness", label: "Fitness", Icon: FitnessIcon },
   { id: "performance", label: "Performance", Icon: ZapIcon },
   { id: "activities", label: "Activities", Icon: ListIcon },
+  { id: "records", label: "Records", Icon: TrophyIcon },
   { id: "settings", label: "Settings", Icon: SettingsIcon },
 ];
 
 const PAGE_TITLES: Record<Page, string> = {
   home: "Overview",
   fitness: "Fitness",
+  records: "Records",
   performance: "Performance",
   activities: "Activities",
   settings: "Settings",

@@ -29,8 +29,9 @@ import { HRZoneDistribution } from "./HRZoneDistribution";
 import { Settings } from "./Settings";
 import { TempPerformance } from "./TempPerformance";
 import { FitnessChart } from "./FitnessChart";
+import { RecordsPage } from "./RecordsPage";
 
-export type Page = "home" | "performance" | "activities" | "settings" | "fitness";
+export type Page = "home" | "performance" | "activities" | "settings" | "fitness" | "records";
 
 type Period = "week" | "month" | "year" | "last7" | "last30";
 
@@ -229,6 +230,10 @@ export function Dashboard({ activities, page, onNavigate }: Props) {
 
   if (page === "fitness") {
     return <FitnessChart activities={activities} />;
+  }
+
+  if (page === "records") {
+    return <RecordsPage activities={activities} />;
   }
 
   if (page === "performance") {
