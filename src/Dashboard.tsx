@@ -45,6 +45,12 @@ function formatPace(avgSpeed: number): string {
   return `${min}:${sec.toString().padStart(2, "0")}`;
 }
 
+const RUN_TYPES = new Set(["Run", "TrailRun", "Treadmill", "VirtualRun"]);
+
+function isRun(activity: Activity): boolean {
+  return RUN_TYPES.has(activity.sport_type) || RUN_TYPES.has(activity.type);
+}
+
 function getInterval(period: Period): { start: Date; end: Date } {
   const now = new Date();
   switch (period) {
@@ -309,9 +315,11 @@ export function Dashboard({ activities }: Props) {
               <div>
                 <span>{formatDuration(a.moving_time)}</span>
               </div>
-              <div>
-                <span>{formatPace(a.average_speed)}</span> /km
-              </div>
+              {isRun(a) ? (
+                <div><span>{formatPace(a.average_speed)}</span> /km</div>
+              ) : (
+                <div><span>{Math.round(a.total_elevation_gain)}</span> m elev</div>
+              )}
               {a.average_watts && (
                 <div>
                   <span>{Math.round(a.average_watts)}</span> W
