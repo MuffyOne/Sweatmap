@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   getAuthUrl,
   getStoredTokens,
@@ -9,8 +9,76 @@ import {
   logout,
   type Activity,
 } from "./strava";
-import { Dashboard } from "./Dashboard";
+import { Dashboard, type Page } from "./Dashboard";
 import "./App.css";
+
+function HomeIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+      <polyline points="9,22 9,12 15,12 15,22" />
+    </svg>
+  );
+}
+
+function ZapIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polygon points="13,2 3,14 12,14 11,22 21,10 12,10" />
+    </svg>
+  );
+}
+
+function ListIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="8" y1="6" x2="21" y2="6" />
+      <line x1="8" y1="12" x2="21" y2="12" />
+      <line x1="8" y1="18" x2="21" y2="18" />
+      <line x1="3" y1="6" x2="3.01" y2="6" />
+      <line x1="3" y1="12" x2="3.01" y2="12" />
+      <line x1="3" y1="18" x2="3.01" y2="18" />
+    </svg>
+  );
+}
+
+function LogOutIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+      <polyline points="16,17 21,12 16,7" />
+      <line x1="21" y1="12" x2="9" y2="12" />
+    </svg>
+  );
+}
+
+function ChevronLeftIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="15,18 9,12 15,6" />
+    </svg>
+  );
+}
+
+function ChevronRightIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="9,18 15,12 9,6" />
+    </svg>
+  );
+}
+
+const NAV_ITEMS: { id: Page; label: string; Icon: () => React.ReactElement }[] = [
+  { id: "home", label: "Home", Icon: HomeIcon },
+  { id: "power", label: "Power", Icon: ZapIcon },
+  { id: "activities", label: "Activities", Icon: ListIcon },
+];
+
+const PAGE_TITLES: Record<Page, string> = {
+  home: "Overview",
+  power: "Power Curve",
+  activities: "Activities",
+};
 
 function App() {
   const [authenticated, setAuthenticated] = useState(false);
@@ -21,6 +89,8 @@ function App() {
   const [fetchedCount, setFetchedCount] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState<Page>("home");
+  const [collapsed, setCollapsed] = useState(false);
 
   useEffect(() => {
     async function init() {
@@ -46,14 +116,13 @@ function App() {
 
       setAuthenticated(true);
 
-      // Load from cache immediately if available
       const cache = getCache();
       if (cache) {
         setAthleteName(`${cache.athlete.firstname} ${cache.athlete.lastname}`);
         setAthleteAvatar(cache.athlete.profile_medium ?? "");
         setActivities(cache.activities);
         setLoading(false);
-        if (isCacheFresh(cache)) return; // Cache is fresh, skip refetch
+        if (isCacheFresh(cache)) return;
         setRefreshing(true);
       }
 
@@ -83,7 +152,9 @@ function App() {
           <div className="loading-bar-track">
             <div
               className="loading-bar-fill"
-              style={{ width: fetchedCount > 0 ? `${Math.min((fetchedCount / 400) * 100, 90)}%` : undefined }}
+              style={{
+                width: fetchedCount > 0 ? `${Math.min((fetchedCount / 400) * 100, 90)}%` : undefined,
+              }}
             />
           </div>
         </div>
@@ -114,20 +185,56 @@ function App() {
   }
 
   return (
-    <div className="app">
-      <header className="header">
-        <h1>
-          {athleteAvatar && (
-            <img src={athleteAvatar} alt="" className="athlete-avatar" />
-          )}
-          {athleteName ? `${athleteName}'s Dashboard` : "Strava Dashboard"}
-          {refreshing && <span className="refreshing-badge">Updating…</span>}
-        </h1>
-        <button onClick={logout} className="btn-logout">
-          Logout
+    <div className="layout">
+      <nav className={`sidebar${collapsed ? " collapsed" : ""}`}>
+        <div className="sidebar-profile">
+          {athleteAvatar && <img src={athleteAvatar} alt="" className="athlete-avatar" />}
+          <div className="sidebar-profile-info">
+            <span className="sidebar-profile-name">{athleteName}</span>
+            {refreshing && <span className="refreshing-badge">Updating…</span>}
+          </div>
+        </div>
+
+        <div className="sidebar-nav">
+          {NAV_ITEMS.map(({ id, label, Icon }) => (
+            <button
+              key={id}
+              className={`sidebar-item${page === id ? " active" : ""}`}
+              onClick={() => setPage(id)}
+              title={collapsed ? label : undefined}
+            >
+              <Icon />
+              <span>{label}</span>
+            </button>
+          ))}
+        </div>
+
+        <div className="sidebar-spacer" />
+
+        <button
+          className="sidebar-item sidebar-logout"
+          onClick={logout}
+          title={collapsed ? "Logout" : undefined}
+        >
+          <LogOutIcon />
+          <span>Logout</span>
         </button>
-      </header>
-      <Dashboard activities={activities} />
+
+        <button
+          className="sidebar-toggle"
+          onClick={() => setCollapsed((c) => !c)}
+          title={collapsed ? "Expand" : "Collapse"}
+        >
+          {collapsed ? <ChevronRightIcon /> : <ChevronLeftIcon />}
+        </button>
+      </nav>
+
+      <main className="main-content">
+        <div className="page-header">
+          <h2 className="page-title">{PAGE_TITLES[page]}</h2>
+        </div>
+        <Dashboard activities={activities} page={page} />
+      </main>
     </div>
   );
 }

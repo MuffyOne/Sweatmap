@@ -25,6 +25,8 @@ import {
 import type { Activity } from "./strava";
 import { PowerCurve } from "./PowerCurve";
 
+export type Page = "home" | "power" | "activities";
+
 type Period = "week" | "month" | "year" | "last7" | "last30";
 
 const ALL_STATS = [
@@ -60,14 +62,15 @@ function formatPace(avgSpeed: number): string {
 
 const RUN_TYPES = new Set(["Run", "TrailRun", "Treadmill", "VirtualRun"]);
 
-function normalizeSportType(raw: string): string {
-  if (raw === "VirtualRide") return "Virtual Rides";
-  if (raw === "Ride" || raw === "EBikeRide" || raw === "GravelRide" || raw === "MountainBikeRide") return "Rides";
-  return raw;
-}
-
 function isRun(activity: Activity): boolean {
   return RUN_TYPES.has(activity.sport_type) || RUN_TYPES.has(activity.type);
+}
+
+function normalizeSportType(raw: string): string {
+  if (raw === "VirtualRide") return "Virtual Rides";
+  if (raw === "Ride" || raw === "EBikeRide" || raw === "GravelRide" || raw === "MountainBikeRide")
+    return "Rides";
+  return raw;
 }
 
 function getInterval(period: Period): { start: Date; end: Date } {
@@ -93,17 +96,26 @@ function filterActivities(activities: Activity[], period: Period): Activity[] {
   );
 }
 
+const TOOLTIP_STYLE = {
+  background: "rgba(12, 15, 24, 0.92)",
+  border: "1px solid rgba(255, 255, 255, 0.1)",
+  borderRadius: 10,
+  color: "#e8eaf0",
+  backdropFilter: "blur(16px)",
+};
+
 interface Props {
   activities: Activity[];
+  page: Page;
 }
 
-export function Dashboard({ activities }: Props) {
+export function Dashboard({ activities, page }: Props) {
   const [period, setPeriod] = useState<Period>("week");
   const [enabledStats, setEnabledStats] = useState<Set<StatId>>(DEFAULT_STATS);
   const [statsMenuOpen, setStatsMenuOpen] = useState(false);
 
   function toggleStat(id: StatId) {
-    setEnabledStats(prev => {
+    setEnabledStats((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
@@ -128,7 +140,6 @@ export function Dashboard({ activities }: Props) {
             .reduce((s, a) => s + (a.average_heartrate || 0), 0) /
           filtered.filter((a) => a.average_heartrate).length
         : null;
-
     const avgWatts =
       filtered.filter((a) => a.average_watts).length > 0
         ? filtered
@@ -136,7 +147,6 @@ export function Dashboard({ activities }: Props) {
             .reduce((s, a) => s + (a.average_watts || 0), 0) /
           filtered.filter((a) => a.average_watts).length
         : null;
-
     return { totalDistance, totalTime, totalElevation, count, avgHeartrate, avgWatts };
   }, [filtered]);
 
@@ -166,15 +176,16 @@ export function Dashboard({ activities }: Props) {
       const weekStart = startOfWeek(subWeeks(now, i), { weekStartsOn: 1 });
       const weekEnd = endOfWeek(subWeeks(now, i), { weekStartsOn: 1 });
       const weekActivities = activities.filter((a) =>
-        isWithinInterval(parseISO(a.start_date_local), {
-          start: weekStart,
-          end: weekEnd,
-        })
+        isWithinInterval(parseISO(a.start_date_local), { start: weekStart, end: weekEnd })
       );
       weeks.push({
         label: format(weekStart, "MMM d"),
-        distance: Number((weekActivities.reduce((s, a) => s + a.distance, 0) / 1000).toFixed(1)),
-        time: Number((weekActivities.reduce((s, a) => s + a.moving_time, 0) / 3600).toFixed(1)),
+        distance: Number(
+          (weekActivities.reduce((s, a) => s + a.distance, 0) / 1000).toFixed(1)
+        ),
+        time: Number(
+          (weekActivities.reduce((s, a) => s + a.moving_time, 0) / 3600).toFixed(1)
+        ),
       });
     }
     return weeks;
@@ -187,45 +198,107 @@ export function Dashboard({ activities }: Props) {
       const monthStart = startOfMonth(subMonths(now, i));
       const monthEnd = endOfMonth(subMonths(now, i));
       const monthActivities = activities.filter((a) =>
-        isWithinInterval(parseISO(a.start_date_local), {
-          start: monthStart,
-          end: monthEnd,
-        })
+        isWithinInterval(parseISO(a.start_date_local), { start: monthStart, end: monthEnd })
       );
       months.push({
         label: format(monthStart, "MMM yy"),
-        distance: Number((monthActivities.reduce((s, a) => s + a.distance, 0) / 1000).toFixed(1)),
-        time: Number((monthActivities.reduce((s, a) => s + a.moving_time, 0) / 3600).toFixed(1)),
+        distance: Number(
+          (monthActivities.reduce((s, a) => s + a.distance, 0) / 1000).toFixed(1)
+        ),
+        time: Number(
+          (monthActivities.reduce((s, a) => s + a.moving_time, 0) / 3600).toFixed(1)
+        ),
       });
     }
     return months;
   }, [activities]);
 
-  return (
-    <>
-    <div>
-      <div className="period-toggle">
-        {(["last7", "last30", "week", "month", "year"] as Period[]).map((p) => (
-          <button
-            key={p}
-            className={period === p ? "active" : ""}
-            onClick={() => setPeriod(p)}
-          >
-            {p === "last7" ? "Last 7 days" : p === "last30" ? "Last 30 days" : `This ${p}`}
-          </button>
-        ))}
+  if (page === "power") {
+    return <PowerCurve activities={activities} />;
+  }
+
+  const periodToggle = (
+    <div className="period-toggle">
+      {(["last7", "last30", "week", "month", "year"] as Period[]).map((p) => (
+        <button
+          key={p}
+          className={period === p ? "active" : ""}
+          onClick={() => setPeriod(p)}
+        >
+          {p === "last7" ? "Last 7 days" : p === "last30" ? "Last 30 days" : `This ${p}`}
+        </button>
+      ))}
+    </div>
+  );
+
+  if (page === "activities") {
+    return (
+      <div>
+        {periodToggle}
+        <div className="recent-activities">
+          {filtered.length === 0 && (
+            <div className="activities-empty">No activities in this period.</div>
+          )}
+          {filtered.map((a) => (
+            <a
+              key={a.id}
+              className="activity-row"
+              href={`https://www.strava.com/activities/${a.id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              title="View on Strava"
+            >
+              <div>
+                <div className="activity-name">{a.name}</div>
+                <div className="activity-type">
+                  {normalizeSportType(a.sport_type || a.type)} &middot;{" "}
+                  {format(parseISO(a.start_date_local), "MMM d, yyyy")}
+                </div>
+              </div>
+              <div className="activity-stats">
+                <div>
+                  <span>{formatDistance(a.distance)}</span> km
+                </div>
+                <div>
+                  <span>{formatDuration(a.moving_time)}</span>
+                </div>
+                {isRun(a) ? (
+                  <div>
+                    <span>{formatPace(a.average_speed)}</span> /km
+                  </div>
+                ) : (
+                  <div>
+                    <span>{Math.round(a.total_elevation_gain)}</span> m elev
+                  </div>
+                )}
+                {a.average_watts && (
+                  <div>
+                    <span>{Math.round(a.average_watts)}</span> W
+                  </div>
+                )}
+              </div>
+            </a>
+          ))}
+        </div>
       </div>
+    );
+  }
+
+  // Home page
+  return (
+    <div>
+      {periodToggle}
 
       <div className="stats-section-header">
         <div className="stats-filter-wrapper">
-          <button className="stats-filter-btn" onClick={() => setStatsMenuOpen(o => !o)}>
+          <button className="stats-filter-btn" onClick={() => setStatsMenuOpen((o) => !o)}>
             Customize
           </button>
           {statsMenuOpen && (
             <>
               <div className="stats-filter-backdrop" onClick={() => setStatsMenuOpen(false)} />
               <div className="stats-filter-menu">
-                {ALL_STATS.map(s => (
+                {ALL_STATS.map((s) => (
                   <label key={s.id} className="stats-filter-item">
                     <input
                       type="checkbox"
@@ -327,13 +400,7 @@ export function Dashboard({ activities }: Props) {
             <YAxis tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 12 }} />
             <Tooltip
               cursor={{ fill: "rgba(255, 255, 255, 0.04)" }}
-              contentStyle={{
-                background: "rgba(12, 15, 24, 0.92)",
-                border: "1px solid rgba(255, 255, 255, 0.1)",
-                borderRadius: 10,
-                color: "#e8eaf0",
-                backdropFilter: "blur(16px)",
-              }}
+              contentStyle={TOOLTIP_STYLE}
               formatter={(value) => [`${value} km`, "Distance"]}
             />
             <Bar dataKey="distance" fill="#fc4c02" radius={[4, 4, 0, 0]} />
@@ -350,55 +417,13 @@ export function Dashboard({ activities }: Props) {
             <YAxis tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 12 }} />
             <Tooltip
               cursor={{ fill: "rgba(255, 255, 255, 0.04)" }}
-              contentStyle={{
-                background: "rgba(12, 15, 24, 0.92)",
-                border: "1px solid rgba(255, 255, 255, 0.1)",
-                borderRadius: 10,
-                color: "#e8eaf0",
-                backdropFilter: "blur(16px)",
-              }}
+              contentStyle={TOOLTIP_STYLE}
               formatter={(value) => [`${value} km`, "Distance"]}
             />
             <Bar dataKey="distance" fill="#fc4c02" radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </div>
-
-      <PowerCurve activities={activities} />
-
-      <div className="recent-activities">
-        <h3>Recent Activities</h3>
-        {filtered.slice(0, 10).map((a) => (
-          <a key={a.id} className="activity-row" href={`https://www.strava.com/activities/${a.id}`} target="_blank" rel="noopener noreferrer" title="View on Strava">
-            <div>
-              <div className="activity-name">{a.name}</div>
-              <div className="activity-type">
-                {a.sport_type || a.type} &middot;{" "}
-                {format(parseISO(a.start_date_local), "MMM d, yyyy")}
-              </div>
-            </div>
-            <div className="activity-stats">
-              <div>
-                <span>{formatDistance(a.distance)}</span> km
-              </div>
-              <div>
-                <span>{formatDuration(a.moving_time)}</span>
-              </div>
-              {isRun(a) ? (
-                <div><span>{formatPace(a.average_speed)}</span> /km</div>
-              ) : (
-                <div><span>{Math.round(a.total_elevation_gain)}</span> m elev</div>
-              )}
-              {a.average_watts && (
-                <div>
-                  <span>{Math.round(a.average_watts)}</span> W
-                </div>
-              )}
-            </div>
-          </a>
-        ))}
-      </div>
     </div>
-    </>
   );
 }

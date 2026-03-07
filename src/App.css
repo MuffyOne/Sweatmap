@@ -22,28 +22,47 @@ body {
   position: relative;
 }
 
-/* ── Header ── */
-.header {
+/* ── Authenticated layout ── */
+.layout {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
-  padding: 1rem 1.5rem;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  border-radius: 18px;
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  min-height: 100vh;
 }
 
-.header h1 {
-  font-size: 1.4rem;
-  font-weight: 600;
-  color: #fc4c02;
+.sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.025);
+  border-right: 1px solid rgba(255, 255, 255, 0.07);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  transition: width 0.25s ease;
+  overflow: hidden;
+}
+
+.sidebar.collapsed {
+  width: 68px;
+}
+
+.sidebar-profile {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  letter-spacing: -0.01em;
+  padding: 0.25rem 0.5rem 1.25rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  margin-bottom: 0.75rem;
+  overflow: hidden;
+}
+
+.sidebar.collapsed .sidebar-profile {
+  justify-content: center;
+  padding-left: 0;
+  padding-right: 0;
 }
 
 .athlete-avatar {
@@ -53,6 +72,144 @@ body {
   object-fit: cover;
   border: 1px solid rgba(255, 255, 255, 0.12);
   flex-shrink: 0;
+}
+
+.sidebar-profile-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
+  flex: 1;
+  transition: opacity 0.15s ease;
+}
+
+.sidebar.collapsed .sidebar-profile-info {
+  opacity: 0;
+  pointer-events: none;
+  width: 0;
+}
+
+.sidebar-profile-name {
+  font-size: 0.83rem;
+  font-weight: 500;
+  color: #e8eaf0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.62rem 0.75rem;
+  border-radius: 10px;
+  border: none;
+  background: none;
+  color: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  font-size: 0.87rem;
+  width: 100%;
+  text-align: left;
+  transition: background 0.18s ease, color 0.18s ease;
+  white-space: nowrap;
+}
+
+.sidebar-item svg {
+  flex-shrink: 0;
+}
+
+.sidebar-item span {
+  transition: opacity 0.15s ease;
+}
+
+.sidebar.collapsed .sidebar-item {
+  justify-content: center;
+  padding: 0.62rem;
+}
+
+.sidebar.collapsed .sidebar-item span {
+  opacity: 0;
+  pointer-events: none;
+  width: 0;
+  overflow: hidden;
+}
+
+.sidebar-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.sidebar-item.active {
+  background: rgba(252, 76, 2, 0.12);
+  color: #fc4c02;
+}
+
+.sidebar-item.active:hover {
+  background: rgba(252, 76, 2, 0.18);
+}
+
+.sidebar-spacer {
+  flex: 1;
+}
+
+.sidebar-logout {
+  color: rgba(255, 255, 255, 0.28);
+}
+
+.sidebar-logout:hover {
+  background: rgba(248, 81, 73, 0.08) !important;
+  color: rgba(248, 81, 73, 0.8) !important;
+}
+
+.sidebar-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.28);
+  cursor: pointer;
+  padding: 0.38rem;
+  margin-top: 0.5rem;
+  width: 100%;
+  transition: all 0.2s ease;
+}
+
+.sidebar-toggle:hover {
+  background: rgba(255, 255, 255, 0.07);
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.main-content {
+  flex: 1;
+  padding: 2rem 2.5rem;
+  min-width: 0;
+}
+
+.page-header {
+  margin-bottom: 1.75rem;
+}
+
+.page-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #f0f2f5;
+  letter-spacing: -0.025em;
+}
+
+.activities-empty {
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 0.88rem;
+  padding: 2rem 0;
+  text-align: center;
 }
 
 .refreshing-badge {
