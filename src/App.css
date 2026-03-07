@@ -732,6 +732,22 @@ body {
   color: rgba(255, 255, 255, 0.65);
 }
 
+.link-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  color: rgba(252, 76, 2, 0.8);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.link-btn:hover {
+  color: #fc4c02;
+}
+
 .power-curve-error {
   color: rgba(248, 81, 73, 0.8);
   font-size: 0.83rem;

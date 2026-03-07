@@ -110,9 +110,10 @@ const TOOLTIP_STYLE = {
 interface Props {
   activities: Activity[];
   page: Page;
+  onNavigate: (page: Page) => void;
 }
 
-export function Dashboard({ activities, page }: Props) {
+export function Dashboard({ activities, page, onNavigate }: Props) {
   const [period, setPeriod] = useState<Period>("week");
   const [enabledStats, setEnabledStats] = useState<Set<StatId>>(DEFAULT_STATS);
   const [statsMenuOpen, setStatsMenuOpen] = useState(false);
@@ -224,8 +225,8 @@ export function Dashboard({ activities, page }: Props) {
     return (
       <>
         <PowerCurve activities={activities} />
-        <ZoneDistribution activities={activities} />
-        <HRZoneDistribution activities={activities} />
+        <ZoneDistribution activities={activities} onNavigate={onNavigate} />
+        <HRZoneDistribution activities={activities} onNavigate={onNavigate} />
       </>
     );
   }

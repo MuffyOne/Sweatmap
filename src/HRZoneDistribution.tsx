@@ -60,9 +60,10 @@ function saveCache(range: Range, data: ZonePoint[]) {
 
 interface Props {
   activities: Activity[];
+  onNavigate: (page: "settings") => void;
 }
 
-export function HRZoneDistribution({ activities }: Props) {
+export function HRZoneDistribution({ activities, onNavigate }: Props) {
   const [range, setRange] = useState<Range>("30d");
   const [zones, setZones] = useState<Partial<Record<Range, ZonePoint[]>>>(() => ({
     "30d": loadCache("30d") ?? undefined,
@@ -169,7 +170,7 @@ export function HRZoneDistribution({ activities }: Props) {
         <div className="power-curve-empty">
           {ageValid
             ? <>Computing your HR zone distribution…</>
-            : <>Set your <strong>Age</strong> in <strong>Settings</strong> to compute HR zones.</>}
+            : <>Set your <strong>Age</strong> in <button className="link-btn" onClick={() => onNavigate("settings")}>Settings</button> to compute HR zones.</>}
         </div>
       )}
 

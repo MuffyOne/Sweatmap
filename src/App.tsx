@@ -248,7 +248,7 @@ function App() {
         <div className="page-header">
           <h2 className="page-title">{PAGE_TITLES[page]}</h2>
         </div>
-        <Dashboard activities={activities} page={page} />
+        <Dashboard activities={activities} page={page} onNavigate={setPage} />
       </main>
     </div>
   );

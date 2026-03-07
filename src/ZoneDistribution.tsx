@@ -63,9 +63,10 @@ function saveCache(range: Range, data: ZonePoint[]) {
 
 interface Props {
   activities: Activity[];
+  onNavigate: (page: "settings") => void;
 }
 
-export function ZoneDistribution({ activities }: Props) {
+export function ZoneDistribution({ activities, onNavigate }: Props) {
   const [range, setRange] = useState<Range>("30d");
   const [zones, setZones] = useState<Partial<Record<Range, ZonePoint[]>>>(() => ({
     "30d": loadCache("30d") ?? undefined,
@@ -168,7 +169,7 @@ export function ZoneDistribution({ activities }: Props) {
         <div className="power-curve-empty">
           {ftpValid
             ? <>Computing your power zone distribution…</>
-            : <>Set your <strong>FTP</strong> in <strong>Settings</strong> to compute power zones.</>}
+            : <>Set your <strong>FTP</strong> in <button className="link-btn" onClick={() => onNavigate("settings")}>Settings</button> to compute power zones.</>}
         </div>
       )}
 
