@@ -235,8 +235,8 @@ export async function fetchKOMs(athleteId: number): Promise<SegmentEffort[]> {
 }
 
 export async function fetchAndCache(onProgress?: (count: number) => void): Promise<{ activities: Activity[]; athlete: Athlete; koms: SegmentEffort[] }> {
-  const [athlete, activities] = await Promise.all([fetchAthlete(), fetchAllActivities(onProgress)]);
-  const koms = await fetchKOMs(athlete.id);
+  const athlete = await fetchAthlete();
+  const [activities, koms] = await Promise.all([fetchAllActivities(onProgress), fetchKOMs(athlete.id)]);
   setCache({ athlete, activities, koms });
   return { athlete, activities, koms };
 }
@@ -265,7 +265,7 @@ export async function fetchNewActivities(
   const merged = [...newOnes.filter((a) => !existingIds.has(a.id)), ...existing];
 
   const cache = getCache();
-  if (cache) setCache({ athlete: cache.athlete, activities: merged });
+  if (cache) setCache({ athlete: cache.athlete, activities: merged, koms: cache.koms });
 
   return merged;
 }

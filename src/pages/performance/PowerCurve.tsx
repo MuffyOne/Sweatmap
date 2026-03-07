@@ -10,6 +10,7 @@ import {
 } from "recharts";
 import { subDays, parseISO, isAfter } from "date-fns";
 import { fetchActivityWatts, type Activity } from "../../api/strava";
+import { TOOLTIP_STYLE } from "../../lib/utils";
 
 const DURATIONS = [1, 5, 10, 30, 60, 120, 300, 600, 1200, 1800, 3600];
 
@@ -175,13 +176,7 @@ export function PowerCurve({ activities }: Props) {
             <XAxis dataKey="label" tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 12 }} />
             <YAxis tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 12 }} unit="W" />
             <Tooltip
-              contentStyle={{
-                background: "rgba(12, 15, 24, 0.92)",
-                border: "1px solid rgba(255, 255, 255, 0.1)",
-                borderRadius: 10,
-                color: "#e8eaf0",
-                backdropFilter: "blur(16px)",
-              }}
+              contentStyle={TOOLTIP_STYLE}
               formatter={(value) => [`${value} W`, "Best power"]}
             />
             <Line
