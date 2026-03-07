@@ -90,7 +90,7 @@ export function PowerCurve({ activities }: Props) {
         if (watts && watts.length > 0) allStreams.push(watts);
       } catch (e: unknown) {
         if (e instanceof Error && e.message === "rate_limited") {
-          setError(`Rate limited after ${i} activities. Wait 15 min and try again.`);
+          setError(`Strava's API rate limit was reached after ${i} activities. This happens when too many requests are made in a short period — please wait 15 minutes and try again.`);
         } else {
           setError(`Failed fetching activity ${eligible[i].id}.`);
         }

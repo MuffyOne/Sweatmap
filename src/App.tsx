@@ -100,12 +100,16 @@ function App() {
       if (code) {
         try {
           await exchangeCode(code);
-          window.history.replaceState({}, "", "/");
         } catch {
-          setError("Failed to authenticate with Strava");
-          setLoading(false);
-          return;
+          // If tokens are already stored (e.g. auth code was already exchanged),
+          // continue normally instead of showing an error.
+          if (!getStoredTokens()) {
+            setError("Failed to authenticate with Strava. Please try connecting again.");
+            setLoading(false);
+            return;
+          }
         }
+        window.history.replaceState({}, "", "/");
       }
 
       const tokens = getStoredTokens();
