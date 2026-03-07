@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   BarChart,
   Bar,
@@ -86,7 +86,7 @@ export function ZoneDistribution({ activities }: Props) {
     localStorage.setItem(FTP_KEY, val);
   }
 
-  async function compute() {
+  const compute = useCallback(async () => {
     if (!ftpValid) {
       setError("Please enter your FTP before computing.");
       return;
@@ -144,7 +144,13 @@ export function ZoneDistribution({ activities }: Props) {
     setZones((prev) => ({ ...prev, [range]: result }));
     saveCache(range, result);
     setLoading(false);
-  }
+  }, [activities, range, ftpValid, ftpVal]);
+
+  useEffect(() => {
+    if (!zones[range] && !loading && ftpValid) {
+      compute();
+    }
+  }, [range, zones, loading, ftpValid, compute]);
 
   const totalSeconds = data?.reduce((s, z) => s + z.seconds, 0) ?? 0;
 

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   BarChart,
   Bar,
@@ -65,7 +65,7 @@ export function HRZoneDistribution({ activities }: Props) {
 
   const data = zones[range] ?? null;
 
-  async function compute() {
+  const compute = useCallback(async () => {
     const now = new Date();
     const since = subDays(now, range === "30d" ? 30 : 90);
     const eligible = activities.filter(
@@ -119,7 +119,13 @@ export function HRZoneDistribution({ activities }: Props) {
     setZones((prev) => ({ ...prev, [range]: result }));
     saveCache(range, result);
     setLoading(false);
-  }
+  }, [activities, range]);
+
+  useEffect(() => {
+    if (!zones[range] && !loading) {
+      compute();
+    }
+  }, [range, zones, loading, compute]);
 
   const totalSeconds = data?.reduce((s, z) => s + z.seconds, 0) ?? 0;
 
