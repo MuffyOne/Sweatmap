@@ -9,6 +9,7 @@ import {
   fetchNewActivities,
   logout,
   type Activity,
+  type SegmentEffort,
 } from "./api/strava";
 import { Dashboard, type Page } from "./Dashboard";
 import {
@@ -48,6 +49,7 @@ const PAGE_TITLES: Record<Page, string> = {
 function App() {
   const [authenticated, setAuthenticated] = useState(false);
   const [activities, setActivities] = useState<Activity[]>([]);
+  const [koms, setKoms] = useState<SegmentEffort[]>([]);
   const [athleteName, setAthleteName] = useState<string>("");
   const [athleteAvatar, setAthleteAvatar] = useState<string>("");
   const [loading, setLoading] = useState(true);
@@ -65,10 +67,11 @@ function App() {
     setFetchedCount(0);
     try {
       if (activities.length === 0) {
-        const { athlete, activities: data } = await fetchAndCache(setFetchedCount);
+        const { athlete, activities: data, koms: komData } = await fetchAndCache(setFetchedCount);
         setAthleteName(`${athlete.firstname} ${athlete.lastname}`);
         setAthleteAvatar(athlete.profile_medium ?? "");
         setActivities(data);
+        setKoms(komData);
       } else {
         const merged = await fetchNewActivities(activities, setFetchedCount);
         setActivities(merged);
@@ -114,16 +117,18 @@ function App() {
         setAthleteName(`${cache.athlete.firstname} ${cache.athlete.lastname}`);
         setAthleteAvatar(cache.athlete.profile_medium ?? "");
         setActivities(cache.activities);
+        setKoms(cache.koms ?? []);
         setLoading(false);
         if (isCacheFresh(cache)) return;
         setRefreshing(true);
       }
 
       try {
-        const { athlete, activities: data } = await fetchAndCache(setFetchedCount);
+        const { athlete, activities: data, koms: komData } = await fetchAndCache(setFetchedCount);
         setAthleteName(`${athlete.firstname} ${athlete.lastname}`);
         setAthleteAvatar(athlete.profile_medium ?? "");
         setActivities(data);
+        setKoms(komData);
         setLastSynced(Date.now());
       } catch (e) {
         if (!cache) setError(`Failed to fetch activities: ${e}`);
@@ -237,7 +242,7 @@ function App() {
         <div className="page-header">
           <h2 className="page-title">{PAGE_TITLES[page]}</h2>
         </div>
-        <Dashboard activities={activities} page={page} onNavigate={setPage} />
+        <Dashboard activities={activities} koms={koms} page={page} onNavigate={setPage} />
       </main>
     </div>
   );

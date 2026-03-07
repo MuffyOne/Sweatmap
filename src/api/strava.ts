@@ -7,14 +7,34 @@ const CACHE_KEY = "strava_cache";
 const CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 export interface Athlete {
+  id: number;
   firstname: string;
   lastname: string;
   profile_medium?: string;
 }
 
+export interface SegmentEffort {
+  id: number;
+  elapsed_time: number;
+  start_date: string;
+  segment: {
+    id: number;
+    name: string;
+    distance: number;
+    average_grade: number;
+    maximum_grade: number;
+    city: string | null;
+    state: string | null;
+    country: string | null;
+    climb_category: number;
+  };
+  activity: { id: number };
+}
+
 interface Cache {
   activities: Activity[];
   athlete: Athlete;
+  koms?: SegmentEffort[];
   cachedAt: number;
 }
 
@@ -195,10 +215,30 @@ export async function fetchActivityWatts(activityId: number): Promise<number[] |
   return data.watts?.data ?? null;
 }
 
-export async function fetchAndCache(onProgress?: (count: number) => void): Promise<{ activities: Activity[]; athlete: Athlete }> {
+export async function fetchKOMs(athleteId: number): Promise<SegmentEffort[]> {
+  const token = await getValidToken();
+  const all: SegmentEffort[] = [];
+  let page = 1;
+  while (true) {
+    const params = new URLSearchParams({ page: String(page), per_page: "200" });
+    const res = await fetch(
+      `https://www.strava.com/api/v3/athletes/${athleteId}/koms?${params}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    if (!res.ok) break;
+    const batch: SegmentEffort[] = await res.json();
+    all.push(...batch);
+    if (batch.length < 200) break;
+    page++;
+  }
+  return all;
+}
+
+export async function fetchAndCache(onProgress?: (count: number) => void): Promise<{ activities: Activity[]; athlete: Athlete; koms: SegmentEffort[] }> {
   const [athlete, activities] = await Promise.all([fetchAthlete(), fetchAllActivities(onProgress)]);
-  setCache({ athlete, activities });
-  return { athlete, activities };
+  const koms = await fetchKOMs(athlete.id);
+  setCache({ athlete, activities, koms });
+  return { athlete, activities, koms };
 }
 
 export async function fetchNewActivities(

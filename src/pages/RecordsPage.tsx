@@ -10,11 +10,12 @@ import {
   Cell,
 } from "recharts";
 import { format, parseISO, startOfMonth, subMonths, endOfMonth, isWithinInterval, startOfWeek, endOfWeek, subWeeks } from "date-fns";
-import type { Activity } from "../api/strava";
-import { TOOLTIP_STYLE, formatDistance, normalizeSportLabel } from "../lib/utils";
+import type { Activity, SegmentEffort } from "../api/strava";
+import { TOOLTIP_STYLE, formatDistance, formatTime, normalizeSportLabel } from "../lib/utils";
 
 interface Props {
   activities: Activity[];
+  koms: SegmentEffort[];
 }
 
 const SPORT_COLORS = [
@@ -22,7 +23,9 @@ const SPORT_COLORS = [
   "#c94040", "#2d6a9f", "#276d4e",
 ];
 
-export function RecordsPage({ activities }: Props) {
+const CLIMB_CATEGORY: Record<number, string> = { 1: "Cat 4", 2: "Cat 3", 3: "Cat 2", 4: "Cat 1", 5: "HC" };
+
+export function RecordsPage({ activities, koms }: Props) {
   const allTimePRs = useMemo(
     () => activities.reduce((s, a) => s + (a.pr_count ?? 0), 0),
     [activities]
@@ -175,6 +178,10 @@ export function RecordsPage({ activities }: Props) {
             <div className="records-best-name">{bestActivity.name}</div>
           </div>
         )}
+        <div className="stat-card">
+          <div className="label">KOMs / QOMs</div>
+          <div className="value" style={{ color: "#fc4c02" }}>{koms.length}</div>
+        </div>
       </div>
 
       {/* Monthly PR trend */}
@@ -299,6 +306,45 @@ export function RecordsPage({ activities }: Props) {
                 <span style={{ textAlign: "center", color: "rgba(255,255,255,0.45)", fontSize: "0.85rem" }}>
                   {a.achievement_count ?? 0}
                 </span>
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {koms.length > 0 && (
+        <div className="chart-section">
+          <div className="power-curve-header">
+            <h3>KOM / QOM Segments</h3>
+            <span style={{ fontSize: "0.75rem", opacity: 0.4 }}>click to view on Strava</span>
+          </div>
+          <div className="records-table">
+            <div className="records-table-header" style={{ gridTemplateColumns: "1fr 80px 70px 70px 90px" }}>
+              <span>Segment</span>
+              <span>Distance</span>
+              <span>Avg Grade</span>
+              <span>Max Grade</span>
+              <span>KOM Time</span>
+            </div>
+            {koms.map((k) => (
+              <a
+                key={k.id}
+                className="records-table-row"
+                style={{ gridTemplateColumns: "1fr 80px 70px 70px 90px" }}
+                href={`https://www.strava.com/segments/${k.segment.id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <span className="records-activity-name">
+                  {k.segment.name}
+                  {k.segment.climb_category > 0 && (
+                    <span className="records-sport-tag">{CLIMB_CATEGORY[k.segment.climb_category] ?? `Cat ${k.segment.climb_category}`}</span>
+                  )}
+                </span>
+                <span className="records-cell-muted">{formatDistance(k.segment.distance)} km</span>
+                <span className="records-cell-muted">{k.segment.average_grade.toFixed(1)}%</span>
+                <span className="records-cell-muted">{k.segment.maximum_grade.toFixed(1)}%</span>
+                <span className="records-pr-badge">{formatTime(k.elapsed_time)}</span>
               </a>
             ))}
           </div>
