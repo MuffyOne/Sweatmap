@@ -3,6 +3,33 @@ const CLIENT_SECRET = import.meta.env.VITE_STRAVA_CLIENT_SECRET;
 const REDIRECT_URI = import.meta.env.VITE_STRAVA_REDIRECT_URI;
 
 const TOKEN_KEY = "strava_tokens";
+const CACHE_KEY = "strava_cache";
+const CACHE_TTL_MS = 15 * 60 * 1000; // 15 minutes
+
+export interface Athlete {
+  firstname: string;
+  lastname: string;
+}
+
+interface Cache {
+  activities: Activity[];
+  athlete: Athlete;
+  cachedAt: number;
+}
+
+export function getCache(): Cache | null {
+  const raw = localStorage.getItem(CACHE_KEY);
+  if (!raw) return null;
+  return JSON.parse(raw) as Cache;
+}
+
+export function isCacheFresh(cache: Cache): boolean {
+  return Date.now() - cache.cachedAt < CACHE_TTL_MS;
+}
+
+function setCache(data: Omit<Cache, "cachedAt">) {
+  localStorage.setItem(CACHE_KEY, JSON.stringify({ ...data, cachedAt: Date.now() }));
+}
 
 interface Tokens {
   access_token: string;
@@ -47,6 +74,7 @@ function storeTokens(tokens: Tokens) {
 
 export function logout() {
   localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(CACHE_KEY);
   window.location.href = "/";
 }
 
@@ -104,7 +132,7 @@ async function getValidToken(): Promise<string> {
   return tokens.access_token;
 }
 
-export async function fetchAthlete(): Promise<{ firstname: string; lastname: string }> {
+export async function fetchAthlete(): Promise<Athlete> {
   const token = await getValidToken();
   const res = await fetch("https://www.strava.com/api/v3/athlete", {
     headers: { Authorization: `Bearer ${token}` },
@@ -123,14 +151,21 @@ export async function fetchActivities(page = 1, perPage = 200): Promise<Activity
   return res.json();
 }
 
-export async function fetchAllActivities(): Promise<Activity[]> {
+export async function fetchAllActivities(onProgress?: (count: number) => void): Promise<Activity[]> {
   const all: Activity[] = [];
   let page = 1;
   while (true) {
     const batch = await fetchActivities(page, 200);
     all.push(...batch);
+    onProgress?.(all.length);
     if (batch.length < 200) break;
     page++;
   }
   return all;
+}
+
+export async function fetchAndCache(onProgress?: (count: number) => void): Promise<{ activities: Activity[]; athlete: Athlete }> {
+  const [athlete, activities] = await Promise.all([fetchAthlete(), fetchAllActivities(onProgress)]);
+  setCache({ athlete, activities });
+  return { athlete, activities };
 }
