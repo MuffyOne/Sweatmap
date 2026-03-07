@@ -1,7 +1,6 @@
 import { useMemo } from "react";
 import {
   ComposedChart,
-  Line,
   Area,
   XAxis,
   YAxis,
@@ -103,91 +102,122 @@ export function FitnessChart({ activities }: Props) {
   const status = getFormStatus(current.tsb);
 
   return (
-    <div className="chart-section">
-      <div className="power-curve-header">
-        <h3>Fitness &amp; Form</h3>
-        <span style={{ fontSize: "0.75rem", opacity: 0.4 }}>
-          {ftp ? "TSS (power) · Suffer Score · duration" : "Suffer Score · duration-based"}
-        </span>
-      </div>
-
-      <div className="pmc-stats">
-        <div className="pmc-stat">
-          <div className="pmc-stat-label">Fitness (CTL)</div>
-          <div className="pmc-stat-value" style={{ color: "#4a9eca" }}>{current.ctl}</div>
+    <div>
+      {/* Stat cards */}
+      <div className="stats-grid" style={{ marginBottom: "1.5rem" }}>
+        <div className="stat-card">
+          <div className="label">Fitness (CTL)</div>
+          <div className="value" style={{ color: "#4a9eca" }}>{current.ctl}</div>
         </div>
-        <div className="pmc-stat">
-          <div className="pmc-stat-label">Fatigue (ATL)</div>
-          <div className="pmc-stat-value" style={{ color: "#9b7ec8" }}>{current.atl}</div>
+        <div className="stat-card">
+          <div className="label">Fatigue (ATL)</div>
+          <div className="value" style={{ color: "#9b7ec8" }}>{current.atl}</div>
         </div>
-        <div className="pmc-stat">
-          <div className="pmc-stat-label">Form (TSB)</div>
-          <div className="pmc-stat-value" style={{ color: status.color }}>
+        <div className="stat-card">
+          <div className="label">Form (TSB)</div>
+          <div className="value" style={{ color: status.color }}>
             {current.tsb > 0 ? "+" : ""}{current.tsb}
           </div>
         </div>
-        <div className="pmc-stat">
-          <div className="pmc-stat-label">Status</div>
-          <div className="pmc-stat-value pmc-stat-status" style={{ color: status.color }}>{status.label}</div>
+        <div className="stat-card">
+          <div className="label">Status</div>
+          <div className="value" style={{ color: status.color, fontSize: "1.1rem" }}>{status.label}</div>
         </div>
       </div>
 
       {/* CTL + ATL */}
-      <ResponsiveContainer width="100%" height={220}>
-        <ComposedChart data={data} margin={{ top: 8, right: 16, bottom: 4, left: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-          <XAxis
-            dataKey="date"
-            tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 11 }}
-            axisLine={false}
-            tickLine={false}
-            interval={0}
-          />
-          <YAxis
-            tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 11 }}
-            axisLine={false}
-            tickLine={false}
-            width={32}
-          />
-          <Tooltip
-            contentStyle={TOOLTIP_STYLE}
-            labelStyle={{ color: "#e8eaf0" }}
-            itemStyle={{ color: "#e8eaf0" }}
-            labelFormatter={(_val, payload) => (payload?.[0]?.payload as DayPoint | undefined)?.fullDate ?? ""}
-            formatter={(value: unknown, name: string) => {
-              if (name === "ctl") return [value, "Fitness (CTL)"];
-              if (name === "atl") return [value, "Fatigue (ATL)"];
-              return [value, name];
-            }}
-          />
-          <Area
-            type="monotone"
-            dataKey="ctl"
-            stroke="#4a9eca"
-            fill="#4a9eca"
-            fillOpacity={0.15}
-            strokeWidth={2}
-            dot={false}
-            activeDot={{ r: 4 }}
-            isAnimationActive={false}
-          />
-          <Line
-            type="monotone"
-            dataKey="atl"
-            stroke="#9b7ec8"
-            strokeWidth={1.5}
-            dot={false}
-            activeDot={{ r: 4 }}
-            isAnimationActive={false}
-          />
-        </ComposedChart>
-      </ResponsiveContainer>
+      <div className="chart-section">
+        <div className="power-curve-header">
+          <h3>Fitness &amp; Fatigue</h3>
+          <div style={{ display: "flex", gap: "1rem", fontSize: "0.72rem" }}>
+            <span style={{ color: "#4a9eca", opacity: 0.8 }}>● CTL 42d</span>
+            <span style={{ color: "#9b7ec8", opacity: 0.8 }}>● ATL 7d</span>
+            <span style={{ opacity: 0.3 }}>{ftp ? "power-based" : "suffer score"}</span>
+          </div>
+        </div>
+        <ResponsiveContainer width="100%" height={260}>
+          <ComposedChart data={data} margin={{ top: 8, right: 16, bottom: 4, left: 0 }}>
+            <defs>
+              <linearGradient id="ctlGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#4a9eca" stopOpacity={0.35} />
+                <stop offset="95%" stopColor="#4a9eca" stopOpacity={0.02} />
+              </linearGradient>
+              <linearGradient id="atlGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#9b7ec8" stopOpacity={0.25} />
+                <stop offset="95%" stopColor="#9b7ec8" stopOpacity={0.02} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+            <XAxis
+              dataKey="date"
+              tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 11 }}
+              axisLine={false}
+              tickLine={false}
+              interval={0}
+            />
+            <YAxis
+              tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 11 }}
+              axisLine={false}
+              tickLine={false}
+              width={32}
+            />
+            <Tooltip
+              contentStyle={TOOLTIP_STYLE}
+              labelStyle={{ color: "#e8eaf0", fontWeight: 600, marginBottom: 4 }}
+              itemStyle={{ color: "#e8eaf0" }}
+              labelFormatter={(_val, payload) => (payload?.[0]?.payload as DayPoint | undefined)?.fullDate ?? ""}
+              formatter={(value: unknown, name: string) => {
+                if (name === "ctl") return [value, "Fitness (CTL)"];
+                if (name === "atl") return [value, "Fatigue (ATL)"];
+                return [value, name];
+              }}
+            />
+            <Area
+              type="monotone"
+              dataKey="ctl"
+              stroke="#4a9eca"
+              fill="url(#ctlGrad)"
+              strokeWidth={2.5}
+              dot={false}
+              activeDot={{ r: 5, fill: "#4a9eca", strokeWidth: 0 }}
+              isAnimationActive={false}
+            />
+            <Area
+              type="monotone"
+              dataKey="atl"
+              stroke="#9b7ec8"
+              fill="url(#atlGrad)"
+              strokeWidth={1.5}
+              dot={false}
+              activeDot={{ r: 5, fill: "#9b7ec8", strokeWidth: 0 }}
+              isAnimationActive={false}
+            />
+          </ComposedChart>
+        </ResponsiveContainer>
+      </div>
 
       {/* TSB / Form */}
-      <div style={{ marginTop: "0.5rem" }}>
-        <ResponsiveContainer width="100%" height={110}>
+      <div className="chart-section">
+        <div className="power-curve-header">
+          <h3>Form (TSB)</h3>
+          <div style={{ display: "flex", gap: "1rem", fontSize: "0.72rem" }}>
+            <span style={{ color: "#4aaa7a", opacity: 0.8 }}>● Fresh</span>
+            <span style={{ color: "#c94040", opacity: 0.8 }}>● Fatigued</span>
+          </div>
+        </div>
+        <ResponsiveContainer width="100%" height={140}>
           <ComposedChart data={data} margin={{ top: 4, right: 16, bottom: 4, left: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+            <defs>
+              <linearGradient id="tsbPosGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#4aaa7a" stopOpacity={0.65} />
+                <stop offset="95%" stopColor="#4aaa7a" stopOpacity={0.05} />
+              </linearGradient>
+              <linearGradient id="tsbNegGrad" x1="0" y1="1" x2="0" y2="0">
+                <stop offset="5%" stopColor="#c94040" stopOpacity={0.65} />
+                <stop offset="95%" stopColor="#c94040" stopOpacity={0.05} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
             <XAxis dataKey="date" hide />
             <YAxis
               tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 11 }}
@@ -197,7 +227,7 @@ export function FitnessChart({ activities }: Props) {
             />
             <Tooltip
               contentStyle={TOOLTIP_STYLE}
-              labelStyle={{ color: "#e8eaf0" }}
+              labelStyle={{ color: "#e8eaf0", fontWeight: 600, marginBottom: 4 }}
               itemStyle={{ color: "#e8eaf0" }}
               labelFormatter={(_val, payload) => (payload?.[0]?.payload as DayPoint | undefined)?.fullDate ?? ""}
               formatter={(value: unknown, name: string) => {
@@ -205,24 +235,22 @@ export function FitnessChart({ activities }: Props) {
                 return [value, name];
               }}
             />
-            <ReferenceLine y={0} stroke="rgba(255,255,255,0.2)" strokeWidth={1} />
+            <ReferenceLine y={0} stroke="rgba(255,255,255,0.15)" strokeWidth={1} />
             <Area
               type="monotone"
               dataKey="tsbPos"
-              stroke="#276d4e"
-              fill="#276d4e"
-              fillOpacity={0.55}
-              strokeWidth={0}
+              stroke="#4aaa7a"
+              fill="url(#tsbPosGrad)"
+              strokeWidth={1.5}
               dot={false}
               isAnimationActive={false}
             />
             <Area
               type="monotone"
               dataKey="tsbNeg"
-              stroke="#9b2c2c"
-              fill="#9b2c2c"
-              fillOpacity={0.55}
-              strokeWidth={0}
+              stroke="#c94040"
+              fill="url(#tsbNegGrad)"
+              strokeWidth={1.5}
               dot={false}
               isAnimationActive={false}
             />
@@ -230,9 +258,8 @@ export function FitnessChart({ activities }: Props) {
         </ResponsiveContainer>
       </div>
 
-      <div style={{ fontSize: "0.68rem", color: "rgba(255,255,255,0.2)", marginTop: "0.6rem", lineHeight: 1.5 }}>
-        CTL (blue) = 42-day fitness &nbsp;·&nbsp; ATL (purple) = 7-day fatigue &nbsp;·&nbsp; Form = CTL − ATL
-        &nbsp;·&nbsp; Green = fresh / Red = fatigued &nbsp;·&nbsp; First few months may underestimate fitness (warmup from 0)
+      <div style={{ fontSize: "0.67rem", color: "rgba(255,255,255,0.18)", marginTop: "0.25rem", lineHeight: 1.5 }}>
+        CTL = 42-day chronic load &nbsp;·&nbsp; ATL = 7-day acute load &nbsp;·&nbsp; Form = CTL − ATL &nbsp;·&nbsp; First weeks may underestimate fitness (warms up from zero)
       </div>
     </div>
   );
