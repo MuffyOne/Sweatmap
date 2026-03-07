@@ -142,10 +142,12 @@ export async function fetchAthlete(): Promise<Athlete> {
   return res.json();
 }
 
-export async function fetchActivities(page = 1, perPage = 200): Promise<Activity[]> {
+export async function fetchActivities(page = 1, perPage = 200, after?: number): Promise<Activity[]> {
   const token = await getValidToken();
+  const params = new URLSearchParams({ page: String(page), per_page: String(perPage) });
+  if (after !== undefined) params.set("after", String(after));
   const res = await fetch(
-    `https://www.strava.com/api/v3/athlete/activities?page=${page}&per_page=${perPage}`,
+    `https://www.strava.com/api/v3/athlete/activities?${params}`,
     { headers: { Authorization: `Bearer ${token}` } }
   );
   if (!res.ok) throw new Error(`Strava API error: ${res.status}`);
@@ -153,10 +155,11 @@ export async function fetchActivities(page = 1, perPage = 200): Promise<Activity
 }
 
 export async function fetchAllActivities(onProgress?: (count: number) => void): Promise<Activity[]> {
+  const oneYearAgo = Math.floor((Date.now() - 365 * 24 * 60 * 60 * 1000) / 1000);
   const all: Activity[] = [];
   let page = 1;
   while (true) {
-    const batch = await fetchActivities(page, 200);
+    const batch = await fetchActivities(page, 200, oneYearAgo);
     all.push(...batch);
     onProgress?.(all.length);
     if (batch.length < 200) break;
