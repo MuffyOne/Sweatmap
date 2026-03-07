@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 import {
   BarChart,
   Bar,
@@ -26,6 +26,8 @@ const SPORT_COLORS = [
 const CLIMB_CATEGORY: Record<number, string> = { 1: "Cat 4", 2: "Cat 3", 3: "Cat 2", 4: "Cat 1", 5: "HC" };
 
 export function RecordsPage({ activities, koms }: Props) {
+  const komsRef = useRef<HTMLDivElement>(null);
+
   const allTimePRs = useMemo(
     () => activities.reduce((s, a) => s + (a.pr_count ?? 0), 0),
     [activities]
@@ -144,6 +146,10 @@ export function RecordsPage({ activities, koms }: Props) {
           <div className="label">All-time PRs</div>
           <div className="value" style={{ color: "#fc4c02" }}>{allTimePRs.toLocaleString()}</div>
         </div>
+        <div className="stat-card stat-card--clickable" onClick={() => komsRef.current?.scrollIntoView({ behavior: "smooth" })}>
+          <div className="label">KOMs / QOMs</div>
+          <div className="value" style={{ color: "#fc4c02" }}>{koms.length}</div>
+        </div>
         <div className="stat-card">
           <div className="label">Achievements</div>
           <div className="value">{allTimeAchievements.toLocaleString()}</div>
@@ -178,10 +184,6 @@ export function RecordsPage({ activities, koms }: Props) {
             <div className="records-best-name">{bestActivity.name}</div>
           </div>
         )}
-        <div className="stat-card">
-          <div className="label">KOMs / QOMs</div>
-          <div className="value" style={{ color: "#fc4c02" }}>{koms.length}</div>
-        </div>
       </div>
 
       {/* Monthly PR trend */}
@@ -313,7 +315,7 @@ export function RecordsPage({ activities, koms }: Props) {
       )}
 
       {koms.length > 0 && (
-        <div className="chart-section">
+        <div className="chart-section" ref={komsRef}>
           <div className="power-curve-header">
             <h3>KOM / QOM Segments</h3>
             <span style={{ fontSize: "0.75rem", opacity: 0.4 }}>click to view on Strava</span>
