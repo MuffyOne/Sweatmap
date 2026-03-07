@@ -182,19 +182,19 @@ export function HomePage({ activities, onNavigate }: Props) {
           </div>
         )}
         {enabledStats.has("distance") && (
-          <div className="stat-card">
+          <div className="stat-card stat-card--clickable" onClick={() => onNavigate("activities")}>
             <div className="label">Distance</div>
             <div className="value">{formatDistance(stats.totalDistance)}<span className="unit">km</span></div>
           </div>
         )}
         {enabledStats.has("time") && (
-          <div className="stat-card">
+          <div className="stat-card stat-card--clickable" onClick={() => onNavigate("activities")}>
             <div className="label">Moving Time</div>
             <div className="value">{formatDuration(stats.totalTime)}</div>
           </div>
         )}
         {enabledStats.has("elevation") && (
-          <div className="stat-card">
+          <div className="stat-card stat-card--clickable" onClick={() => onNavigate("activities")}>
             <div className="label">Elevation</div>
             <div className="value">{Math.round(stats.totalElevation)}<span className="unit">m</span></div>
           </div>
@@ -218,7 +218,7 @@ export function HomePage({ activities, onNavigate }: Props) {
           </div>
         )}
         {enabledStats.has("achievements") && (
-          <div className="stat-card">
+          <div className="stat-card stat-card--clickable" onClick={() => onNavigate("records")}>
             <div className="label">Achievements</div>
             <div className="value">{stats.totalAchievements}</div>
           </div>
