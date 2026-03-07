@@ -106,21 +106,33 @@ export function FitnessChart({ activities }: Props) {
       {/* Stat cards */}
       <div className="stats-grid" style={{ marginBottom: "1.5rem" }}>
         <div className="stat-card">
-          <div className="label">Fitness (CTL)</div>
+          <div className="label" style={{ display: "flex", alignItems: "center" }}>
+            Fitness (CTL)
+            <span className="info-tip" data-tip="Chronic Training Load — 42-day exponential average of daily training stress. Higher means more fitness built up over time.">i</span>
+          </div>
           <div className="value" style={{ color: "#4a9eca" }}>{current.ctl}</div>
         </div>
         <div className="stat-card">
-          <div className="label">Fatigue (ATL)</div>
+          <div className="label" style={{ display: "flex", alignItems: "center" }}>
+            Fatigue (ATL)
+            <span className="info-tip" data-tip="Acute Training Load — 7-day exponential average of daily training stress. Spikes quickly with hard training blocks.">i</span>
+          </div>
           <div className="value" style={{ color: "#9b7ec8" }}>{current.atl}</div>
         </div>
         <div className="stat-card">
-          <div className="label">Form (TSB)</div>
+          <div className="label" style={{ display: "flex", alignItems: "center" }}>
+            Form (TSB)
+            <span className="info-tip" data-tip="Training Stress Balance = CTL − ATL. Positive means fresh and rested. Negative means fatigued or in a training block.">i</span>
+          </div>
           <div className="value" style={{ color: status.color }}>
             {current.tsb > 0 ? "+" : ""}{current.tsb}
           </div>
         </div>
         <div className="stat-card">
-          <div className="label">Status</div>
+          <div className="label" style={{ display: "flex", alignItems: "center" }}>
+            Status
+            <span className="info-tip" data-tip="Fresh (TSB > 5) · Optimal (−10 to 5) · Training Load (−30 to −10) · High Risk (< −30)">i</span>
+          </div>
           <div className="value" style={{ color: status.color, fontSize: "1.1rem" }}>{status.label}</div>
         </div>
       </div>
