@@ -6,6 +6,7 @@ import {
   getCache,
   isCacheFresh,
   fetchAndCache,
+  fetchNewActivities,
   logout,
   type Activity,
 } from "./strava";
@@ -52,6 +53,16 @@ function LogOutIcon() {
   );
 }
 
+function SyncIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="23,4 23,10 17,10" />
+      <polyline points="1,20 1,14 7,14" />
+      <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+    </svg>
+  );
+}
+
 function FitnessIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -85,6 +96,16 @@ function ChevronRightIcon() {
   );
 }
 
+function formatTimeAgo(ts: number): string {
+  const s = Math.floor((Date.now() - ts) / 1000);
+  if (s < 60) return "just now";
+  const m = Math.floor(s / 60);
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  return `${Math.floor(h / 24)}d ago`;
+}
+
 const NAV_ITEMS: { id: Page; label: string; Icon: () => React.ReactElement }[] = [
   { id: "home", label: "Home", Icon: HomeIcon },
   { id: "fitness", label: "Fitness", Icon: FitnessIcon },
@@ -112,6 +133,30 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState<Page>("home");
   const [collapsed, setCollapsed] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  const [lastSynced, setLastSynced] = useState<number | null>(() => getCache()?.cachedAt ?? null);
+
+  async function handleSync() {
+    if (syncing || refreshing) return;
+    setSyncing(true);
+    setFetchedCount(0);
+    try {
+      if (activities.length === 0) {
+        const { athlete, activities: data } = await fetchAndCache(setFetchedCount);
+        setAthleteName(`${athlete.firstname} ${athlete.lastname}`);
+        setAthleteAvatar(athlete.profile_medium ?? "");
+        setActivities(data);
+      } else {
+        const merged = await fetchNewActivities(activities, setFetchedCount);
+        setActivities(merged);
+      }
+      setLastSynced(Date.now());
+    } catch {
+      // silently ignore — existing data stays intact
+    } finally {
+      setSyncing(false);
+    }
+  }
 
   useEffect(() => {
     async function init() {
@@ -156,6 +201,7 @@ function App() {
         setAthleteName(`${athlete.firstname} ${athlete.lastname}`);
         setAthleteAvatar(athlete.profile_medium ?? "");
         setActivities(data);
+        setLastSynced(Date.now());
       } catch (e) {
         if (!cache) setError(`Failed to fetch activities: ${e}`);
       } finally {
@@ -235,6 +281,16 @@ function App() {
         </div>
 
         <div className="sidebar-spacer" />
+
+        <button
+          className="sidebar-item"
+          onClick={handleSync}
+          disabled={syncing || refreshing}
+          title={lastSynced ? `Last synced ${formatTimeAgo(lastSynced)}` : "Sync new activities"}
+        >
+          <SyncIcon />
+          <span>{syncing ? "Syncing…" : "Sync"}</span>
+        </button>
 
         <button
           className="sidebar-item sidebar-logout"

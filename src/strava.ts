@@ -4,7 +4,7 @@ const REDIRECT_URI = import.meta.env.VITE_STRAVA_REDIRECT_URI;
 
 const TOKEN_KEY = "strava_tokens";
 const CACHE_KEY = "strava_cache";
-const CACHE_TTL_MS = 15 * 60 * 1000; // 15 minutes
+const CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 export interface Athlete {
   firstname: string;
@@ -221,4 +221,33 @@ export async function fetchAndCache(onProgress?: (count: number) => void): Promi
   const [athlete, activities] = await Promise.all([fetchAthlete(), fetchAllActivities(onProgress)]);
   setCache({ athlete, activities });
   return { athlete, activities };
+}
+
+export async function fetchNewActivities(
+  existing: Activity[],
+  onProgress?: (count: number) => void
+): Promise<Activity[]> {
+  // Fetch only activities newer than the most recent cached one
+  const latestAt = existing.reduce((max, a) => {
+    const t = Math.floor(new Date(a.start_date).getTime() / 1000);
+    return t > max ? t : max;
+  }, Math.floor((Date.now() - 365 * 24 * 60 * 60 * 1000) / 1000));
+
+  const newOnes: Activity[] = [];
+  let page = 1;
+  while (true) {
+    const batch = await fetchActivities(page, 200, latestAt);
+    newOnes.push(...batch);
+    onProgress?.(newOnes.length);
+    if (batch.length < 200) break;
+    page++;
+  }
+
+  const existingIds = new Set(existing.map((a) => a.id));
+  const merged = [...newOnes.filter((a) => !existingIds.has(a.id)), ...existing];
+
+  const cache = getCache();
+  if (cache) setCache({ athlete: cache.athlete, activities: merged });
+
+  return merged;
 }
