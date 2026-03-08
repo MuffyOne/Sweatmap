@@ -213,7 +213,7 @@ export function RecordsPage({ activities, koms }: Props) {
               contentStyle={TOOLTIP_STYLE}
               labelStyle={{ color: "#e8eaf0" }}
               itemStyle={{ color: "#e8eaf0" }}
-              formatter={(value: unknown) => [value, "PRs"]}
+              formatter={(value) => [value as never, "PRs"]}
             />
             <Bar dataKey="prs" fill="#fc4c02" radius={[4, 4, 0, 0]} isAnimationActive={false} />
           </BarChart>
@@ -256,8 +256,8 @@ export function RecordsPage({ activities, koms }: Props) {
                 contentStyle={TOOLTIP_STYLE}
                 labelStyle={{ color: "#e8eaf0" }}
                 itemStyle={{ color: "#e8eaf0" }}
-                formatter={(value: unknown, _name, props) => [
-                  `${value} PRs across ${(props.payload as { acts: number }).acts} activities`,
+                formatter={(value, _name, props) => [
+                  `${value} PRs across ${(props.payload as { acts: number }).acts} activities` as never,
                   props.payload.name as string,
                 ]}
               />

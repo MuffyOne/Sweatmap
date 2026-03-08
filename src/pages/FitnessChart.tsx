@@ -178,11 +178,7 @@ export function FitnessChart({ activities }: Props) {
               labelStyle={{ color: "#e8eaf0", fontWeight: 600, marginBottom: 4 }}
               itemStyle={{ color: "#e8eaf0" }}
               labelFormatter={(_val, payload) => (payload?.[0]?.payload as DayPoint | undefined)?.fullDate ?? ""}
-              formatter={(value: unknown, name: string) => {
-                if (name === "ctl") return [value, "Fitness (CTL)"];
-                if (name === "atl") return [value, "Fatigue (ATL)"];
-                return [value, name];
-              }}
+              formatter={(value, name) => [value as never, name === "ctl" ? "Fitness (CTL)" : name === "atl" ? "Fatigue (ATL)" : (name ?? "")]}
             />
             <Area
               type="monotone"
@@ -242,10 +238,7 @@ export function FitnessChart({ activities }: Props) {
               labelStyle={{ color: "#e8eaf0", fontWeight: 600, marginBottom: 4 }}
               itemStyle={{ color: "#e8eaf0" }}
               labelFormatter={(_val, payload) => (payload?.[0]?.payload as DayPoint | undefined)?.fullDate ?? ""}
-              formatter={(value: unknown, name: string) => {
-                if (name === "tsbPos" || name === "tsbNeg") return [value, "Form (TSB)"];
-                return [value, name];
-              }}
+              formatter={(value, name) => [value as never, (name === "tsbPos" || name === "tsbNeg") ? "Form (TSB)" : (name ?? "")]}
             />
             <ReferenceLine y={0} stroke="rgba(255,255,255,0.15)" strokeWidth={1} />
             <Area
