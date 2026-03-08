@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Dark rounded background -->
+  <rect width="32" height="32" rx="7" fill="#18181c"/>
+  <!-- Activity pulse line in Strava orange -->
+  <polyline
+    points="2,18 7,18 10,10 13,24 16,14 19,20 22,20 25,13 28,13"
+    fill="none"
+    stroke="#fc4c02"
+    stroke-width="2.4"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+</svg>
