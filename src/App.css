@@ -268,6 +268,16 @@ body {
   margin-bottom: 1rem;
 }
 
+.login-privacy {
+  margin-top: 1rem;
+  font-size: 0.72rem !important;
+  color: rgba(255, 255, 255, 0.22) !important;
+  max-width: 340px;
+  text-align: center;
+  line-height: 1.6;
+  margin-bottom: 0 !important;
+}
+
 .btn-strava {
   display: inline-block;
   background: #fc4c02;

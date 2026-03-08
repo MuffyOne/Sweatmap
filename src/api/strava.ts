@@ -1,6 +1,11 @@
 const CLIENT_ID = import.meta.env.VITE_STRAVA_CLIENT_ID;
-const CLIENT_SECRET = import.meta.env.VITE_STRAVA_CLIENT_SECRET;
 const REDIRECT_URI = import.meta.env.VITE_STRAVA_REDIRECT_URI;
+// Present in local dev only — calls Strava directly.
+// Must be absent in production builds so the PHP proxy is used instead.
+const CLIENT_SECRET = import.meta.env.VITE_STRAVA_CLIENT_SECRET as string | undefined;
+// Empty for same-origin deployments (Hetzner). Set VITE_API_BASE if the PHP
+// proxy lives on a different origin.
+const API_BASE = import.meta.env.VITE_API_BASE ?? "";
 
 const TOKEN_KEY = "strava_tokens";
 const CACHE_KEY = "strava_cache";
@@ -103,16 +108,17 @@ export function logout() {
 }
 
 export async function exchangeCode(code: string): Promise<Tokens> {
-  const res = await fetch("https://www.strava.com/oauth/token", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      client_id: CLIENT_ID,
-      client_secret: CLIENT_SECRET,
-      code,
-      grant_type: "authorization_code",
-    }),
-  });
+  const res = CLIENT_SECRET
+    ? await fetch("https://www.strava.com/oauth/token", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ client_id: CLIENT_ID, client_secret: CLIENT_SECRET, code, grant_type: "authorization_code" }),
+      })
+    : await fetch(`${API_BASE}/api/token.php`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code }),
+      });
   const data = await res.json();
   if (!res.ok) throw new Error(data.message || `Token exchange failed: ${res.status}`);
   const tokens: Tokens = {
@@ -125,16 +131,17 @@ export async function exchangeCode(code: string): Promise<Tokens> {
 }
 
 async function refreshTokens(refreshToken: string): Promise<Tokens> {
-  const res = await fetch("https://www.strava.com/oauth/token", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      client_id: CLIENT_ID,
-      client_secret: CLIENT_SECRET,
-      refresh_token: refreshToken,
-      grant_type: "refresh_token",
-    }),
-  });
+  const res = CLIENT_SECRET
+    ? await fetch("https://www.strava.com/oauth/token", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ client_id: CLIENT_ID, client_secret: CLIENT_SECRET, refresh_token: refreshToken, grant_type: "refresh_token" }),
+      })
+    : await fetch(`${API_BASE}/api/refresh.php`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ refresh_token: refreshToken }),
+      });
   const data = await res.json();
   const tokens: Tokens = {
     access_token: data.access_token,

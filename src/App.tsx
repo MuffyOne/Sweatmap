@@ -199,6 +199,11 @@ function App() {
           <a href={getAuthUrl()} className="btn-strava">
             Connect with Strava
           </a>
+          <p className="login-privacy">
+            This app reads your Strava activities to display personal stats.
+            Your data is stored only in your browser's local storage and is never sent to any server.
+            Disconnecting (logout) permanently deletes all stored data from your browser.
+          </p>
         </div>
       </div>
     );
