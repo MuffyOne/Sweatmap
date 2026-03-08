@@ -7,6 +7,7 @@ import {
   isCacheFresh,
   fetchAndCache,
   fetchNewActivities,
+  syncAndCache,
   logout,
   type Activity,
   type SegmentEffort,
@@ -60,6 +61,26 @@ function App() {
   const [collapsed, setCollapsed] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [lastSynced, setLastSynced] = useState<number | null>(() => getCache()?.cachedAt ?? null);
+
+  const [forceSyncing, setForceSyncing] = useState(false);
+
+  async function handleForceSync() {
+    if (syncing || refreshing || forceSyncing) return;
+    setForceSyncing(true);
+    setFetchedCount(0);
+    try {
+      const { athlete, activities: data, koms: komData } = await syncAndCache(setFetchedCount);
+      setAthleteName(`${athlete.firstname} ${athlete.lastname}`);
+      setAthleteAvatar(athlete.profile_medium ?? "");
+      setActivities(data);
+      setKoms(komData);
+      setLastSynced(Date.now());
+    } catch {
+      // silently ignore — existing data stays intact
+    } finally {
+      setForceSyncing(false);
+    }
+  }
 
   async function handleSync() {
     if (syncing || refreshing) return;
@@ -214,7 +235,7 @@ function App() {
           className="sidebar-item"
           onClick={handleSync}
           disabled={syncing || refreshing}
-          title={lastSynced ? `Last synced ${formatTimeAgo(lastSynced)}` : "Sync new activities"}
+          title={lastSynced ? `Sync new activities · Last synced ${formatTimeAgo(lastSynced)}` : "Sync new activities only"}
         >
           <SyncIcon />
           <span>{syncing ? "Syncing…" : "Sync"}</span>
@@ -242,7 +263,7 @@ function App() {
         <div className="page-header">
           <h2 className="page-title">{PAGE_TITLES[page]}</h2>
         </div>
-        <Dashboard activities={activities} koms={koms} page={page} onNavigate={setPage} />
+        <Dashboard activities={activities} koms={koms} page={page} onNavigate={setPage} onForceSync={handleForceSync} forceSyncing={forceSyncing} fetchedCount={fetchedCount} />
       </main>
     </div>
   );

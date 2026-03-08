@@ -3,7 +3,13 @@ import { useState } from "react";
 export const FTP_KEY = "power_zones_ftp";
 export const AGE_KEY = "settings_age";
 
-export function Settings() {
+interface Props {
+  onForceSync: () => Promise<void>;
+  forceSyncing: boolean;
+  fetchedCount: number;
+}
+
+export function Settings({ onForceSync, forceSyncing, fetchedCount }: Props) {
   const [ftp, setFtp] = useState(() => localStorage.getItem(FTP_KEY) ?? "");
   const [age, setAge] = useState(() => localStorage.getItem(AGE_KEY) ?? "");
 
@@ -75,6 +81,24 @@ export function Settings() {
               Z4 Threshold: {Math.round(maxHR * 0.8)}–{Math.round(maxHR * 0.9)} bpm
             </div>
           )}
+        </div>
+      </div>
+      <div className="settings-section">
+        <div className="settings-field">
+          <div className="settings-field-label">Force Sync</div>
+          <div className="settings-field-hint">
+            Re-fetches all activities from the last year from Strava. Use this to pick up renamed or deleted activities. Regular sync only fetches new ones.
+          </div>
+          <div className="settings-input-row">
+            <button
+              className="btn-compute"
+              onClick={onForceSync}
+              disabled={forceSyncing}
+              title="Re-fetches the last year of activities from Strava, picking up any renames or deletions"
+            >
+              {forceSyncing ? `Fetching… ${fetchedCount > 0 ? `(${fetchedCount})` : ""}` : "Force Sync"}
+            </button>
+          </div>
         </div>
       </div>
     </div>

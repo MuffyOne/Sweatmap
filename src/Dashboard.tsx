@@ -16,9 +16,12 @@ interface Props {
   koms: SegmentEffort[];
   page: Page;
   onNavigate: (page: Page) => void;
+  onForceSync: () => Promise<void>;
+  forceSyncing: boolean;
+  fetchedCount: number;
 }
 
-export function Dashboard({ activities, koms, page, onNavigate }: Props) {
+export function Dashboard({ activities, koms, page, onNavigate, onForceSync, forceSyncing, fetchedCount }: Props) {
   switch (page) {
     case "home":        return <HomePage activities={activities} onNavigate={onNavigate} />;
     case "activities":  return <ActivitiesPage activities={activities} />;
@@ -32,6 +35,6 @@ export function Dashboard({ activities, koms, page, onNavigate }: Props) {
         <TempPerformance activities={activities} />
       </>
     );
-    case "settings":    return <Settings />;
+    case "settings":    return <Settings onForceSync={onForceSync} forceSyncing={forceSyncing} fetchedCount={fetchedCount} />;
   }
 }

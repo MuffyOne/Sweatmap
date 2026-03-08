@@ -269,3 +269,22 @@ export async function fetchNewActivities(
 
   return merged;
 }
+
+// Force sync: re-fetches the last year of activities (picks up renames/deletions)
+// and preserves any cached activities older than the 1-year window.
+export async function syncAndCache(onProgress?: (count: number) => void): Promise<{ activities: Activity[]; athlete: Athlete; koms: SegmentEffort[] }> {
+  const oneYearAgoMs = Date.now() - 365 * 24 * 60 * 60 * 1000;
+  const athlete = await fetchAthlete();
+  const [freshActivities, koms] = await Promise.all([fetchAllActivities(onProgress), fetchKOMs(athlete.id)]);
+
+  // Preserve activities older than 1 year that aren't covered by the re-fetch
+  const cache = getCache();
+  const oldActivities = cache?.activities.filter(
+    (a) => new Date(a.start_date).getTime() < oneYearAgoMs
+  ) ?? [];
+  const freshIds = new Set(freshActivities.map((a) => a.id));
+  const activities = [...freshActivities, ...oldActivities.filter((a) => !freshIds.has(a.id))];
+
+  setCache({ athlete, activities, koms });
+  return { athlete, activities, koms };
+}
