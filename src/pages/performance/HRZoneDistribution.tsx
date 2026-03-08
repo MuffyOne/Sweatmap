@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
   BarChart,
   Bar,
@@ -71,6 +71,8 @@ export function HRZoneDistribution({ activities, onNavigate }: Props) {
   const ageValid = !isNaN(ageVal) && ageVal > 0 && ageVal < 120;
   const maxHR = ageValid ? 220 - ageVal : null;
 
+  const computingRef = useRef(false);
+
   const compute = useCallback(async () => {
     if (!maxHR) return;
 
@@ -129,10 +131,14 @@ export function HRZoneDistribution({ activities, onNavigate }: Props) {
   }, [activities, range, maxHR]);
 
   useEffect(() => {
-    if (!zones[range] && !loading && ageValid) {
-      compute();
+    if (!zones[range] && !computingRef.current && ageValid) {
+      const id = setTimeout(() => {
+        computingRef.current = true;
+        compute().finally(() => { computingRef.current = false; });
+      }, 0);
+      return () => clearTimeout(id);
     }
-  }, [range, zones, loading, ageValid, compute]);
+  }, [range, zones, ageValid, compute]);
 
   const totalSeconds = data?.reduce((s, z) => s + z.seconds, 0) ?? 0;
 

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
   LineChart,
   Line,
@@ -67,6 +67,8 @@ export function PowerCurve({ activities }: Props) {
 
   const curve = curves[range] ?? null;
 
+  const computingRef = useRef(false);
+
   const compute = useCallback(async () => {
     const now = new Date();
     const since = range === "30d" ? subDays(now, 30) : subDays(now, 90);
@@ -118,10 +120,14 @@ export function PowerCurve({ activities }: Props) {
   }, [activities, range]);
 
   useEffect(() => {
-    if (!curves[range] && !loading) {
-      compute();
+    if (!curves[range] && !computingRef.current) {
+      const id = setTimeout(() => {
+        computingRef.current = true;
+        compute().finally(() => { computingRef.current = false; });
+      }, 0);
+      return () => clearTimeout(id);
     }
-  }, [range, curves, loading, compute]);
+  }, [range, curves, compute]);
 
   return (
     <div className="chart-section">
