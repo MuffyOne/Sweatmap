@@ -1,12 +1,13 @@
 import { useState, useMemo, useRef, useEffect } from "react";
-import { format, startOfWeek, addDays, subWeeks } from "date-fns";
+import { format } from "date-fns";
 import type { Activity } from "../api/strava";
 
-type Metric = "distance" | "time" | "count";
+type Metric = "distance" | "time";
 
-const GAP = 4;
-const MONTH_GAP = 12;
-const DAY_LABEL_W = 34; // px reserved for Mon/Wed/Fri labels + gap
+const CELL_GAP = 3;   // gap between cells within a month
+const MONTH_GAP = 14; // gap between month blocks
+const DAY_LABEL_W = 34;
+const INNER_GAP = 6;
 
 const LEVEL_COLORS = [
   "rgba(255,255,255,0.06)",
@@ -22,19 +23,18 @@ interface Props {
   activities: Activity[];
 }
 
-function buildRowMeta(weeksSlice: Date[][]) {
-  const monthLabels: { label: string; col: number }[] = [];
-  const monthStartCols = new Set<number>();
-  let lastMonth = -1;
-  weeksSlice.forEach((week, col) => {
-    const m = week[0].getMonth();
-    if (m !== lastMonth) {
-      monthLabels.push({ label: format(week[0], "MMM"), col });
-      if (col > 0) monthStartCols.add(col);
-      lastMonth = m;
-    }
-  });
-  return { monthLabels, monthStartCols };
+// Returns columns for a calendar month.
+// Each column = 1 week (Mon–Sun). Cells outside the month are null.
+function getMonthCols(year: number, month: number): (Date | null)[][] {
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const firstDow = (new Date(year, month, 1).getDay() + 6) % 7; // Mon=0 … Sun=6
+  const numCols = Math.ceil((firstDow + daysInMonth) / 7);
+  return Array.from({ length: numCols }, (_, col) =>
+    Array.from({ length: 7 }, (_, row) => {
+      const dayNum = col * 7 + row - firstDow + 1;
+      return dayNum >= 1 && dayNum <= daysInMonth ? new Date(year, month, dayNum) : null;
+    })
+  );
 }
 
 export function CalendarHeatmap({ activities }: Props) {
@@ -47,9 +47,7 @@ export function CalendarHeatmap({ activities }: Props) {
 
   useEffect(() => {
     if (!containerRef.current) return;
-    const ro = new ResizeObserver((entries) => {
-      setContainerWidth(entries[0].contentRect.width);
-    });
+    const ro = new ResizeObserver((e) => setContainerWidth(e[0].contentRect.width));
     ro.observe(containerRef.current);
     return () => ro.disconnect();
   }, []);
@@ -64,36 +62,17 @@ export function CalendarHeatmap({ activities }: Props) {
     return map;
   }, [activities]);
 
-  const { topHalf, bottomHalf } = useMemo(() => {
+  // Last 12 months ending with the current month
+  const months = useMemo(() => {
     const today = new Date();
-    const gridStart = startOfWeek(subWeeks(today, 52), { weekStartsOn: 1 });
-    const all: Date[][] = [];
-    let d = gridStart;
-    while (d <= today) {
-      const week: Date[] = [];
-      for (let i = 0; i < 7; i++) week.push(addDays(d, i));
-      all.push(week);
-      d = addDays(d, 7);
-    }
-    const mid = Math.ceil(all.length / 2);
-    return { topHalf: all.slice(0, mid), bottomHalf: all.slice(mid) };
+    return Array.from({ length: 12 }, (_, i) => {
+      const d = new Date(today.getFullYear(), today.getMonth() - 11 + i, 1);
+      return { year: d.getFullYear(), month: d.getMonth() };
+    });
   }, []);
 
-  // Compute cell size so the wider half fills the container exactly
-  const cellSize = useMemo(() => {
-    if (containerWidth === 0) return 16;
-    const { monthStartCols: topCols } = buildRowMeta(topHalf);
-    const { monthStartCols: botCols } = buildRowMeta(bottomHalf);
-    // Use the half that needs more space
-    const topNeeded = topHalf.length * (1 + GAP) + topCols.size * MONTH_GAP;
-    const botNeeded = bottomHalf.length * (1 + GAP) + botCols.size * MONTH_GAP;
-    const { size: numCols, boundaries } = topNeeded >= botNeeded
-      ? { size: topHalf.length, boundaries: topCols.size }
-      : { size: bottomHalf.length, boundaries: botCols.size };
-    const available = containerWidth - DAY_LABEL_W - boundaries * MONTH_GAP;
-    const cell = Math.floor(available / numCols) - GAP;
-    return Math.max(10, Math.min(24, cell));
-  }, [containerWidth, topHalf, bottomHalf]);
+  const topMonths = months.slice(0, 6);
+  const bottomMonths = months.slice(6);
 
   function getValue(acts: Activity[]): number {
     if (metric === "distance") return acts.reduce((s, a) => s + a.distance, 0) / 1000;
@@ -103,16 +82,19 @@ export function CalendarHeatmap({ activities }: Props) {
 
   const thresholds = useMemo(() => {
     const values: number[] = [];
-    [...topHalf, ...bottomHalf].forEach((week) =>
-      week.forEach((date) => {
-        const acts = dayMap.get(format(date, "yyyy-MM-dd")) ?? [];
-        if (acts.length > 0) values.push(getValue(acts));
-      })
+    months.forEach(({ year, month }) =>
+      getMonthCols(year, month).forEach(col =>
+        col.forEach(date => {
+          if (!date) return;
+          const acts = dayMap.get(format(date, "yyyy-MM-dd")) ?? [];
+          if (acts.length > 0) values.push(getValue(acts));
+        })
+      )
     );
     values.sort((a, b) => a - b);
     const p = (pct: number) => values[Math.floor(values.length * pct)] ?? 0;
     return [p(0.25), p(0.5), p(0.75), p(0.9)];
-  }, [topHalf, bottomHalf, dayMap, metric]);
+  }, [months, dayMap, metric]);
 
   function getLevel(value: number): 0 | 1 | 2 | 3 | 4 {
     if (value === 0) return 0;
@@ -122,75 +104,97 @@ export function CalendarHeatmap({ activities }: Props) {
     return 4;
   }
 
-  const STEP = cellSize + GAP;
+  // Compute cell size from the widest row's total column count
+  const cellSize = useMemo(() => {
+    if (containerWidth === 0) return 14;
+    const rowCols = (list: typeof months) =>
+      list.reduce((s, { year, month }) => s + getMonthCols(year, month).length, 0);
+    const numCols = Math.max(rowCols(topMonths), rowCols(bottomMonths));
+    const numMonths = 6;
+    const available = containerWidth - DAY_LABEL_W - INNER_GAP;
+    // With flex-grow:numCols on month blocks + flex:1 on columns, the cell width is:
+    // (available - (numMonths-1)*MONTH_GAP) / totalCols - CELL_GAP
+    const cell = (available - (numMonths - 1) * MONTH_GAP) / numCols - CELL_GAP;
+    return Math.max(10, Math.min(22, cell));
+  }, [containerWidth, topMonths, bottomMonths]);
 
-  function colOffset(col: number, monthStartCols: Set<number>): number {
-    let offset = 0;
-    monthStartCols.forEach((c) => { if (c <= col) offset += MONTH_GAP; });
-    return offset;
-  }
+  const today = new Date();
 
-  function renderHalf(weeksSlice: Date[][]) {
-    const { monthLabels, monthStartCols } = buildRowMeta(weeksSlice);
+  function renderRow(monthList: typeof months) {
     return (
-      <div className="heatmap-inner">
-        <div className="heatmap-day-labels" style={{ width: DAY_LABEL_W }}>
-          <div className="heatmap-month-row-spacer" />
+      <div style={{ display: "flex", gap: INNER_GAP }}>
+        {/* Day-of-week labels */}
+        <div style={{ width: DAY_LABEL_W, display: "flex", flexDirection: "column", gap: CELL_GAP, paddingTop: 20 + 4 }}>
           {DAY_LABELS.map((label, i) => (
-            <div key={i} className="heatmap-day-label" style={{ height: cellSize, lineHeight: `${cellSize}px`, marginBottom: GAP }}>
+            <div
+              key={i}
+              style={{
+                height: cellSize,
+                lineHeight: `${cellSize}px`,
+                fontSize: 10,
+                color: "rgba(255,255,255,0.3)",
+                textAlign: "right",
+                userSelect: "none",
+              }}
+            >
               {label}
             </div>
           ))}
         </div>
 
-        <div className="heatmap-grid-wrap">
-          <div className="heatmap-month-row" style={{ height: 20, position: "relative", marginBottom: 4 }}>
-            {monthLabels.map(({ label, col }) => (
-              <span
-                key={`${label}-${col}`}
-                className="heatmap-month-label"
-                style={{ left: col * STEP + colOffset(col, monthStartCols) }}
-              >
-                {label}
-              </span>
-            ))}
-          </div>
-          <div className="heatmap-grid">
-            {weeksSlice.map((week, colIdx) => (
-              <div
-                key={colIdx}
-                className="heatmap-col"
-                style={monthStartCols.has(colIdx) ? { marginLeft: MONTH_GAP } : undefined}
-              >
-                {week.map((date, rowIdx) => {
-                  const key = format(date, "yyyy-MM-dd");
-                  const acts = dayMap.get(key) ?? [];
-                  const value = getValue(acts);
-                  const level = getLevel(value);
-                  const isFuture = date > new Date();
-                  return (
-                    <div
-                      key={rowIdx}
-                      className="heatmap-cell"
-                      style={{
-                        background: isFuture ? "transparent" : LEVEL_COLORS[level],
-                        width: cellSize,
-                        height: cellSize,
-                        marginBottom: GAP,
-                        borderRadius: Math.max(2, Math.floor(cellSize / 6)),
-                      }}
-                      onMouseEnter={(e) => {
-                        if (isFuture) return;
-                        const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-                        setTooltip({ date, acts, value, x: rect.left + cellSize / 2, y: rect.top });
-                      }}
-                      onMouseLeave={() => setTooltip(null)}
-                    />
-                  );
-                })}
+        {/* Month blocks */}
+        <div style={{ display: "flex", gap: MONTH_GAP, flex: 1 }}>
+          {monthList.map(({ year, month }) => {
+            const cols = getMonthCols(year, month);
+            return (
+              <div key={`${year}-${month}`} style={{ display: "flex", flexDirection: "column", flex: cols.length, minWidth: 0 }}>
+                {/* Month + year label */}
+                <div style={{
+                  height: 20,
+                  marginBottom: 4,
+                  fontSize: 11,
+                  color: "rgba(255,255,255,0.4)",
+                  whiteSpace: "nowrap",
+                  userSelect: "none",
+                }}>
+                  {format(new Date(year, month, 1), "MMM ''yy")}
+                </div>
+
+                {/* Week columns */}
+                <div style={{ display: "flex", gap: CELL_GAP }}>
+                  {cols.map((col, colIdx) => (
+                    <div key={colIdx} style={{ display: "flex", flexDirection: "column", gap: CELL_GAP, flex: 1, minWidth: 0 }}>
+                      {col.map((date, rowIdx) => {
+                        const isFuture = date ? date > today : false;
+                        const acts = date ? (dayMap.get(format(date, "yyyy-MM-dd")) ?? []) : [];
+                        const value = acts.length > 0 ? getValue(acts) : 0;
+                        const level = getLevel(value);
+                        return (
+                          <div
+                            key={rowIdx}
+                            className="heatmap-cell"
+                            style={{
+                              height: cellSize,
+                              borderRadius: Math.max(2, Math.floor(cellSize / 6)),
+                              background: !date || isFuture ? "transparent" : LEVEL_COLORS[level],
+                            }}
+                            onMouseEnter={date && !isFuture ? (e) => {
+                              const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                              const cRect = containerRef.current!.getBoundingClientRect();
+                              const rawX = rect.left + rect.width / 2 - cRect.left;
+                              const x = Math.max(80, Math.min(rawX, cRect.width - 80));
+                              setTooltip({ date: date!, acts, value, x, y: rect.top - cRect.top });
+                            } : undefined}
+                            onMouseLeave={() => setTooltip(null)}
+                          />
+                        );
+                      })}
+                    </div>
+                  ))}
+                </div>
               </div>
-            ))}
-          </div>
+            );
+          })}
         </div>
       </div>
     );
@@ -200,17 +204,17 @@ export function CalendarHeatmap({ activities }: Props) {
     <div className="heatmap-page" ref={containerRef}>
       <div className="heatmap-controls">
         <div className="period-toggle">
-          {(["distance", "time", "count"] as Metric[]).map((m) => (
+          {(["distance", "time"] as Metric[]).map((m) => (
             <button key={m} className={metric === m ? "active" : ""} onClick={() => setMetric(m)}>
-              {m === "distance" ? "Distance" : m === "time" ? "Time" : "Activities"}
+              {m === "distance" ? "Distance" : "Time"}
             </button>
           ))}
         </div>
       </div>
 
       <div className="heatmap-rows">
-        {renderHalf(topHalf)}
-        {renderHalf(bottomHalf)}
+        {renderRow(topMonths)}
+        {renderRow(bottomMonths)}
       </div>
 
       <div className="heatmap-legend">
@@ -224,7 +228,7 @@ export function CalendarHeatmap({ activities }: Props) {
       {tooltip && (
         <div
           className="heatmap-tooltip"
-          style={{ left: tooltip.x, top: tooltip.y - 8, transform: "translate(-50%, -100%)" }}
+          style={{ left: tooltip.x, top: tooltip.y - 6, transform: "translate(-50%, -100%)" }}
         >
           <div className="heatmap-tooltip-date">{format(tooltip.date, "EEE, MMM d yyyy")}</div>
           {tooltip.acts.length === 0 ? (

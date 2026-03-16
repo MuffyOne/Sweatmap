@@ -1002,9 +1002,11 @@ body {
 
 /* ── Calendar Heatmap ────────────────────────────────── */
 .heatmap-page {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
+  min-width: 0;
 }
 
 .heatmap-controls {
@@ -1021,7 +1023,6 @@ body {
 .heatmap-inner {
   display: flex;
   gap: 6px;
-  min-width: max-content;
 }
 
 .heatmap-day-labels {
@@ -1045,6 +1046,8 @@ body {
 .heatmap-grid-wrap {
   display: flex;
   flex-direction: column;
+  flex: 1;
+  min-width: 0;
 }
 
 .heatmap-month-row {
@@ -1061,12 +1064,13 @@ body {
 
 .heatmap-grid {
   display: flex;
-  gap: 3px;
+  gap: 4px;
 }
 
 .heatmap-col {
   display: flex;
   flex-direction: column;
+  flex: 1;
 }
 
 .heatmap-cell {
@@ -1094,7 +1098,7 @@ body {
 }
 
 .heatmap-tooltip {
-  position: fixed;
+  position: absolute;
   z-index: 100;
   background: #1e1e24;
   border: 1px solid rgba(255, 255, 255, 0.1);
