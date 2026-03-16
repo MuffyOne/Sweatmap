@@ -1012,9 +1012,10 @@ body {
   align-items: center;
 }
 
-.heatmap-scroll {
-  overflow-x: auto;
-  padding-bottom: 0.5rem;
+.heatmap-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
 .heatmap-inner {
