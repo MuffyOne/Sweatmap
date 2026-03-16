@@ -18,13 +18,13 @@ type Range = "30d" | "90d";
 
 // Standard 7-zone power model (% of FTP)
 const POWER_ZONES = [
-  { label: "Z1 · Recovery",      min: 0,    max: 0.55,       color: "#4a5568" },
-  { label: "Z2 · Endurance",     min: 0.55, max: 0.75,       color: "#2d6a9f" },
-  { label: "Z3 · Tempo",         min: 0.75, max: 0.90,       color: "#276d4e" },
-  { label: "Z4 · Threshold",     min: 0.90, max: 1.05,       color: "#92780f" },
-  { label: "Z5 · VO2 Max",       min: 1.05, max: 1.20,       color: "#b05a18" },
-  { label: "Z6 · Anaerobic",     min: 1.20, max: 1.50,       color: "#9b2c2c" },
-  { label: "Z7 · Neuromuscular", min: 1.50, max: Infinity,   color: "#6b35a8" },
+  { label: "Z1 · Recovery",      min: 0,    max: 0.55,       color: "#7c90aa" },
+  { label: "Z2 · Endurance",     min: 0.55, max: 0.75,       color: "#3b8fd4" },
+  { label: "Z3 · Tempo",         min: 0.75, max: 0.90,       color: "#22a06b" },
+  { label: "Z4 · Threshold",     min: 0.90, max: 1.05,       color: "#d4a820" },
+  { label: "Z5 · VO2 Max",       min: 1.05, max: 1.20,       color: "#e07820" },
+  { label: "Z6 · Anaerobic",     min: 1.20, max: 1.50,       color: "#e03535" },
+  { label: "Z7 · Neuromuscular", min: 1.50, max: Infinity,   color: "#9333ea" },
 ];
 
 const CACHE_KEY_PREFIX = "power_zones_";
@@ -92,9 +92,9 @@ function TrainingDistribution({ data }: { data: ZonePoint[] }) {
   })).sort((a, b) => b.score - a.score);
 
   const MACRO_ZONES = [
-    { label: "Easy",     pct: easyPct,     color: "#2d6a9f", sub: "Z1+Z2 · <75% FTP" },
-    { label: "Moderate", pct: moderatePct, color: "#92780f", sub: "Z3+Z4 · 75–105% FTP" },
-    { label: "Hard",     pct: hardPct,     color: "#9b2c2c", sub: "Z5–Z7 · >105% FTP" },
+    { label: "Easy",     pct: easyPct,     color: "#3b8fd4", sub: "Z1+Z2 · <75% FTP" },
+    { label: "Moderate", pct: moderatePct, color: "#d4a820", sub: "Z3+Z4 · 75–105% FTP" },
+    { label: "Hard",     pct: hardPct,     color: "#e03535", sub: "Z5–Z7 · >105% FTP" },
   ];
 
   return (
@@ -151,9 +151,9 @@ function TrainingDistribution({ data }: { data: ZonePoint[] }) {
             <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginBottom: "0.6rem" }}>{m.description}</div>
             {/* Mini stacked bar */}
             <div style={{ display: "flex", height: 6, borderRadius: 3, overflow: "hidden", marginBottom: "0.5rem" }}>
-              <div style={{ flex: m.easy,     background: "#2d6a9f" }} />
-              <div style={{ flex: m.moderate, background: "#92780f" }} />
-              <div style={{ flex: m.hard,     background: "#9b2c2c" }} />
+              <div style={{ flex: m.easy,     background: "#3b8fd4" }} />
+              <div style={{ flex: m.moderate, background: "#d4a820" }} />
+              <div style={{ flex: m.hard,     background: "#e03535" }} />
             </div>
             <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)" }}>
               {(m.score * 100).toFixed(0)}% match

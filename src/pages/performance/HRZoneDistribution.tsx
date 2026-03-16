@@ -17,11 +17,11 @@ import { formatTime, TOOLTIP_STYLE } from "../../lib/utils";
 type Range = "30d" | "90d";
 
 const HR_ZONE_DEFS = [
-  { label: "Z1 · Recovery",  min: 0,    max: 0.60, color: "#4a5568" },
-  { label: "Z2 · Aerobic",   min: 0.60, max: 0.70, color: "#2d6a9f" },
-  { label: "Z3 · Tempo",     min: 0.70, max: 0.80, color: "#276d4e" },
-  { label: "Z4 · Threshold", min: 0.80, max: 0.90, color: "#b05a18" },
-  { label: "Z5 · Max",       min: 0.90, max: 1.00, color: "#9b2c2c" },
+  { label: "Z1 · Recovery",  min: 0,    max: 0.60, color: "#7c90aa" },
+  { label: "Z2 · Aerobic",   min: 0.60, max: 0.70, color: "#3b8fd4" },
+  { label: "Z3 · Tempo",     min: 0.70, max: 0.80, color: "#22a06b" },
+  { label: "Z4 · Threshold", min: 0.80, max: 0.90, color: "#e07820" },
+  { label: "Z5 · Max",       min: 0.90, max: 1.00, color: "#e03535" },
 ];
 
 const CACHE_KEY_PREFIX = "hr_zones_v2_";
