@@ -197,12 +197,12 @@ export function RecordsPage({ activities, koms }: Props) {
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
             <XAxis
               dataKey="label"
-              tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 11 }}
+              tick={{ fill: "rgba(255,255,255,0.55)", fontSize: 11 }}
               axisLine={false}
               tickLine={false}
             />
             <YAxis
-              tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 11 }}
+              tick={{ fill: "rgba(255,255,255,0.55)", fontSize: 11 }}
               axisLine={false}
               tickLine={false}
               width={28}
@@ -238,7 +238,7 @@ export function RecordsPage({ activities, koms }: Props) {
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" horizontal={false} />
               <XAxis
                 type="number"
-                tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 11 }}
+                tick={{ fill: "rgba(255,255,255,0.55)", fontSize: 11 }}
                 axisLine={false}
                 tickLine={false}
                 allowDecimals={false}

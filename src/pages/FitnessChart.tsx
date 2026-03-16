@@ -162,13 +162,13 @@ export function FitnessChart({ activities }: Props) {
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
             <XAxis
               dataKey="date"
-              tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 11 }}
+              tick={{ fill: "rgba(255,255,255,0.55)", fontSize: 11 }}
               axisLine={false}
               tickLine={false}
               interval={0}
             />
             <YAxis
-              tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 11 }}
+              tick={{ fill: "rgba(255,255,255,0.55)", fontSize: 11 }}
               axisLine={false}
               tickLine={false}
               width={32}
@@ -228,7 +228,7 @@ export function FitnessChart({ activities }: Props) {
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
             <XAxis dataKey="date" hide />
             <YAxis
-              tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 11 }}
+              tick={{ fill: "rgba(255,255,255,0.55)", fontSize: 11 }}
               axisLine={false}
               tickLine={false}
               width={32}
@@ -263,7 +263,7 @@ export function FitnessChart({ activities }: Props) {
         </ResponsiveContainer>
       </div>
 
-      <div style={{ fontSize: "0.67rem", color: "rgba(255,255,255,0.18)", marginTop: "0.25rem", lineHeight: 1.5 }}>
+      <div style={{ fontSize: "0.67rem", color: "rgba(255,255,255,0.45)", marginTop: "0.25rem", lineHeight: 1.5 }}>
         CTL = 42-day chronic load &nbsp;·&nbsp; ATL = 7-day acute load &nbsp;·&nbsp; Form = CTL − ATL &nbsp;·&nbsp; First weeks may underestimate fitness (warms up from zero)
       </div>
     </div>

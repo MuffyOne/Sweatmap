@@ -245,8 +245,8 @@ export function HomePage({ activities, onNavigate }: Props) {
         <ResponsiveContainer width="100%" height={250}>
           <BarChart data={weeklyChart}>
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-            <XAxis dataKey="label" tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 12 }} />
-            <YAxis tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 12 }} />
+            <XAxis dataKey="label" tick={{ fill: "rgba(255,255,255,0.55)", fontSize: 12 }} />
+            <YAxis tick={{ fill: "rgba(255,255,255,0.55)", fontSize: 12 }} />
             <Tooltip
               cursor={{ fill: "rgba(255, 255, 255, 0.04)" }}
               contentStyle={TOOLTIP_STYLE}
@@ -262,8 +262,8 @@ export function HomePage({ activities, onNavigate }: Props) {
         <ResponsiveContainer width="100%" height={250}>
           <BarChart data={monthlyChart}>
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-            <XAxis dataKey="label" tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 12 }} />
-            <YAxis tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 12 }} />
+            <XAxis dataKey="label" tick={{ fill: "rgba(255,255,255,0.55)", fontSize: 12 }} />
+            <YAxis tick={{ fill: "rgba(255,255,255,0.55)", fontSize: 12 }} />
             <Tooltip
               cursor={{ fill: "rgba(255, 255, 255, 0.04)" }}
               contentStyle={TOOLTIP_STYLE}

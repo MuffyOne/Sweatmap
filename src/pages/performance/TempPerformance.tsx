@@ -77,15 +77,15 @@ export function TempPerformance({ activities }: Props) {
                 name="Temperature"
                 unit="°C"
                 type="number"
-                tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 12 }}
-                label={{ value: "Temperature (°C)", position: "insideBottom", offset: -14, fill: "rgba(255,255,255,0.3)", fontSize: 11 }}
+                tick={{ fill: "rgba(255,255,255,0.55)", fontSize: 12 }}
+                label={{ value: "Temperature (°C)", position: "insideBottom", offset: -14, fill: "rgba(255,255,255,0.50)", fontSize: 11 }}
               />
               <YAxis
                 dataKey="value"
                 name={yLabel}
                 unit={yUnit}
                 type="number"
-                tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 12 }}
+                tick={{ fill: "rgba(255,255,255,0.55)", fontSize: 12 }}
               />
               <Tooltip
                 contentStyle={TOOLTIP_STYLE}
@@ -100,7 +100,7 @@ export function TempPerformance({ activities }: Props) {
               <Scatter data={data} fill="#fc4c02" fillOpacity={0.55} />
             </ScatterChart>
           </ResponsiveContainer>
-          <div style={{ textAlign: "center", fontSize: "0.72rem", color: "rgba(255,255,255,0.25)", marginTop: "0.25rem" }}>
+          <div style={{ textAlign: "center", fontSize: "0.72rem", color: "rgba(255,255,255,0.45)", marginTop: "0.25rem" }}>
             {data.length} {data.length === 1 ? "activity" : "activities"} with temperature data
           </div>
         </>

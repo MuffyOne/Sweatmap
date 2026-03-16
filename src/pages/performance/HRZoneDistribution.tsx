@@ -210,7 +210,7 @@ export function HRZoneDistribution({ activities, onNavigate }: Props) {
               <XAxis
                 type="number"
                 tickFormatter={(v) => formatTime(v as number)}
-                tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 11 }}
+                tick={{ fill: "rgba(255,255,255,0.55)", fontSize: 11 }}
                 axisLine={false}
                 tickLine={false}
               />

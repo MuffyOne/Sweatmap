@@ -112,7 +112,7 @@ body {
   border-radius: 10px;
   border: none;
   background: none;
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.60);
   cursor: pointer;
   font-size: 0.87rem;
   width: 100%;
@@ -162,7 +162,7 @@ body {
 
 
 .sidebar-logout {
-  color: rgba(255, 255, 255, 0.28);
+  color: rgba(255, 255, 255, 0.50);
 }
 
 .sidebar-logout:hover {
@@ -177,7 +177,7 @@ body {
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: 8px;
-  color: rgba(255, 255, 255, 0.28);
+  color: rgba(255, 255, 255, 0.50);
   cursor: pointer;
   padding: 0.38rem;
   margin-top: 0.5rem;
@@ -208,7 +208,7 @@ body {
 }
 
 .activities-empty {
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.50);
   font-size: 0.88rem;
   padding: 2rem 0;
   text-align: center;
@@ -217,7 +217,7 @@ body {
 .refreshing-badge {
   font-size: 0.68rem;
   font-weight: 400;
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.60);
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 20px;
@@ -233,7 +233,7 @@ body {
 .btn-logout {
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.09);
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.60);
   padding: 0.4rem 1rem;
   border-radius: 50px;
   cursor: pointer;
@@ -265,14 +265,14 @@ body {
 }
 
 .login p {
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.60);
   margin-bottom: 1rem;
 }
 
 .login-privacy {
   margin-top: 1rem;
   font-size: 0.72rem !important;
-  color: rgba(255, 255, 255, 0.22) !important;
+  color: rgba(255, 255, 255, 0.45) !important;
   max-width: 340px;
   text-align: center;
   line-height: 1.6;
@@ -311,13 +311,13 @@ body {
 
 .loading-title {
   font-size: 1rem;
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.60);
   font-weight: 400;
 }
 
 .loading-count {
   font-size: 0.82rem;
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.50);
 }
 
 .loading-bar-track {
@@ -363,7 +363,7 @@ body {
 .period-toggle button {
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.60);
   padding: 0.4rem 1.05rem;
   border-radius: 50px;
   cursor: pointer;
@@ -398,7 +398,7 @@ body {
 .stats-filter-btn {
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.60);
   padding: 0.32rem 0.8rem;
   border-radius: 50px;
   cursor: pointer;
@@ -492,7 +492,7 @@ body {
 
 .stat-card .label {
   font-size: 0.72rem;
-  color: rgba(255, 255, 255, 0.32);
+  color: rgba(255, 255, 255, 0.55);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   margin-bottom: 0.6rem;
@@ -509,7 +509,7 @@ body {
 
 .stat-card .unit {
   font-size: 0.82rem;
-  color: rgba(255, 255, 255, 0.32);
+  color: rgba(255, 255, 255, 0.55);
   font-weight: 400;
   margin-left: 0.3rem;
 }
@@ -532,7 +532,7 @@ body {
 
 .chart-section h3 {
   font-size: 0.72rem;
-  color: rgba(255, 255, 255, 0.32);
+  color: rgba(255, 255, 255, 0.55);
   margin-bottom: 1.25rem;
   font-weight: 500;
   text-transform: uppercase;
@@ -576,7 +576,7 @@ body {
   display: flex;
   justify-content: space-between;
   font-size: 0.78rem;
-  color: rgba(255, 255, 255, 0.32);
+  color: rgba(255, 255, 255, 0.55);
   margin-bottom: 0.35rem;
 }
 
@@ -592,7 +592,7 @@ body {
 
 .recent-activities h3 {
   font-size: 0.72rem;
-  color: rgba(255, 255, 255, 0.32);
+  color: rgba(255, 255, 255, 0.55);
   margin-bottom: 0.9rem;
   font-weight: 500;
   text-transform: uppercase;
@@ -628,7 +628,7 @@ body {
 
 .activity-row .activity-type {
   font-size: 0.73rem;
-  color: rgba(255, 255, 255, 0.32);
+  color: rgba(255, 255, 255, 0.55);
   margin-top: 0.15rem;
 }
 
@@ -636,7 +636,7 @@ body {
   display: flex;
   gap: 1.5rem;
   font-size: 0.82rem;
-  color: rgba(255, 255, 255, 0.32);
+  color: rgba(255, 255, 255, 0.55);
 }
 
 .activity-row .activity-stats span {
@@ -689,7 +689,7 @@ body {
 }
 
 .power-curve-empty {
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.50);
   font-size: 0.85rem;
   padding: 1.75rem 0;
   text-align: center;
@@ -741,7 +741,7 @@ body {
 
 .zone-summary {
   font-size: 0.78rem;
-  color: rgba(255, 255, 255, 0.32);
+  color: rgba(255, 255, 255, 0.55);
   margin-bottom: 1rem;
 }
 
@@ -790,7 +790,7 @@ body {
 
 .pmc-stat-label {
   font-size: 0.68rem;
-  color: rgba(255, 255, 255, 0.32);
+  color: rgba(255, 255, 255, 0.55);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   margin-bottom: 0.35rem;
@@ -811,7 +811,7 @@ body {
 /* Records page */
 .records-best-name {
   font-size: 0.7rem;
-  color: rgba(255, 255, 255, 0.35);
+  color: rgba(255, 255, 255, 0.55);
   margin-top: 0.35rem;
   white-space: nowrap;
   overflow: hidden;
@@ -830,7 +830,7 @@ body {
   grid-template-columns: 1fr 110px 90px 60px 100px;
   padding: 0 0.75rem 0.5rem;
   font-size: 0.68rem;
-  color: rgba(255, 255, 255, 0.25);
+  color: rgba(255, 255, 255, 0.45);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   font-weight: 500;
@@ -868,7 +868,7 @@ body {
 
 .records-sport-tag {
   font-size: 0.65rem;
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.50);
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 20px;
@@ -879,7 +879,7 @@ body {
 
 .records-cell-muted {
   font-size: 0.82rem;
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.60);
 }
 
 .records-pr-badge {
@@ -924,7 +924,7 @@ body {
 
 .settings-field-hint {
   font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.50);
   margin-bottom: 0.9rem;
   line-height: 1.5;
 }
@@ -958,7 +958,7 @@ body {
 
 .settings-unit {
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.35);
+  color: rgba(255, 255, 255, 0.55);
 }
 
 .settings-computed {
@@ -1037,7 +1037,7 @@ body {
 
 .heatmap-day-label {
   font-size: 10px;
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.50);
   text-align: right;
   width: 28px;
   user-select: none;
@@ -1057,7 +1057,7 @@ body {
 .heatmap-month-label {
   position: absolute;
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.60);
   user-select: none;
   white-space: nowrap;
 }
@@ -1093,7 +1093,7 @@ body {
 
 .heatmap-legend-label {
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.50);
   margin: 0 4px;
 }
 
@@ -1124,7 +1124,7 @@ body {
 
 .heatmap-tooltip-empty {
   font-size: 0.82rem;
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.50);
 }
 
 .heatmap-tooltip-activity {
@@ -1138,7 +1138,7 @@ body {
 
 .heatmap-tooltip-more {
   font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.50);
   margin-top: 0.15rem;
 }
 
@@ -1155,7 +1155,7 @@ body {
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.12);
   font-size: 0.6rem;
-  color: rgba(255, 255, 255, 0.35);
+  color: rgba(255, 255, 255, 0.55);
   cursor: help;
   vertical-align: middle;
   flex-shrink: 0;

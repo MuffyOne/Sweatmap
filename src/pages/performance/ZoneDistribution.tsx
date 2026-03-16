@@ -122,7 +122,7 @@ function TrainingDistribution({ data }: { data: ZonePoint[] }) {
                 {z.pct.toFixed(0)}%
               </span>
               <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginLeft: "0.3rem" }}>{z.label}</span>
-              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.25)" }}>{z.sub}</div>
+              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.45)" }}>{z.sub}</div>
             </div>
           </div>
         ))}
@@ -134,41 +134,41 @@ function TrainingDistribution({ data }: { data: ZonePoint[] }) {
           <div
             key={m.name}
             style={{
-              background: rank === 0 ? "rgba(255,255,255,0.06)" : "rgba(255,255,255,0.03)",
-              border: rank === 0 ? "1px solid rgba(255,255,255,0.15)" : "1px solid rgba(255,255,255,0.06)",
-              borderRadius: 8,
-              padding: "0.75rem",
+              background: rank === 0 ? "rgba(255,255,255,0.07)" : "rgba(255,255,255,0.03)",
+              border: rank === 0 ? "1px solid rgba(255,255,255,0.18)" : "1px solid rgba(255,255,255,0.06)",
+              borderRadius: 10,
+              padding: rank === 0 ? "1.1rem 1.25rem" : "0.75rem",
             }}
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
-              <span style={{ fontSize: 13, fontWeight: 600, color: rank === 0 ? "rgba(255,255,255,0.9)" : "rgba(255,255,255,0.6)" }}>
+              <span style={{ fontSize: rank === 0 ? 14 : 13, fontWeight: 600, color: rank === 0 ? "rgba(255,255,255,0.95)" : "rgba(255,255,255,0.6)" }}>
                 {m.name}
               </span>
               {rank === 0 && (
                 <span style={{ fontSize: 10, color: "#fc4c02", fontWeight: 600 }}>Best match</span>
               )}
             </div>
-            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginBottom: "0.6rem" }}>{m.description}</div>
+            <div style={{ fontSize: 11, color: rank === 0 ? "rgba(255,255,255,0.5)" : "rgba(255,255,255,0.35)", marginBottom: "0.6rem" }}>{m.description}</div>
             {/* Mini stacked bar */}
-            <div style={{ display: "flex", height: 6, borderRadius: 3, overflow: "hidden", marginBottom: "0.5rem" }}>
+            <div style={{ display: "flex", height: rank === 0 ? 8 : 6, borderRadius: 3, overflow: "hidden", marginBottom: "0.5rem" }}>
               <div style={{ flex: m.easy,     background: "#3b8fd4" }} />
               <div style={{ flex: m.moderate, background: "#d4a820" }} />
               <div style={{ flex: m.hard,     background: "#e03535" }} />
             </div>
-            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)" }}>
+            <div style={{ fontSize: rank === 0 ? 11 : 10, color: rank === 0 ? "rgba(255,255,255,0.5)" : "rgba(255,255,255,0.3)" }}>
               {(m.score * 100).toFixed(0)}% match
             </div>
           </div>
         ))}
       </div>
 
-      <div style={{ marginTop: "1rem", fontSize: 11, color: "rgba(255,255,255,0.22)", lineHeight: 1.5 }}>
+      <div style={{ marginTop: "1rem", fontSize: 11, color: "rgba(255,255,255,0.45)", lineHeight: 1.5 }}>
         3-zone model (Easy / Moderate / Hard) based on{" "}
         <a
           href="https://pubmed.ncbi.nlm.nih.gov/20492317/"
           target="_blank"
           rel="noopener noreferrer"
-          style={{ color: "rgba(255,255,255,0.35)", textDecoration: "underline" }}
+          style={{ color: "rgba(255,255,255,0.55)", textDecoration: "underline" }}
         >
           Seiler &amp; Tønnessen (2009)
         </a>
@@ -177,7 +177,7 @@ function TrainingDistribution({ data }: { data: ZonePoint[] }) {
           href="https://www.trainingpeaks.com/blog/power-training-levels/"
           target="_blank"
           rel="noopener noreferrer"
-          style={{ color: "rgba(255,255,255,0.35)", textDecoration: "underline" }}
+          style={{ color: "rgba(255,255,255,0.55)", textDecoration: "underline" }}
         >
           Coggan's 7-zone model
         </a>
@@ -186,7 +186,7 @@ function TrainingDistribution({ data }: { data: ZonePoint[] }) {
           href="https://pubmed.ncbi.nlm.nih.gov/23752040/"
           target="_blank"
           rel="noopener noreferrer"
-          style={{ color: "rgba(255,255,255,0.35)", textDecoration: "underline" }}
+          style={{ color: "rgba(255,255,255,0.55)", textDecoration: "underline" }}
         >
           Stöggl &amp; Sperlich (2014)
         </a>
@@ -348,7 +348,7 @@ export function ZoneDistribution({ activities, onNavigate }: Props) {
               <XAxis
                 type="number"
                 tickFormatter={(v) => formatTime(v as number)}
-                tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 11 }}
+                tick={{ fill: "rgba(255,255,255,0.55)", fontSize: 11 }}
                 axisLine={false}
                 tickLine={false}
               />
