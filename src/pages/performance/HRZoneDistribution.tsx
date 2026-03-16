@@ -200,7 +200,7 @@ export function HRZoneDistribution({ activities, onNavigate }: Props) {
             <BarChart
               data={data}
               layout="vertical"
-              margin={{ top: 4, right: 64, left: 116, bottom: 4 }}
+              margin={{ top: 4, right: 64, left: 0, bottom: 4 }}
             >
               <CartesianGrid
                 strokeDasharray="3 3"

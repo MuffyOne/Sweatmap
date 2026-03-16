@@ -75,9 +75,8 @@ export function CalendarHeatmap({ activities }: Props) {
   const bottomMonths = months.slice(6);
 
   function getValue(acts: Activity[]): number {
-    if (metric === "distance") return acts.reduce((s, a) => s + a.distance, 0) / 1000;
     if (metric === "time") return acts.reduce((s, a) => s + a.moving_time, 0) / 3600;
-    return acts.length;
+    return acts.reduce((s, a) => s + a.distance, 0) / 1000;
   }
 
   const thresholds = useMemo(() => {
@@ -238,7 +237,6 @@ export function CalendarHeatmap({ activities }: Props) {
               <div className="heatmap-tooltip-stat">
                 {metric === "distance" && `${tooltip.value.toFixed(1)} km`}
                 {metric === "time" && `${tooltip.value.toFixed(1)} h`}
-                {metric === "count" && `${tooltip.acts.length} ${tooltip.acts.length === 1 ? "activity" : "activities"}`}
               </div>
               {tooltip.acts.slice(0, 3).map((a) => (
                 <div key={a.id} className="heatmap-tooltip-activity">{a.name}</div>
