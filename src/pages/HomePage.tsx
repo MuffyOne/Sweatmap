@@ -258,11 +258,6 @@ export function HomePage({ activities, onNavigate }: Props) {
       </div>
 
       <div className="chart-section">
-        <h3>Activity Heatmap</h3>
-        <CalendarHeatmap activities={activities} />
-      </div>
-
-      <div className="chart-section">
         <h3>Monthly Distance (last 12 months)</h3>
         <ResponsiveContainer width="100%" height={250}>
           <BarChart data={monthlyChart}>
@@ -277,6 +272,11 @@ export function HomePage({ activities, onNavigate }: Props) {
             <Bar dataKey="distance" fill="#fc4c02" radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
+      </div>
+
+      <div className="chart-section">
+        <h3>Activity Heatmap</h3>
+        <CalendarHeatmap activities={activities} />
       </div>
     </div>
   );

@@ -44,7 +44,7 @@ export function CalendarHeatmap({ activities }: Props) {
   }, [activities]);
 
   // Build 53-week grid starting on Monday
-  const { weeks, monthLabels } = useMemo(() => {
+  const { weeks, monthLabels, monthStartCols } = useMemo(() => {
     const today = new Date();
     const gridStart = startOfWeek(subWeeks(today, 52), { weekStartsOn: 1 });
     const weeksArr: Date[][] = [];
@@ -57,17 +57,19 @@ export function CalendarHeatmap({ activities }: Props) {
       weeksArr.push(week);
       d = addDays(d, 7);
     }
-    // Month labels
+    // Month labels + set of col indices that start a new month
     const months: { label: string; col: number }[] = [];
+    const monthStartCols = new Set<number>();
     let lastMonth = -1;
     weeksArr.forEach((week, col) => {
       const m = week[0].getMonth();
       if (m !== lastMonth) {
         months.push({ label: format(week[0], "MMM"), col });
+        if (col > 0) monthStartCols.add(col);
         lastMonth = m;
       }
     });
-    return { weeks: weeksArr, monthLabels: months };
+    return { weeks: weeksArr, monthLabels: months, monthStartCols };
   }, []);
 
   function getValue(acts: Activity[]): number {
@@ -124,23 +126,32 @@ export function CalendarHeatmap({ activities }: Props) {
 
           {/* Grid + month labels */}
           <div className="heatmap-grid-wrap">
-            {/* Month labels */}
+            {/* Month labels — account for extra gap at month boundaries */}
             <div className="heatmap-month-row" style={{ height: 20, position: "relative", marginBottom: 4 }}>
-              {monthLabels.map(({ label, col }) => (
-                <span
-                  key={`${label}-${col}`}
-                  className="heatmap-month-label"
-                  style={{ left: col * STEP }}
-                >
-                  {label}
-                </span>
-              ))}
+              {monthLabels.map(({ label, col }) => {
+                // Count how many month boundaries fall before this col
+                let offset = 0;
+                monthStartCols.forEach((c) => { if (c <= col) offset += 8; });
+                return (
+                  <span
+                    key={`${label}-${col}`}
+                    className="heatmap-month-label"
+                    style={{ left: col * STEP + offset }}
+                  >
+                    {label}
+                  </span>
+                );
+              })}
             </div>
 
             {/* Columns */}
             <div className="heatmap-grid">
               {weeks.map((week, colIdx) => (
-                <div key={colIdx} className="heatmap-col">
+                <div
+                  key={colIdx}
+                  className="heatmap-col"
+                  style={monthStartCols.has(colIdx) ? { marginLeft: 8 } : undefined}
+                >
                   {week.map((date, rowIdx) => {
                     const key = format(date, "yyyy-MM-dd");
                     const acts = dayMap.get(key) ?? [];
