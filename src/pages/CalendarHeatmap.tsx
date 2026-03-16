@@ -1,13 +1,12 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { format, startOfWeek, addDays, subWeeks } from "date-fns";
 import type { Activity } from "../api/strava";
 
 type Metric = "distance" | "time" | "count";
 
-const CELL = 18;
 const GAP = 4;
-const STEP = CELL + GAP;
-const MONTH_GAP = 10;
+const MONTH_GAP = 12;
+const DAY_LABEL_W = 34; // px reserved for Mon/Wed/Fri labels + gap
 
 const LEVEL_COLORS = [
   "rgba(255,255,255,0.06)",
@@ -38,21 +37,22 @@ function buildRowMeta(weeksSlice: Date[][]) {
   return { monthLabels, monthStartCols };
 }
 
-function colOffset(col: number, monthStartCols: Set<number>): number {
-  let offset = 0;
-  monthStartCols.forEach((c) => { if (c <= col) offset += MONTH_GAP; });
-  return offset;
-}
-
 export function CalendarHeatmap({ activities }: Props) {
   const [metric, setMetric] = useState<Metric>("distance");
   const [tooltip, setTooltip] = useState<{
-    date: Date;
-    acts: Activity[];
-    value: number;
-    x: number;
-    y: number;
+    date: Date; acts: Activity[]; value: number; x: number; y: number;
   } | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [containerWidth, setContainerWidth] = useState(0);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const ro = new ResizeObserver((entries) => {
+      setContainerWidth(entries[0].contentRect.width);
+    });
+    ro.observe(containerRef.current);
+    return () => ro.disconnect();
+  }, []);
 
   const dayMap = useMemo(() => {
     const map = new Map<string, Activity[]>();
@@ -78,6 +78,22 @@ export function CalendarHeatmap({ activities }: Props) {
     const mid = Math.ceil(all.length / 2);
     return { topHalf: all.slice(0, mid), bottomHalf: all.slice(mid) };
   }, []);
+
+  // Compute cell size so the wider half fills the container exactly
+  const cellSize = useMemo(() => {
+    if (containerWidth === 0) return 16;
+    const { monthStartCols: topCols } = buildRowMeta(topHalf);
+    const { monthStartCols: botCols } = buildRowMeta(bottomHalf);
+    // Use the half that needs more space
+    const topNeeded = topHalf.length * (1 + GAP) + topCols.size * MONTH_GAP;
+    const botNeeded = bottomHalf.length * (1 + GAP) + botCols.size * MONTH_GAP;
+    const { size: numCols, boundaries } = topNeeded >= botNeeded
+      ? { size: topHalf.length, boundaries: topCols.size }
+      : { size: bottomHalf.length, boundaries: botCols.size };
+    const available = containerWidth - DAY_LABEL_W - boundaries * MONTH_GAP;
+    const cell = Math.floor(available / numCols) - GAP;
+    return Math.max(10, Math.min(24, cell));
+  }, [containerWidth, topHalf, bottomHalf]);
 
   function getValue(acts: Activity[]): number {
     if (metric === "distance") return acts.reduce((s, a) => s + a.distance, 0) / 1000;
@@ -106,21 +122,27 @@ export function CalendarHeatmap({ activities }: Props) {
     return 4;
   }
 
+  const STEP = cellSize + GAP;
+
+  function colOffset(col: number, monthStartCols: Set<number>): number {
+    let offset = 0;
+    monthStartCols.forEach((c) => { if (c <= col) offset += MONTH_GAP; });
+    return offset;
+  }
+
   function renderHalf(weeksSlice: Date[][]) {
     const { monthLabels, monthStartCols } = buildRowMeta(weeksSlice);
     return (
       <div className="heatmap-inner">
-        {/* Day labels */}
-        <div className="heatmap-day-labels">
+        <div className="heatmap-day-labels" style={{ width: DAY_LABEL_W }}>
           <div className="heatmap-month-row-spacer" />
           {DAY_LABELS.map((label, i) => (
-            <div key={i} className="heatmap-day-label" style={{ height: CELL, lineHeight: `${CELL}px`, marginBottom: GAP }}>
+            <div key={i} className="heatmap-day-label" style={{ height: cellSize, lineHeight: `${cellSize}px`, marginBottom: GAP }}>
               {label}
             </div>
           ))}
         </div>
 
-        {/* Grid + month labels */}
         <div className="heatmap-grid-wrap">
           <div className="heatmap-month-row" style={{ height: 20, position: "relative", marginBottom: 4 }}>
             {monthLabels.map(({ label, col }) => (
@@ -152,14 +174,15 @@ export function CalendarHeatmap({ activities }: Props) {
                       className="heatmap-cell"
                       style={{
                         background: isFuture ? "transparent" : LEVEL_COLORS[level],
-                        width: CELL,
-                        height: CELL,
+                        width: cellSize,
+                        height: cellSize,
                         marginBottom: GAP,
+                        borderRadius: Math.max(2, Math.floor(cellSize / 6)),
                       }}
                       onMouseEnter={(e) => {
                         if (isFuture) return;
                         const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-                        setTooltip({ date, acts, value, x: rect.left + CELL / 2, y: rect.top });
+                        setTooltip({ date, acts, value, x: rect.left + cellSize / 2, y: rect.top });
                       }}
                       onMouseLeave={() => setTooltip(null)}
                     />
@@ -174,7 +197,7 @@ export function CalendarHeatmap({ activities }: Props) {
   }
 
   return (
-    <div className="heatmap-page">
+    <div className="heatmap-page" ref={containerRef}>
       <div className="heatmap-controls">
         <div className="period-toggle">
           {(["distance", "time", "count"] as Metric[]).map((m) => (
@@ -190,16 +213,14 @@ export function CalendarHeatmap({ activities }: Props) {
         {renderHalf(bottomHalf)}
       </div>
 
-      {/* Legend */}
       <div className="heatmap-legend">
         <span className="heatmap-legend-label">Less</span>
         {LEVEL_COLORS.map((color, i) => (
-          <div key={i} className="heatmap-cell" style={{ background: color, width: CELL, height: CELL }} />
+          <div key={i} className="heatmap-cell" style={{ background: color, width: cellSize, height: cellSize, borderRadius: 2 }} />
         ))}
         <span className="heatmap-legend-label">More</span>
       </div>
 
-      {/* Tooltip */}
       {tooltip && (
         <div
           className="heatmap-tooltip"
