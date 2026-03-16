@@ -9,6 +9,7 @@ import {
 import type { Activity } from "../api/strava";
 import type { Page } from "../Dashboard";
 import { formatDuration, formatDistance, TOOLTIP_STYLE } from "../lib/utils";
+import { CalendarHeatmap } from "./CalendarHeatmap";
 
 type Period = "week" | "month" | "year" | "last7" | "last30";
 
@@ -254,6 +255,11 @@ export function HomePage({ activities, onNavigate }: Props) {
             <Bar dataKey="distance" fill="#fc4c02" radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
+      </div>
+
+      <div className="chart-section">
+        <h3>Activity Heatmap</h3>
+        <CalendarHeatmap activities={activities} />
       </div>
 
       <div className="chart-section">

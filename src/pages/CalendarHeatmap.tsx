@@ -4,8 +4,8 @@ import type { Activity } from "../api/strava";
 
 type Metric = "distance" | "time" | "count";
 
-const CELL = 12;
-const GAP = 3;
+const CELL = 16;
+const GAP = 4;
 const STEP = CELL + GAP;
 
 const LEVEL_COLORS = [
