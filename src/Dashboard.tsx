@@ -8,8 +8,9 @@ import { FitnessChart } from "./pages/FitnessChart";
 import { RecordsPage } from "./pages/RecordsPage";
 import { HomePage } from "./pages/HomePage";
 import { ActivitiesPage } from "./pages/ActivitiesPage";
+import { CalendarHeatmap } from "./pages/CalendarHeatmap";
 
-export type Page = "home" | "performance" | "activities" | "settings" | "fitness" | "records";
+export type Page = "home" | "performance" | "activities" | "settings" | "fitness" | "records" | "heatmap";
 
 interface Props {
   activities: Activity[];
@@ -35,6 +36,7 @@ export function Dashboard({ activities, koms, page, onNavigate, onForceSync, for
         <TempPerformance activities={activities} />
       </>
     );
+    case "heatmap":     return <CalendarHeatmap activities={activities} />;
     case "settings":    return <Settings onForceSync={onForceSync} forceSyncing={forceSyncing} fetchedCount={fetchedCount} />;
   }
 }

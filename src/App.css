@@ -1000,6 +1000,143 @@ body {
   flex-shrink: 0;
 }
 
+/* ── Calendar Heatmap ────────────────────────────────── */
+.heatmap-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.heatmap-controls {
+  display: flex;
+  align-items: center;
+}
+
+.heatmap-scroll {
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+}
+
+.heatmap-inner {
+  display: flex;
+  gap: 6px;
+  min-width: max-content;
+}
+
+.heatmap-day-labels {
+  display: flex;
+  flex-direction: column;
+  padding-top: 0;
+}
+
+.heatmap-month-row-spacer {
+  height: 24px;
+}
+
+.heatmap-day-label {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.3);
+  text-align: right;
+  width: 28px;
+  user-select: none;
+}
+
+.heatmap-grid-wrap {
+  display: flex;
+  flex-direction: column;
+}
+
+.heatmap-month-row {
+  position: relative;
+}
+
+.heatmap-month-label {
+  position: absolute;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.4);
+  user-select: none;
+  white-space: nowrap;
+}
+
+.heatmap-grid {
+  display: flex;
+  gap: 3px;
+}
+
+.heatmap-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.heatmap-cell {
+  border-radius: 2px;
+  cursor: default;
+  transition: opacity 0.1s ease;
+  flex-shrink: 0;
+}
+
+.heatmap-cell:hover {
+  opacity: 0.8;
+  outline: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.heatmap-legend {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.heatmap-legend-label {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.3);
+  margin: 0 4px;
+}
+
+.heatmap-tooltip {
+  position: fixed;
+  z-index: 100;
+  background: #1e1e24;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 0.6rem 0.8rem;
+  pointer-events: none;
+  min-width: 140px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+.heatmap-tooltip-date {
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 0.25rem;
+}
+
+.heatmap-tooltip-stat {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #fc4c02;
+  margin-bottom: 0.2rem;
+}
+
+.heatmap-tooltip-empty {
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.heatmap-tooltip-activity {
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.6);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+
+.heatmap-tooltip-more {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.3);
+  margin-top: 0.15rem;
+}
+
 /* Info tooltip */
 .info-tip {
   position: relative;
