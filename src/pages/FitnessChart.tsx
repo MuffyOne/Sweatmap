@@ -59,8 +59,6 @@ function computeLoad(a: Activity, ftp: number | null): number {
   return a.moving_time / 60;
 }
 
-const ZONE_KEYS = ["tsbT", "tsbF", "tsbN", "tsbP", "tsbH"] as const;
-type ZoneKey = typeof ZONE_KEYS[number];
 
 function tsbZoneIndex(tsb: number): number {
   if (tsb > 25) return 0;
