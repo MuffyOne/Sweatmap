@@ -55,6 +55,7 @@ export function HomePage({ activities, onNavigate }: Props) {
   const [enabledStats, setEnabledStats] = useState<Set<StatId>>(DEFAULT_STATS);
   const [statsMenuOpen, setStatsMenuOpen] = useState(false);
 
+
   function toggleStat(id: StatId) {
     setEnabledStats((prev) => {
       const next = new Set(prev);

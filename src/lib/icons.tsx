@@ -99,6 +99,25 @@ export function GridIcon() {
   );
 }
 
+export function XertIcon() {
+  return (
+    <svg {...SVG_PROPS}>
+      <path d="M4 4l7 8-7 8" />
+      <path d="M20 4l-7 8 7 8" />
+    </svg>
+  );
+}
+
+export function ServicesIcon() {
+  return (
+    <svg {...SVG_PROPS}>
+      <path d="M12 2L2 7l10 5 10-5-10-5z" />
+      <path d="M2 17l10 5 10-5" />
+      <path d="M2 12l10 5 10-5" />
+    </svg>
+  );
+}
+
 export function ChevronLeftIcon() {
   return (
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

@@ -8,8 +8,10 @@ import { FitnessChart } from "./pages/FitnessChart";
 import { RecordsPage } from "./pages/RecordsPage";
 import { HomePage } from "./pages/HomePage";
 import { ActivitiesPage } from "./pages/ActivitiesPage";
+import { ServicesPage } from "./pages/ServicesPage";
+import { XertPage } from "./pages/XertPage";
 
-export type Page = "home" | "performance" | "activities" | "settings" | "fitness" | "records";
+export type Page = "home" | "performance" | "activities" | "settings" | "fitness" | "records" | "services" | "xert";
 
 interface Props {
   activities: Activity[];
@@ -36,5 +38,7 @@ export function Dashboard({ activities, koms, page, onNavigate, onForceSync, for
       </>
     );
     case "settings":    return <Settings onForceSync={onForceSync} forceSyncing={forceSyncing} fetchedCount={fetchedCount} />;
+    case "services":    return <ServicesPage />;
+    case "xert":        return <XertPage />;
   }
 }
