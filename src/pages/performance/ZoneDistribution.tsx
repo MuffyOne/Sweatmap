@@ -18,13 +18,13 @@ type Range = "30d" | "90d";
 
 // Standard 7-zone power model (% of FTP)
 const POWER_ZONES = [
-  { label: "Z1", min: 0,    max: 0.55,       color: "#7c90aa" },
-  { label: "Z2", min: 0.55, max: 0.75,       color: "#3b8fd4" },
-  { label: "Z3", min: 0.75, max: 0.90,       color: "#22a06b" },
-  { label: "Z4", min: 0.90, max: 1.05,       color: "#d4a820" },
-  { label: "Z5", min: 1.05, max: 1.20,       color: "#e07820" },
-  { label: "Z6", min: 1.20, max: 1.50,       color: "#e03535" },
-  { label: "Z7", min: 1.50, max: Infinity,   color: "#9333ea" },
+  { label: "Z1", name: "Recovery",      min: 0,    max: 0.55,       color: "#7c90aa" },
+  { label: "Z2", name: "Endurance",     min: 0.55, max: 0.75,       color: "#3b8fd4" },
+  { label: "Z3", name: "Tempo",         min: 0.75, max: 0.90,       color: "#22a06b" },
+  { label: "Z4", name: "Threshold",     min: 0.90, max: 1.05,       color: "#d4a820" },
+  { label: "Z5", name: "VO2 Max",       min: 1.05, max: 1.20,       color: "#e07820" },
+  { label: "Z6", name: "Anaerobic",     min: 1.20, max: 1.50,       color: "#e03535" },
+  { label: "Z7", name: "Neuromuscular", min: 1.50, max: Infinity,   color: "#9333ea" },
 ];
 
 const CACHE_KEY_PREFIX = "power_zones_";
@@ -365,6 +365,10 @@ export function ZoneDistribution({ activities, onNavigate }: Props) {
                 contentStyle={TOOLTIP_STYLE}
                 labelStyle={{ color: "#e8eaf0" }}
                 itemStyle={{ color: "#e8eaf0" }}
+                labelFormatter={(label) => {
+                  const zone = POWER_ZONES.find((z) => z.label === label);
+                  return zone ? `${zone.label} · ${zone.name}` : String(label);
+                }}
                 formatter={(value: unknown) => [formatTime(Number(value)), "Time"]}
               />
               <Bar dataKey="seconds" radius={[0, 6, 6, 0]} maxBarSize={28}>

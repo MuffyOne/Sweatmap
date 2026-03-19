@@ -4,7 +4,7 @@ import {
 } from "recharts";
 import {
   startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear,
-  isWithinInterval, format, subWeeks, subMonths, subDays, parseISO,
+  isWithinInterval, format, subWeeks, subMonths, subDays, subYears, parseISO,
 } from "date-fns";
 import type { Activity } from "../api/strava";
 import type { Page } from "../Dashboard";
@@ -45,6 +45,45 @@ function getInterval(period: Period): { start: Date; end: Date } {
   }
 }
 
+function getPrevInterval(period: Period): { start: Date; end: Date } {
+  const now = new Date();
+  switch (period) {
+    case "week": {
+      const prevWeek = subWeeks(now, 1);
+      return { start: startOfWeek(prevWeek, { weekStartsOn: 1 }), end: endOfWeek(prevWeek, { weekStartsOn: 1 }) };
+    }
+    case "month": {
+      const prevMonth = subMonths(now, 1);
+      return { start: startOfMonth(prevMonth), end: endOfMonth(prevMonth) };
+    }
+    case "year": {
+      const prevYear = subYears(now, 1);
+      return { start: startOfYear(prevYear), end: endOfYear(prevYear) };
+    }
+    case "last7":  return { start: subDays(now, 14), end: subDays(now, 7) };
+    case "last30": return { start: subDays(now, 60), end: subDays(now, 30) };
+  }
+}
+
+function pctChange(current: number, previous: number): number | null {
+  if (previous === 0) return current > 0 ? 100 : null;
+  return ((current - previous) / previous) * 100;
+}
+
+function DeltaBadge({ current, previous }: { current: number; previous: number }) {
+  const pct = pctChange(current, previous);
+  if (pct === null) {
+    return <span className="stat-delta stat-delta--neutral">━ 0%</span>;
+  }
+  const up = pct >= 0;
+  const display = Math.abs(pct) >= 1000 ? "—" : `${Math.abs(Math.round(pct))}%`;
+  return (
+    <span className={`stat-delta ${up ? "stat-delta--up" : "stat-delta--down"}`}>
+      {up ? "▲" : "▼"} {display}
+    </span>
+  );
+}
+
 interface Props {
   activities: Activity[];
   onNavigate: (page: Page) => void;
@@ -69,24 +108,32 @@ export function HomePage({ activities, onNavigate }: Props) {
     return activities.filter((a) => isWithinInterval(parseISO(a.start_date_local), { start, end }));
   }, [activities, period]);
 
-  const stats = useMemo(() => {
-    const withHR = filtered.filter((a) => a.average_heartrate);
-    const withWatts = filtered.filter((a) => a.average_watts);
+  const prevFiltered = useMemo(() => {
+    const { start, end } = getPrevInterval(period);
+    return activities.filter((a) => isWithinInterval(parseISO(a.start_date_local), { start, end }));
+  }, [activities, period]);
+
+  const computeStats = (acts: Activity[]) => {
+    const withHR = acts.filter((a) => a.average_heartrate);
+    const withWatts = acts.filter((a) => a.average_watts);
     return {
-      count: filtered.length,
-      totalDistance: filtered.reduce((s, a) => s + a.distance, 0),
-      totalTime: filtered.reduce((s, a) => s + a.moving_time, 0),
-      totalElevation: filtered.reduce((s, a) => s + a.total_elevation_gain, 0),
+      count: acts.length,
+      totalDistance: acts.reduce((s, a) => s + a.distance, 0),
+      totalTime: acts.reduce((s, a) => s + a.moving_time, 0),
+      totalElevation: acts.reduce((s, a) => s + a.total_elevation_gain, 0),
       avgHeartrate: withHR.length > 0
         ? withHR.reduce((s, a) => s + (a.average_heartrate ?? 0), 0) / withHR.length
         : null,
       avgWatts: withWatts.length > 0
         ? withWatts.reduce((s, a) => s + (a.average_watts ?? 0), 0) / withWatts.length
         : null,
-      totalPRs: filtered.reduce((s, a) => s + (a.pr_count ?? 0), 0),
-      totalAchievements: filtered.reduce((s, a) => s + (a.achievement_count ?? 0), 0),
+      totalPRs: acts.reduce((s, a) => s + (a.pr_count ?? 0), 0),
+      totalAchievements: acts.reduce((s, a) => s + (a.achievement_count ?? 0), 0),
     };
-  }, [filtered]);
+  };
+
+  const stats = useMemo(() => computeStats(filtered), [filtered]);
+  const prevStats = useMemo(() => computeStats(prevFiltered), [prevFiltered]);
 
   const sportBreakdown = useMemo(() => {
     const map = new Map<string, { distance: number; time: number; count: number; elevation: number }>();
@@ -178,49 +225,49 @@ export function HomePage({ activities, onNavigate }: Props) {
       <div className="stats-grid">
         {enabledStats.has("count") && (
           <div className="stat-card stat-card--clickable" onClick={() => onNavigate("activities")}>
-            <div className="label">Activities</div>
+            <div className="stat-card-header"><span className="label">Activities</span><DeltaBadge current={stats.count} previous={prevStats.count} /></div>
             <div className="value">{stats.count}</div>
           </div>
         )}
         {enabledStats.has("distance") && (
           <div className="stat-card stat-card--clickable" onClick={() => onNavigate("activities")}>
-            <div className="label">Distance</div>
+            <div className="stat-card-header"><span className="label">Distance</span><DeltaBadge current={stats.totalDistance} previous={prevStats.totalDistance} /></div>
             <div className="value">{formatDistance(stats.totalDistance)}<span className="unit">km</span></div>
           </div>
         )}
         {enabledStats.has("time") && (
           <div className="stat-card stat-card--clickable" onClick={() => onNavigate("activities")}>
-            <div className="label">Moving Time</div>
+            <div className="stat-card-header"><span className="label">Moving Time</span><DeltaBadge current={stats.totalTime} previous={prevStats.totalTime} /></div>
             <div className="value">{formatDuration(stats.totalTime)}</div>
           </div>
         )}
         {enabledStats.has("elevation") && (
           <div className="stat-card stat-card--clickable" onClick={() => onNavigate("activities")}>
-            <div className="label">Elevation</div>
+            <div className="stat-card-header"><span className="label">Elevation</span><DeltaBadge current={stats.totalElevation} previous={prevStats.totalElevation} /></div>
             <div className="value">{Math.round(stats.totalElevation)}<span className="unit">m</span></div>
           </div>
         )}
         {enabledStats.has("heartrate") && stats.avgHeartrate && (
           <div className="stat-card stat-card--clickable" onClick={() => onNavigate("performance")}>
-            <div className="label">Avg Heart Rate</div>
+            <div className="stat-card-header"><span className="label">Avg Heart Rate</span><DeltaBadge current={stats.avgHeartrate} previous={prevStats.avgHeartrate ?? 0} /></div>
             <div className="value">{Math.round(stats.avgHeartrate)}<span className="unit">bpm</span></div>
           </div>
         )}
         {enabledStats.has("watts") && stats.avgWatts && (
           <div className="stat-card stat-card--clickable" onClick={() => onNavigate("performance")}>
-            <div className="label">Avg Power</div>
+            <div className="stat-card-header"><span className="label">Avg Power</span><DeltaBadge current={stats.avgWatts} previous={prevStats.avgWatts ?? 0} /></div>
             <div className="value">{Math.round(stats.avgWatts)}<span className="unit">W</span></div>
           </div>
         )}
         {enabledStats.has("prcount") && (
           <div className="stat-card stat-card--clickable" onClick={() => onNavigate("records")}>
-            <div className="label">PRs</div>
+            <div className="stat-card-header"><span className="label">PRs</span><DeltaBadge current={stats.totalPRs} previous={prevStats.totalPRs} /></div>
             <div className="value">{stats.totalPRs}</div>
           </div>
         )}
         {enabledStats.has("achievements") && (
           <div className="stat-card stat-card--clickable" onClick={() => onNavigate("records")}>
-            <div className="label">Achievements</div>
+            <div className="stat-card-header"><span className="label">Achievements</span><DeltaBadge current={stats.totalAchievements} previous={prevStats.totalAchievements} /></div>
             <div className="value">{stats.totalAchievements}</div>
           </div>
         )}
