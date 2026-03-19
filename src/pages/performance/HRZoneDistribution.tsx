@@ -17,11 +17,11 @@ import { formatTime, TOOLTIP_STYLE } from "../../lib/utils";
 type Range = "30d" | "90d";
 
 const HR_ZONE_DEFS = [
-  { label: "Z1 · Recovery",  min: 0,    max: 0.60, color: "#7c90aa" },
-  { label: "Z2 · Aerobic",   min: 0.60, max: 0.70, color: "#3b8fd4" },
-  { label: "Z3 · Tempo",     min: 0.70, max: 0.80, color: "#22a06b" },
-  { label: "Z4 · Threshold", min: 0.80, max: 0.90, color: "#e07820" },
-  { label: "Z5 · Max",       min: 0.90, max: 1.00, color: "#e03535" },
+  { label: "Z1", name: "Recovery",  min: 0,    max: 0.60, color: "#7c90aa" },
+  { label: "Z2", name: "Aerobic",   min: 0.60, max: 0.70, color: "#3b8fd4" },
+  { label: "Z3", name: "Tempo",     min: 0.70, max: 0.80, color: "#22a06b" },
+  { label: "Z4", name: "Threshold", min: 0.80, max: 0.90, color: "#e07820" },
+  { label: "Z5", name: "Max",       min: 0.90, max: 1.00, color: "#e03535" },
 ];
 
 const CACHE_KEY_PREFIX = "hr_zones_v2_";
@@ -200,7 +200,7 @@ export function HRZoneDistribution({ activities, onNavigate }: Props) {
             <BarChart
               data={data}
               layout="vertical"
-              margin={{ top: 4, right: 64, left: 0, bottom: 4 }}
+              margin={{ top: 4, right: 64, left: 8, bottom: 4 }}
             >
               <CartesianGrid
                 strokeDasharray="3 3"
@@ -218,7 +218,7 @@ export function HRZoneDistribution({ activities, onNavigate }: Props) {
                 type="category"
                 dataKey="label"
                 tick={{ fill: "rgba(255,255,255,0.55)", fontSize: 12 }}
-                width={114}
+                width={40}
                 axisLine={false}
                 tickLine={false}
               />
@@ -227,6 +227,10 @@ export function HRZoneDistribution({ activities, onNavigate }: Props) {
                 contentStyle={TOOLTIP_STYLE}
                 labelStyle={{ color: "#e8eaf0" }}
                 itemStyle={{ color: "#e8eaf0" }}
+                labelFormatter={(label) => {
+                  const zone = HR_ZONE_DEFS.find((z) => z.label === label);
+                  return zone ? `${zone.label} · ${zone.name}` : String(label);
+                }}
                 formatter={(value: unknown) => [formatTime(Number(value)), "Time"]}
               />
               <Bar dataKey="seconds" radius={[0, 6, 6, 0]} maxBarSize={28} isAnimationActive={false}>

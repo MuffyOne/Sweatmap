@@ -82,6 +82,7 @@ export interface Activity {
   average_heartrate?: number;
   max_heartrate?: number;
   average_watts?: number;
+  max_watts?: number;
   kudos_count: number;
   suffer_score?: number;
   pr_count?: number;

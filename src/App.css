@@ -490,6 +490,17 @@ body {
   cursor: pointer;
 }
 
+.stat-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.6rem;
+}
+
+.stat-card-header > .label {
+  margin-bottom: 0;
+}
+
 .stat-card .label {
   font-size: 0.72rem;
   color: rgba(255, 255, 255, 0.55);
@@ -497,6 +508,25 @@ body {
   letter-spacing: 0.08em;
   margin-bottom: 0.6rem;
   font-weight: 500;
+}
+
+.stat-delta {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+.stat-delta--up {
+  color: #4aaa7a;
+}
+
+.stat-delta--down {
+  color: #e05030;
+}
+
+.stat-delta--neutral {
+  color: rgba(255, 255, 255, 0.35);
 }
 
 .stat-card .value {
