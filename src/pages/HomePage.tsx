@@ -20,12 +20,13 @@ const ALL_STATS = [
   { id: "elevation",    label: "Elevation"      },
   { id: "heartrate",    label: "Avg Heart Rate" },
   { id: "watts",        label: "Avg Power"      },
+  { id: "maxwatts",     label: "Peak Power"     },
   { id: "prcount",      label: "PRs"            },
   { id: "achievements", label: "Achievements"   },
 ] as const;
 
 type StatId = typeof ALL_STATS[number]["id"];
-const DEFAULT_STATS = new Set<StatId>(["count", "distance", "time", "heartrate", "watts"]);
+const DEFAULT_STATS = new Set<StatId>(["count", "distance", "time", "elevation", "heartrate", "watts", "maxwatts"]);
 
 function normalizeSportGroup(raw: string): string {
   if (raw === "VirtualRide") return "Virtual Rides";
@@ -127,6 +128,10 @@ export function HomePage({ activities, onNavigate }: Props) {
       avgWatts: withWatts.length > 0
         ? withWatts.reduce((s, a) => s + (a.average_watts ?? 0), 0) / withWatts.length
         : null,
+      maxWatts: (() => {
+        const withMax = acts.filter((a) => a.max_watts);
+        return withMax.length > 0 ? Math.max(...withMax.map((a) => a.max_watts!)) : null;
+      })(),
       totalPRs: acts.reduce((s, a) => s + (a.pr_count ?? 0), 0),
       totalAchievements: acts.reduce((s, a) => s + (a.achievement_count ?? 0), 0),
     };
@@ -257,6 +262,12 @@ export function HomePage({ activities, onNavigate }: Props) {
           <div className="stat-card stat-card--clickable" onClick={() => onNavigate("performance")}>
             <div className="stat-card-header"><span className="label">Avg Power</span><DeltaBadge current={stats.avgWatts} previous={prevStats.avgWatts ?? 0} /></div>
             <div className="value">{Math.round(stats.avgWatts)}<span className="unit">W</span></div>
+          </div>
+        )}
+        {enabledStats.has("maxwatts") && stats.maxWatts && (
+          <div className="stat-card stat-card--clickable" onClick={() => onNavigate("performance")}>
+            <div className="stat-card-header"><span className="label">Peak Power</span><DeltaBadge current={stats.maxWatts} previous={prevStats.maxWatts ?? 0} /></div>
+            <div className="value">{Math.round(stats.maxWatts)}<span className="unit">W</span></div>
           </div>
         )}
         {enabledStats.has("prcount") && (
