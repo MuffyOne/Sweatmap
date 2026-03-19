@@ -18,13 +18,13 @@ type Range = "30d" | "90d";
 
 // Standard 7-zone power model (% of FTP)
 const POWER_ZONES = [
-  { label: "Z1 · Recovery",      min: 0,    max: 0.55,       color: "#7c90aa" },
-  { label: "Z2 · Endurance",     min: 0.55, max: 0.75,       color: "#3b8fd4" },
-  { label: "Z3 · Tempo",         min: 0.75, max: 0.90,       color: "#22a06b" },
-  { label: "Z4 · Threshold",     min: 0.90, max: 1.05,       color: "#d4a820" },
-  { label: "Z5 · VO2 Max",       min: 1.05, max: 1.20,       color: "#e07820" },
-  { label: "Z6 · Anaerobic",     min: 1.20, max: 1.50,       color: "#e03535" },
-  { label: "Z7 · Neuromuscular", min: 1.50, max: Infinity,   color: "#9333ea" },
+  { label: "Z1", min: 0,    max: 0.55,       color: "#7c90aa" },
+  { label: "Z2", min: 0.55, max: 0.75,       color: "#3b8fd4" },
+  { label: "Z3", min: 0.75, max: 0.90,       color: "#22a06b" },
+  { label: "Z4", min: 0.90, max: 1.05,       color: "#d4a820" },
+  { label: "Z5", min: 1.05, max: 1.20,       color: "#e07820" },
+  { label: "Z6", min: 1.20, max: 1.50,       color: "#e03535" },
+  { label: "Z7", min: 1.50, max: Infinity,   color: "#9333ea" },
 ];
 
 const CACHE_KEY_PREFIX = "power_zones_";
@@ -338,7 +338,7 @@ export function ZoneDistribution({ activities, onNavigate }: Props) {
             <BarChart
               data={data}
               layout="vertical"
-              margin={{ top: 4, right: 64, left: 0, bottom: 4 }}
+              margin={{ top: 4, right: 64, left: 8, bottom: 4 }}
             >
               <CartesianGrid
                 strokeDasharray="3 3"
@@ -356,7 +356,7 @@ export function ZoneDistribution({ activities, onNavigate }: Props) {
                 type="category"
                 dataKey="label"
                 tick={{ fill: "rgba(255,255,255,0.55)", fontSize: 12 }}
-                width={114}
+                width={40}
                 axisLine={false}
                 tickLine={false}
               />
