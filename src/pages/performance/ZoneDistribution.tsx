@@ -13,6 +13,7 @@ import { subDays, parseISO, isAfter } from "date-fns";
 import { fetchActivityWatts, type Activity } from "../../api/strava";
 import { FTP_KEY } from "../Settings";
 import { formatTime, TOOLTIP_STYLE } from "../../lib/utils";
+import { CollapsibleSection } from "../../lib/CollapsibleSection";
 
 type Range = "30d" | "90d";
 
@@ -282,21 +283,18 @@ export function ZoneDistribution({ activities, onNavigate }: Props) {
   const totalSeconds = data?.reduce((s, z) => s + z.seconds, 0) ?? 0;
 
   return (
-    <div className="chart-section" style={{ marginTop: "1.25rem" }}>
-      <div className="power-curve-header">
-        <h3>Time in Power Zones</h3>
-        <div className="power-curve-controls">
-          <div className="period-toggle" style={{ marginBottom: 0 }}>
-            {(["30d", "90d"] as Range[]).map((r) => (
-              <button key={r} className={range === r ? "active" : ""} onClick={() => setRange(r)}>
-                {r === "30d" ? "Last 30 days" : "Last 90 days"}
-              </button>
-            ))}
-          </div>
-          <button className="btn-compute" onClick={compute} disabled={loading}>
-            {loading ? `${progress.done} / ${progress.total}…` : data ? "Refresh" : "Compute"}
-          </button>
+    <CollapsibleSection title="Time in Power Zones">
+      <div className="power-curve-controls" style={{ marginBottom: "1rem" }}>
+        <div className="period-toggle" style={{ marginBottom: 0 }}>
+          {(["30d", "90d"] as Range[]).map((r) => (
+            <button key={r} className={range === r ? "active" : ""} onClick={() => setRange(r)}>
+              {r === "30d" ? "Last 30 days" : "Last 90 days"}
+            </button>
+          ))}
         </div>
+        <button className="btn-compute" onClick={compute} disabled={loading}>
+          {loading ? `${progress.done} / ${progress.total}…` : data ? "Refresh" : "Compute"}
+        </button>
       </div>
 
       {error && <div className="power-curve-error">{error}</div>}
@@ -381,6 +379,6 @@ export function ZoneDistribution({ activities, onNavigate }: Props) {
           <TrainingDistribution data={data} />
         </>
       )}
-    </div>
+    </CollapsibleSection>
   );
 }

@@ -12,6 +12,7 @@ import {
 import { format, parseISO, startOfMonth, subMonths, endOfMonth, isWithinInterval, startOfWeek, endOfWeek, subWeeks } from "date-fns";
 import type { Activity, SegmentEffort } from "../api/strava";
 import { TOOLTIP_STYLE, formatDistance, formatTime, normalizeSportLabel } from "../lib/utils";
+import { CollapsibleSection } from "../lib/CollapsibleSection";
 
 interface Props {
   activities: Activity[];
@@ -140,58 +141,56 @@ export function RecordsPage({ activities, koms }: Props) {
 
   return (
     <div>
-      {/* Summary stat cards */}
-      <div className="stats-grid" style={{ marginBottom: "1.5rem" }}>
-        <div className="stat-card">
-          <div className="label">All-time PRs</div>
-          <div className="value" style={{ color: "#fc4c02" }}>{allTimePRs.toLocaleString()}</div>
-        </div>
-        <div className="stat-card stat-card--clickable" onClick={() => komsRef.current?.scrollIntoView({ behavior: "smooth" })}>
-          <div className="label">KOMs / QOMs</div>
-          <div className="value" style={{ color: "#fc4c02" }}>{koms.length}</div>
-        </div>
-        <div className="stat-card">
-          <div className="label">Achievements</div>
-          <div className="value">{allTimeAchievements.toLocaleString()}</div>
-        </div>
-        <div className="stat-card">
-          <div className="label">PR Rate</div>
-          <div className="value">
-            {prRate}
-            <span className="unit">%</span>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="label">Current PR Streak</div>
-          <div className="value">
-            {currentStreak}
-            <span className="unit">wk{currentStreak !== 1 ? "s" : ""}</span>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="label">Longest PR Streak</div>
-          <div className="value">
-            {longestStreak}
-            <span className="unit">wk{longestStreak !== 1 ? "s" : ""}</span>
-          </div>
-        </div>
-        {bestActivity && (
+      <CollapsibleSection title="Summary">
+        <div className="stats-grid">
           <div className="stat-card">
-            <div className="label">Best Single Activity</div>
-            <div className="value" style={{ fontSize: "1.35rem", lineHeight: 1.2 }}>
-              {bestActivity.pr_count} <span className="unit">PRs</span>
-            </div>
-            <div className="records-best-name">{bestActivity.name}</div>
+            <div className="label">All-time PRs</div>
+            <div className="value" style={{ color: "#fc4c02" }}>{allTimePRs.toLocaleString()}</div>
           </div>
-        )}
-      </div>
-
-      {/* Monthly PR trend */}
-      <div className="chart-section">
-        <div className="power-curve-header">
-          <h3>PRs per Month</h3>
-          <span style={{ fontSize: "0.75rem", opacity: 0.4 }}>last 12 months</span>
+          <div className="stat-card stat-card--clickable" onClick={() => komsRef.current?.scrollIntoView({ behavior: "smooth" })}>
+            <div className="label">KOMs / QOMs</div>
+            <div className="value" style={{ color: "#fc4c02" }}>{koms.length}</div>
+          </div>
+          <div className="stat-card">
+            <div className="label">Achievements</div>
+            <div className="value">{allTimeAchievements.toLocaleString()}</div>
+          </div>
+          <div className="stat-card">
+            <div className="label">PR Rate</div>
+            <div className="value">
+              {prRate}
+              <span className="unit">%</span>
+            </div>
+          </div>
+          <div className="stat-card">
+            <div className="label">Current PR Streak</div>
+            <div className="value">
+              {currentStreak}
+              <span className="unit">wk{currentStreak !== 1 ? "s" : ""}</span>
+            </div>
+          </div>
+          <div className="stat-card">
+            <div className="label">Longest PR Streak</div>
+            <div className="value">
+              {longestStreak}
+              <span className="unit">wk{longestStreak !== 1 ? "s" : ""}</span>
+            </div>
+          </div>
+          {bestActivity && (
+            <div className="stat-card">
+              <div className="label">Best Single Activity</div>
+              <div className="value" style={{ fontSize: "1.35rem", lineHeight: 1.2 }}>
+                {bestActivity.pr_count} <span className="unit">PRs</span>
+              </div>
+              <div className="records-best-name">{bestActivity.name}</div>
+            </div>
+          )}
         </div>
+      </CollapsibleSection>
+
+      <CollapsibleSection title="PRs per Month" extra={
+        <span style={{ fontSize: "0.75rem", opacity: 0.4 }}>last 12 months</span>
+      }>
         <ResponsiveContainer width="100%" height={220}>
           <BarChart data={monthlyPRs} margin={{ top: 4, right: 8, bottom: 4, left: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
@@ -218,17 +217,14 @@ export function RecordsPage({ activities, koms }: Props) {
             <Bar dataKey="prs" fill="#fc4c02" radius={[4, 4, 0, 0]} isAnimationActive={false} />
           </BarChart>
         </ResponsiveContainer>
-      </div>
+      </CollapsibleSection>
 
-      {/* Sport PR breakdown */}
       {sportPRs.length > 0 && (
-        <div className="chart-section">
-          <div className="power-curve-header">
-            <h3>PRs by Sport</h3>
-            <span style={{ fontSize: "0.75rem", opacity: 0.4 }}>
-              {prActivities.length} activities with PRs
-            </span>
-          </div>
+        <CollapsibleSection title="PRs by Sport" extra={
+          <span style={{ fontSize: "0.75rem", opacity: 0.4 }}>
+            {prActivities.length} activities with PRs
+          </span>
+        }>
           <ResponsiveContainer width="100%" height={sportPRs.length * 46 + 20}>
             <BarChart
               data={sportPRs}
@@ -268,16 +264,13 @@ export function RecordsPage({ activities, koms }: Props) {
               </Bar>
             </BarChart>
           </ResponsiveContainer>
-        </div>
+        </CollapsibleSection>
       )}
 
-      {/* Top PR activities */}
       {topPRActivities.length > 0 && (
-        <div className="chart-section">
-          <div className="power-curve-header">
-            <h3>Top Activities by PR Count</h3>
-            <span style={{ fontSize: "0.75rem", opacity: 0.4 }}>click to view on Strava</span>
-          </div>
+        <CollapsibleSection title="Top Activities by PR Count" extra={
+          <span style={{ fontSize: "0.75rem", opacity: 0.4 }}>click to view on Strava</span>
+        }>
           <div className="records-table">
             <div className="records-table-header">
               <span>Activity</span>
@@ -311,15 +304,14 @@ export function RecordsPage({ activities, koms }: Props) {
               </a>
             ))}
           </div>
-        </div>
+        </CollapsibleSection>
       )}
 
       {koms.length > 0 && (
-        <div className="chart-section" ref={komsRef}>
-          <div className="power-curve-header">
-            <h3>KOM / QOM Segments</h3>
-            <span style={{ fontSize: "0.75rem", opacity: 0.4 }}>click to view on Strava</span>
-          </div>
+        <div ref={komsRef}>
+        <CollapsibleSection title="KOM / QOM Segments" extra={
+          <span style={{ fontSize: "0.75rem", opacity: 0.4 }}>click to view on Strava</span>
+        }>
           <div className="records-table">
             <div className="records-table-header" style={{ gridTemplateColumns: "1fr 80px 70px 70px 90px" }}>
               <span>Segment</span>
@@ -350,6 +342,7 @@ export function RecordsPage({ activities, koms }: Props) {
               </a>
             ))}
           </div>
+        </CollapsibleSection>
         </div>
       )}
 

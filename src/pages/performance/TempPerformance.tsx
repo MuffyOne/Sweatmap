@@ -10,6 +10,7 @@ import {
 } from "recharts";
 import type { Activity } from "../../api/strava";
 import { TOOLTIP_STYLE, RUN_TYPES, RIDE_TYPES } from "../../lib/utils";
+import { CollapsibleSection } from "../../lib/CollapsibleSection";
 
 type Metric = "speed" | "watts";
 type SportFilter = "all" | "run" | "ride";
@@ -45,21 +46,18 @@ export function TempPerformance({ activities }: Props) {
   const yLabel = metric === "watts" ? "Avg Power" : "Avg Speed";
 
   return (
-    <div className="chart-section">
-      <div className="power-curve-header">
-        <h3>Temperature vs Performance</h3>
-        <div className="power-curve-controls">
-          <div className="period-toggle" style={{ marginBottom: 0 }}>
-            {(["all", "run", "ride"] as SportFilter[]).map((s) => (
-              <button key={s} className={sport === s ? "active" : ""} onClick={() => setSport(s)}>
-                {s === "all" ? "All" : s === "run" ? "Runs" : "Rides"}
-              </button>
-            ))}
-          </div>
-          <div className="period-toggle" style={{ marginBottom: 0 }}>
-            <button className={metric === "speed" ? "active" : ""} onClick={() => setMetric("speed")}>Speed</button>
-            <button className={metric === "watts" ? "active" : ""} onClick={() => setMetric("watts")}>Power</button>
-          </div>
+    <CollapsibleSection title="Temperature vs Performance">
+      <div className="power-curve-controls" style={{ marginBottom: "1rem" }}>
+        <div className="period-toggle" style={{ marginBottom: 0 }}>
+          {(["all", "run", "ride"] as SportFilter[]).map((s) => (
+            <button key={s} className={sport === s ? "active" : ""} onClick={() => setSport(s)}>
+              {s === "all" ? "All" : s === "run" ? "Runs" : "Rides"}
+            </button>
+          ))}
+        </div>
+        <div className="period-toggle" style={{ marginBottom: 0 }}>
+          <button className={metric === "speed" ? "active" : ""} onClick={() => setMetric("speed")}>Speed</button>
+          <button className={metric === "watts" ? "active" : ""} onClick={() => setMetric("watts")}>Power</button>
         </div>
       </div>
 
@@ -105,6 +103,6 @@ export function TempPerformance({ activities }: Props) {
           </div>
         </>
       )}
-    </div>
+    </CollapsibleSection>
   );
 }
