@@ -15,7 +15,7 @@ import {
 import { Dashboard, type Page } from "./Dashboard";
 import {
   HomeIcon, ZapIcon, ListIcon, LogOutIcon, SyncIcon,
-  FitnessIcon, TrophyIcon, SettingsIcon, ChevronLeftIcon, ChevronRightIcon,
+  FitnessIcon, TrophyIcon, SettingsIcon, ServicesIcon, XertIcon, ChevronLeftIcon, ChevronRightIcon,
 } from "./lib/icons";
 import "./App.css";
 
@@ -35,6 +35,8 @@ const NAV_ITEMS: { id: Page; label: string; Icon: () => React.ReactElement }[] =
   { id: "performance", label: "Performance", Icon: ZapIcon },
   { id: "activities", label: "Activities", Icon: ListIcon },
   { id: "records", label: "Records", Icon: TrophyIcon },
+  { id: "xert", label: "XERT", Icon: XertIcon },
+  { id: "services", label: "Services", Icon: ServicesIcon },
   { id: "settings", label: "Settings", Icon: SettingsIcon },
 ];
 
@@ -44,6 +46,8 @@ const PAGE_TITLES: Record<Page, string> = {
   records: "Records",
   performance: "Performance",
   activities: "Activities",
+  xert: "XERT",
+  services: "Services",
   settings: "Settings",
 };
 

@@ -784,6 +784,353 @@ body {
   transform: translateY(-1px);
 }
 
+.btn-service {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.7);
+  padding: 0.55rem 1.4rem;
+  border-radius: 50px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.btn-service:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.btn-service:not(:disabled):hover {
+  background: rgba(255, 255, 255, 0.12);
+  transform: translateY(-1px);
+}
+
+.service-coming-soon {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.40);
+  font-style: italic;
+  margin-top: 0.5rem;
+}
+
+.btn-service-active {
+  background: rgba(252, 76, 2, 0.14);
+  border-color: rgba(252, 76, 2, 0.4);
+  color: #fc4c02;
+}
+
+.btn-service-active:not(:disabled):hover {
+  background: rgba(252, 76, 2, 0.24);
+  box-shadow: 0 0 20px rgba(252, 76, 2, 0.2);
+}
+
+.btn-service-danger {
+  background: rgba(220, 60, 60, 0.12);
+  border-color: rgba(220, 60, 60, 0.35);
+  color: #dc3c3c;
+}
+
+.btn-service-danger:hover {
+  background: rgba(220, 60, 60, 0.22);
+}
+
+.xert-login .settings-input {
+  width: 260px;
+}
+
+.xert-error {
+  color: #dc3c3c;
+  font-size: 0.8rem;
+  margin-top: 6px;
+}
+
+.xert-status-badge {
+  display: inline-block;
+  background: rgba(74, 170, 122, 0.15);
+  color: #4aaa7a;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.2rem 0.7rem;
+  border-radius: 50px;
+  border: 1px solid rgba(74, 170, 122, 0.3);
+}
+
+.xert-info {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.xert-info-section {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  padding: 10px 14px;
+}
+
+.xert-info-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.50);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 8px;
+}
+
+.xert-info-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.xert-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.xert-stat-value {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.xert-stat-label {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.xert-wotd {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 0.88rem;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+/* XERT page */
+.xert-page {
+  max-width: 720px;
+}
+
+.xert-login-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 2rem;
+  max-width: 360px;
+  display: flex;
+  flex-direction: column;
+}
+
+.xert-login-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+  margin-bottom: 0.4rem;
+}
+
+.xert-login-hint {
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.45);
+  line-height: 1.5;
+  margin-bottom: 1.2rem;
+}
+
+.xert-loading {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.45);
+  margin-bottom: 12px;
+}
+
+.xert-status-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.xert-freshness-badge {
+  display: inline-block;
+  font-size: 1.05rem;
+  font-weight: 700;
+  padding: 0.4rem 1.2rem;
+  border-radius: 50px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.xert-freshness-badge[data-status="fresh"] {
+  background: rgba(74, 170, 122, 0.15);
+  color: #4aaa7a;
+  border-color: rgba(74, 170, 122, 0.3);
+}
+
+.xert-freshness-badge[data-status="tired"] {
+  background: rgba(224, 120, 32, 0.15);
+  color: #e07820;
+  border-color: rgba(224, 120, 32, 0.3);
+}
+
+.xert-freshness-badge[data-status="very tired"] {
+  background: rgba(201, 64, 64, 0.15);
+  color: #c94040;
+  border-color: rgba(201, 64, 64, 0.3);
+}
+
+.xert-freshness-badge[data-status="very fresh"] {
+  background: rgba(124, 144, 170, 0.15);
+  color: #7c90aa;
+  border-color: rgba(124, 144, 170, 0.3);
+}
+
+.xert-meta {
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.xert-card-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.xert-tl-bar {
+  display: flex;
+  height: 8px;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 8px;
+}
+
+.xert-tl-segment {
+  min-width: 2px;
+  transition: width 0.3s ease;
+}
+
+.xert-wotd-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  padding: 1rem 1.2rem;
+}
+
+.xert-wotd-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.40);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 4px;
+}
+
+.xert-wotd-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.xert-wotd-meta {
+  display: flex;
+  gap: 12px;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.45);
+  margin-top: 4px;
+}
+
+.xert-wotd-desc {
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.55);
+  line-height: 1.5;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.xert-wotd-diff {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.45);
+  margin-top: 4px;
+}
+
+.xert-intervals {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.xert-intervals-title {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.40);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 8px;
+}
+
+.xert-intervals-visual {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 60px;
+  margin-bottom: 10px;
+}
+
+.xert-iv-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-end;
+  height: 100%;
+}
+
+.xert-iv-work {
+  background: #fc4c02;
+  border-radius: 2px 2px 0 0;
+  min-height: 2px;
+}
+
+.xert-iv-rest {
+  background: rgba(255, 255, 255, 0.08);
+  min-height: 1px;
+}
+
+.xert-intervals-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.xert-iv-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
+}
+
+.xert-iv-name {
+  color: rgba(255, 255, 255, 0.65);
+  font-weight: 500;
+}
+
+.xert-iv-detail {
+  color: rgba(255, 255, 255, 0.50);
+}
+
+.xert-iv-rest-label {
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.xert-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
 .power-curve-empty {
   color: rgba(255, 255, 255, 0.50);
   font-size: 0.85rem;

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import {
   LineChart,
   Line,
@@ -42,14 +42,22 @@ interface CurvePoint {
 
 const CACHE_KEY_PREFIX = "power_curve_";
 
-function loadCachedCurve(range: CurveRange): CurvePoint[] | null {
-  const raw = localStorage.getItem(CACHE_KEY_PREFIX + range);
-  if (!raw) return null;
-  return JSON.parse(raw) as CurvePoint[];
+interface CachedCurve {
+  data: CurvePoint[];
+  activityCount: number;
 }
 
-function saveCurveCache(range: CurveRange, curve: CurvePoint[]) {
-  localStorage.setItem(CACHE_KEY_PREFIX + range, JSON.stringify(curve));
+function loadCachedCurve(range: CurveRange): CachedCurve | null {
+  const raw = localStorage.getItem(CACHE_KEY_PREFIX + range);
+  if (!raw) return null;
+  const parsed = JSON.parse(raw);
+  // migrate old format (plain array) to new format
+  if (Array.isArray(parsed)) return { data: parsed, activityCount: -1 };
+  return parsed as CachedCurve;
+}
+
+function saveCurveCache(range: CurveRange, data: CurvePoint[], activityCount: number) {
+  localStorage.setItem(CACHE_KEY_PREFIX + range, JSON.stringify({ data, activityCount }));
 }
 
 interface Props {
@@ -58,7 +66,7 @@ interface Props {
 
 export function PowerCurve({ activities }: Props) {
   const [range, setRange] = useState<CurveRange>("30d");
-  const [curves, setCurves] = useState<Partial<Record<CurveRange, CurvePoint[]>>>(() => ({
+  const [curves, setCurves] = useState<Partial<Record<CurveRange, CachedCurve>>>(() => ({
     "30d": loadCachedCurve("30d") ?? undefined,
     "90d": loadCachedCurve("90d") ?? undefined,
   }));
@@ -66,7 +74,8 @@ export function PowerCurve({ activities }: Props) {
   const [progress, setProgress] = useState({ done: 0, total: 0 });
   const [error, setError] = useState<string | null>(null);
 
-  const curve = curves[range] ?? null;
+  const cached = curves[range] ?? null;
+  const curve = cached?.data ?? null;
 
   const computingRef = useRef(false);
 
@@ -115,20 +124,28 @@ export function PowerCurve({ activities }: Props) {
       watts: Math.max(...allStreams.map((w) => computeMMP(w, d)).filter((v) => v > 0), 0),
     })).filter((d) => d.watts > 0);
 
-    setCurves((prev) => ({ ...prev, [range]: chartData }));
-    saveCurveCache(range, chartData);
+    const entry: CachedCurve = { data: chartData, activityCount: eligible.length };
+    setCurves((prev) => ({ ...prev, [range]: entry }));
+    saveCurveCache(range, chartData, eligible.length);
     setLoading(false);
   }, [activities, range]);
 
+  // auto-compute when no cache or when activity count changed
+  const eligibleCount = useMemo(() => {
+    const since = subDays(new Date(), range === "30d" ? 30 : 90);
+    return activities.filter((a) => a.average_watts && isAfter(parseISO(a.start_date_local), since)).length;
+  }, [activities, range]);
+
   useEffect(() => {
-    if (!curves[range] && !computingRef.current) {
+    const needsCompute = !cached || cached.activityCount !== eligibleCount;
+    if (needsCompute && !computingRef.current && eligibleCount > 0) {
       const id = setTimeout(() => {
         computingRef.current = true;
         compute().finally(() => { computingRef.current = false; });
       }, 0);
       return () => clearTimeout(id);
     }
-  }, [range, curves, compute]);
+  }, [range, cached, eligibleCount, compute]);
 
   return (
     <CollapsibleSection title="Power Curve">
@@ -140,19 +157,9 @@ export function PowerCurve({ activities }: Props) {
             </button>
           ))}
         </div>
-        <button className="btn-compute" onClick={compute} disabled={loading}>
-          {loading ? `${progress.done} / ${progress.total}…` : curve ? "Refresh" : "Compute"}
-        </button>
       </div>
 
       {error && <div className="power-curve-error">{error}</div>}
-
-      {!curve && !loading && !error && (
-        <div className="power-curve-empty">
-          Click <strong>Compute</strong> to build your power curve — fetches a stream for each
-          activity with power data in the selected period.
-        </div>
-      )}
 
       {loading && (
         <div className="power-curve-empty">
