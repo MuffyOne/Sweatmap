@@ -11,6 +11,7 @@ import {
 import { subDays, parseISO, isAfter } from "date-fns";
 import { fetchActivityWatts, type Activity } from "../../api/strava";
 import { TOOLTIP_STYLE } from "../../lib/utils";
+import { CollapsibleSection } from "../../lib/CollapsibleSection";
 
 const DURATIONS = [1, 5, 10, 30, 60, 120, 300, 600, 1200, 1800, 3600];
 
@@ -130,21 +131,18 @@ export function PowerCurve({ activities }: Props) {
   }, [range, curves, compute]);
 
   return (
-    <div className="chart-section">
-      <div className="power-curve-header">
-        <h3>Power Curve</h3>
-        <div className="power-curve-controls">
-          <div className="period-toggle" style={{ marginBottom: 0 }}>
-            {(["30d", "90d"] as CurveRange[]).map((r) => (
-              <button key={r} className={range === r ? "active" : ""} onClick={() => setRange(r)}>
-                {r === "30d" ? "Last 30 days" : "Last 90 days"}
-              </button>
-            ))}
-          </div>
-          <button className="btn-compute" onClick={compute} disabled={loading}>
-            {loading ? `${progress.done} / ${progress.total}…` : curve ? "Refresh" : "Compute"}
-          </button>
+    <CollapsibleSection title="Power Curve">
+      <div className="power-curve-controls" style={{ marginBottom: "1rem" }}>
+        <div className="period-toggle" style={{ marginBottom: 0 }}>
+          {(["30d", "90d"] as CurveRange[]).map((r) => (
+            <button key={r} className={range === r ? "active" : ""} onClick={() => setRange(r)}>
+              {r === "30d" ? "Last 30 days" : "Last 90 days"}
+            </button>
+          ))}
         </div>
+        <button className="btn-compute" onClick={compute} disabled={loading}>
+          {loading ? `${progress.done} / ${progress.total}…` : curve ? "Refresh" : "Compute"}
+        </button>
       </div>
 
       {error && <div className="power-curve-error">{error}</div>}
@@ -196,6 +194,6 @@ export function PowerCurve({ activities }: Props) {
           </LineChart>
         </ResponsiveContainer>
       )}
-    </div>
+    </CollapsibleSection>
   );
 }

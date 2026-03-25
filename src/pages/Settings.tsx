@@ -2,6 +2,8 @@ import { useState } from "react";
 
 export const FTP_KEY = "power_zones_ftp";
 export const AGE_KEY = "settings_age";
+export const WEEKLY_KM_GOAL_KEY = "settings_weekly_km_goal";
+export const YEARLY_KM_GOAL_KEY = "settings_yearly_km_goal";
 
 interface Props {
   onForceSync: () => Promise<void>;
@@ -12,6 +14,8 @@ interface Props {
 export function Settings({ onForceSync, forceSyncing, fetchedCount }: Props) {
   const [ftp, setFtp] = useState(() => localStorage.getItem(FTP_KEY) ?? "");
   const [age, setAge] = useState(() => localStorage.getItem(AGE_KEY) ?? "");
+  const [weeklyGoal, setWeeklyGoal] = useState(() => localStorage.getItem(WEEKLY_KM_GOAL_KEY) ?? "");
+  const [yearlyGoal, setYearlyGoal] = useState(() => localStorage.getItem(YEARLY_KM_GOAL_KEY) ?? "");
 
   function handleFtp(val: string) {
     setFtp(val);
@@ -25,6 +29,16 @@ export function Settings({ onForceSync, forceSyncing, fetchedCount }: Props) {
     localStorage.setItem(AGE_KEY, val);
     localStorage.removeItem("hr_zones_v2_30d");
     localStorage.removeItem("hr_zones_v2_90d");
+  }
+
+  function handleWeeklyGoal(val: string) {
+    setWeeklyGoal(val);
+    localStorage.setItem(WEEKLY_KM_GOAL_KEY, val);
+  }
+
+  function handleYearlyGoal(val: string) {
+    setYearlyGoal(val);
+    localStorage.setItem(YEARLY_KM_GOAL_KEY, val);
   }
 
   const ftpVal = parseInt(ftp, 10);
@@ -83,6 +97,44 @@ export function Settings({ onForceSync, forceSyncing, fetchedCount }: Props) {
           )}
         </div>
       </div>
+      <div className="settings-section">
+        <div className="settings-field">
+          <div className="settings-field-label">Weekly Distance Goal</div>
+          <div className="settings-field-hint">
+            Target distance per week in kilometres. Shown as a progress card on the Home page.
+          </div>
+          <div className="settings-input-row">
+            <input
+              type="number"
+              className="settings-input"
+              value={weeklyGoal}
+              min={1}
+              placeholder="e.g. 150"
+              onChange={(e) => handleWeeklyGoal(e.target.value)}
+            />
+            <span className="settings-unit">km</span>
+          </div>
+        </div>
+
+        <div className="settings-field">
+          <div className="settings-field-label">Yearly Distance Goal</div>
+          <div className="settings-field-hint">
+            Target distance for the year in kilometres. Shown as a progress card on the Home page.
+          </div>
+          <div className="settings-input-row">
+            <input
+              type="number"
+              className="settings-input"
+              value={yearlyGoal}
+              min={1}
+              placeholder="e.g. 5000"
+              onChange={(e) => handleYearlyGoal(e.target.value)}
+            />
+            <span className="settings-unit">km</span>
+          </div>
+        </div>
+      </div>
+
       <div className="settings-section">
         <div className="settings-field">
           <div className="settings-field-label">Force Sync</div>

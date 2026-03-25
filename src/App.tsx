@@ -63,6 +63,12 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState<Page>("home");
   const [collapsed, setCollapsed] = useState(false);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }, [page]);
   const [syncing, setSyncing] = useState(false);
   const [lastSynced, setLastSynced] = useState<number | null>(() => getCache()?.cachedAt ?? null);
 
