@@ -6,7 +6,11 @@ import {
   fetchTrainingInfo,
 } from "../api/xert";
 
-export function ServicesPage() {
+interface Props {
+  onXertChange: () => void;
+}
+
+export function ServicesPage({ onXertChange }: Props) {
   const [xertConnected, setXertConnected] = useState(isXertConnected);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -33,6 +37,7 @@ export function ServicesPage() {
       setUsername("");
       setPassword("");
       await fetchTrainingInfo();
+      onXertChange();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Connection failed");
     } finally {
@@ -43,6 +48,7 @@ export function ServicesPage() {
   function handleXertDisconnect() {
     disconnectXert();
     setXertConnected(false);
+    onXertChange();
   }
 
   async function handleRefresh() {

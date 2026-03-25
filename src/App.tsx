@@ -29,13 +29,13 @@ function formatTimeAgo(ts: number): string {
   return `${Math.floor(h / 24)}d ago`;
 }
 
-const NAV_ITEMS: { id: Page; label: string; Icon: () => React.ReactElement }[] = [
+const NAV_ITEMS: { id: Page; label: string; Icon: () => React.ReactElement; condition?: () => boolean }[] = [
   { id: "home", label: "Home", Icon: HomeIcon },
   { id: "fitness", label: "Fitness", Icon: FitnessIcon },
   { id: "performance", label: "Performance", Icon: ZapIcon },
   { id: "activities", label: "Activities", Icon: ListIcon },
   { id: "records", label: "Records", Icon: TrophyIcon },
-  { id: "xert", label: "XERT", Icon: XertIcon },
+  { id: "xert", label: "XERT", Icon: XertIcon, condition: () => !!localStorage.getItem("xert_tokens") },
   { id: "services", label: "Services", Icon: ServicesIcon },
   { id: "settings", label: "Settings", Icon: SettingsIcon },
 ];
@@ -63,6 +63,8 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState<Page>("home");
   const [collapsed, setCollapsed] = useState(false);
+  const [, setTick] = useState(0);
+  const refreshNav = () => setTick((t) => t + 1);
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: "instant" });
@@ -231,7 +233,7 @@ function App() {
         </div>
 
         <div className="sidebar-nav">
-          {NAV_ITEMS.map(({ id, label, Icon }) => (
+          {NAV_ITEMS.filter((item) => !item.condition || item.condition()).map(({ id, label, Icon }) => (
             <button
               key={id}
               className={`sidebar-item${page === id ? " active" : ""}`}
@@ -278,7 +280,7 @@ function App() {
         <div className="page-header">
           <h2 className="page-title">{PAGE_TITLES[page]}</h2>
         </div>
-        <Dashboard activities={activities} koms={koms} page={page} onNavigate={setPage} onForceSync={handleForceSync} forceSyncing={forceSyncing} fetchedCount={fetchedCount} />
+        <Dashboard activities={activities} koms={koms} page={page} onNavigate={setPage} onForceSync={handleForceSync} forceSyncing={forceSyncing} fetchedCount={fetchedCount} onXertChange={refreshNav} />
       </main>
     </div>
   );

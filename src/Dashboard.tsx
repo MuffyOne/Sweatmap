@@ -21,9 +21,10 @@ interface Props {
   onForceSync: () => Promise<void>;
   forceSyncing: boolean;
   fetchedCount: number;
+  onXertChange: () => void;
 }
 
-export function Dashboard({ activities, koms, page, onNavigate, onForceSync, forceSyncing, fetchedCount }: Props) {
+export function Dashboard({ activities, koms, page, onNavigate, onForceSync, forceSyncing, fetchedCount, onXertChange }: Props) {
   switch (page) {
     case "home":        return <HomePage activities={activities} onNavigate={onNavigate} />;
     case "activities":  return <ActivitiesPage activities={activities} />;
@@ -38,7 +39,7 @@ export function Dashboard({ activities, koms, page, onNavigate, onForceSync, for
       </>
     );
     case "settings":    return <Settings onForceSync={onForceSync} forceSyncing={forceSyncing} fetchedCount={fetchedCount} />;
-    case "services":    return <ServicesPage />;
+    case "services":    return <ServicesPage onXertChange={onXertChange} />;
     case "xert":        return <XertPage />;
   }
 }

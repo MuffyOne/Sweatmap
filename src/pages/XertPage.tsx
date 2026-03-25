@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import {
   isXertConnected,
-  loginXert,
   disconnectXert,
   fetchTrainingInfo,
   fetchWorkoutDetail,
@@ -19,9 +18,6 @@ function formatSec(s: number): string {
 
 export function XertPage() {
   const [connected, setConnected] = useState(isXertConnected);
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [logging, setLogging] = useState(false);
   const [error, setError] = useState("");
   const [info, setInfo] = useState<XertTrainingInfo | null>(() => {
     try { return getCachedTrainingInfo(); } catch { return null; }
@@ -49,23 +45,6 @@ export function XertPage() {
       setIntervals(null);
     }
   }, [info?.wotd?.workoutId]);
-
-  async function handleLogin() {
-    setError("");
-    setLogging(true);
-    try {
-      await loginXert(username, password);
-      setConnected(true);
-      setUsername("");
-      setPassword("");
-      const data = await fetchTrainingInfo();
-      setInfo(data);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Connection failed");
-    } finally {
-      setLogging(false);
-    }
-  }
 
   async function handleRefresh() {
     setLoading(true);
@@ -100,42 +79,7 @@ export function XertPage() {
   }, [tl]);
 
   if (!connected) {
-    return (
-      <div className="xert-page">
-        <div className="xert-login-card">
-          <div className="xert-login-title">Connect to XERT</div>
-          <div className="xert-login-hint">
-            Enter your XERT credentials to import your fitness signature, training loads, and workout recommendations.
-          </div>
-          <input
-            type="text"
-            className="settings-input"
-            placeholder="Username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleLogin()}
-          />
-          <input
-            type="password"
-            className="settings-input"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleLogin()}
-            style={{ marginTop: 8 }}
-          />
-          {error && <div className="xert-error">{error}</div>}
-          <button
-            className="btn-compute"
-            disabled={logging || !username || !password}
-            onClick={handleLogin}
-            style={{ marginTop: 14 }}
-          >
-            {logging ? "Connecting..." : "Connect"}
-          </button>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   return (
