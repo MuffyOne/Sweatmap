@@ -69,26 +69,26 @@ export function TempPerformance({ activities }: Props) {
         <>
           <ResponsiveContainer width="100%" height={280}>
             <ScatterChart margin={{ top: 8, right: 24, bottom: 28, left: 8 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--grid-stroke)" />
               <XAxis
                 dataKey="temp"
                 name="Temperature"
                 unit="°C"
                 type="number"
-                tick={{ fill: "rgba(255,255,255,0.55)", fontSize: 12 }}
-                label={{ value: "Temperature (°C)", position: "insideBottom", offset: -14, fill: "rgba(255,255,255,0.50)", fontSize: 11 }}
+                tick={{ fill: "var(--tick-color)", fontSize: 12 }}
+                label={{ value: "Temperature (°C)", position: "insideBottom", offset: -14, fill: "var(--tick-color)", fontSize: 11 }}
               />
               <YAxis
                 dataKey="value"
                 name={yLabel}
                 unit={yUnit}
                 type="number"
-                tick={{ fill: "rgba(255,255,255,0.55)", fontSize: 12 }}
+                tick={{ fill: "var(--tick-color)", fontSize: 12 }}
               />
               <Tooltip
                 contentStyle={TOOLTIP_STYLE}
-                labelStyle={{ color: "#e8eaf0" }}
-                itemStyle={{ color: "#e8eaf0" }}
+                labelStyle={{ color: "var(--text-primary)" }}
+                itemStyle={{ color: "var(--text-primary)" }}
                 formatter={(value: unknown, name: unknown) => {
                   if (name === "Temperature") return [`${value}°C`, "Temp"];
                   return [`${value} ${yUnit}`, yLabel];
@@ -98,7 +98,7 @@ export function TempPerformance({ activities }: Props) {
               <Scatter data={data} fill="#fc4c02" fillOpacity={0.55} />
             </ScatterChart>
           </ResponsiveContainer>
-          <div style={{ textAlign: "center", fontSize: "0.72rem", color: "rgba(255,255,255,0.45)", marginTop: "0.25rem" }}>
+          <div style={{ textAlign: "center", fontSize: "0.72rem", color: "var(--text-muted)", marginTop: "0.25rem" }}>
             {data.length} {data.length === 1 ? "activity" : "activities"} with temperature data
           </div>
         </>

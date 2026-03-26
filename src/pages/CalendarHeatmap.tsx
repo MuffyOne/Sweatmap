@@ -10,7 +10,7 @@ const DAY_LABEL_W = 34;
 const INNER_GAP = 6;
 
 const LEVEL_COLORS = [
-  "rgba(255,255,255,0.06)",
+  "var(--grid-stroke)",
   "rgba(252,76,2,0.22)",
   "rgba(252,76,2,0.45)",
   "rgba(252,76,2,0.72)",
@@ -131,7 +131,7 @@ export function CalendarHeatmap({ activities }: Props) {
                 height: cellSize,
                 lineHeight: `${cellSize}px`,
                 fontSize: 10,
-                color: "rgba(255,255,255,0.3)",
+                color: "var(--text-faint)",
                 textAlign: "right",
                 userSelect: "none",
               }}
@@ -152,7 +152,7 @@ export function CalendarHeatmap({ activities }: Props) {
                   height: 20,
                   marginBottom: 4,
                   fontSize: 11,
-                  color: "rgba(255,255,255,0.4)",
+                  color: "var(--text-muted)",
                   whiteSpace: "nowrap",
                   userSelect: "none",
                 }}>

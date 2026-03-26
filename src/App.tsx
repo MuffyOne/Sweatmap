@@ -16,6 +16,7 @@ import { Dashboard, type Page } from "./Dashboard";
 import {
   HomeIcon, ZapIcon, ListIcon, LogOutIcon, SyncIcon,
   FitnessIcon, TrophyIcon, SettingsIcon, ServicesIcon, XertIcon, ChevronLeftIcon, ChevronRightIcon,
+  SunIcon, MoonIcon,
 } from "./lib/icons";
 import "./App.css";
 
@@ -65,6 +66,14 @@ function App() {
   const [collapsed, setCollapsed] = useState(false);
   const [, setTick] = useState(0);
   const refreshNav = () => setTick((t) => t + 1);
+  const [theme, setTheme] = useState<"dark" | "light">(() =>
+    (localStorage.getItem("theme") as "dark" | "light") ?? "dark"
+  );
+
+  useEffect(() => {
+    document.body.classList.toggle("light", theme === "light");
+    localStorage.setItem("theme", theme);
+  }, [theme]);
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: "instant" });
@@ -256,6 +265,15 @@ function App() {
         >
           <SyncIcon />
           <span>{syncing ? "Syncing…" : "Sync"}</span>
+        </button>
+
+        <button
+          className="sidebar-item"
+          onClick={() => setTheme((t) => t === "dark" ? "light" : "dark")}
+          title={collapsed ? (theme === "dark" ? "Light mode" : "Dark mode") : undefined}
+        >
+          {theme === "dark" ? <SunIcon /> : <MoonIcon />}
+          <span>{theme === "dark" ? "Light mode" : "Dark mode"}</span>
         </button>
 
         <button

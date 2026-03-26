@@ -193,25 +193,25 @@ export function RecordsPage({ activities, koms }: Props) {
       }>
         <ResponsiveContainer width="100%" height={220}>
           <BarChart data={monthlyPRs} margin={{ top: 4, right: 8, bottom: 4, left: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--grid-stroke)" />
             <XAxis
               dataKey="label"
-              tick={{ fill: "rgba(255,255,255,0.55)", fontSize: 11 }}
+              tick={{ fill: "var(--tick-color)", fontSize: 11 }}
               axisLine={false}
               tickLine={false}
             />
             <YAxis
-              tick={{ fill: "rgba(255,255,255,0.55)", fontSize: 11 }}
+              tick={{ fill: "var(--tick-color)", fontSize: 11 }}
               axisLine={false}
               tickLine={false}
               width={28}
               allowDecimals={false}
             />
             <Tooltip
-              cursor={{ fill: "rgba(255,255,255,0.04)" }}
+              cursor={{ fill: "var(--surface-elevated)" }}
               contentStyle={TOOLTIP_STYLE}
-              labelStyle={{ color: "#e8eaf0" }}
-              itemStyle={{ color: "#e8eaf0" }}
+              labelStyle={{ color: "var(--text-primary)" }}
+              itemStyle={{ color: "var(--text-primary)" }}
               formatter={(value) => [value as never, "PRs"]}
             />
             <Bar dataKey="prs" fill="#fc4c02" radius={[4, 4, 0, 0]} isAnimationActive={false} />
@@ -231,10 +231,10 @@ export function RecordsPage({ activities, koms }: Props) {
               layout="vertical"
               margin={{ top: 4, right: 64, bottom: 4, left: 90 }}
             >
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" horizontal={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--grid-stroke)" horizontal={false} />
               <XAxis
                 type="number"
-                tick={{ fill: "rgba(255,255,255,0.55)", fontSize: 11 }}
+                tick={{ fill: "var(--tick-color)", fontSize: 11 }}
                 axisLine={false}
                 tickLine={false}
                 allowDecimals={false}
@@ -242,16 +242,16 @@ export function RecordsPage({ activities, koms }: Props) {
               <YAxis
                 type="category"
                 dataKey="name"
-                tick={{ fill: "rgba(255,255,255,0.55)", fontSize: 12 }}
+                tick={{ fill: "var(--tick-color)", fontSize: 12 }}
                 width={88}
                 axisLine={false}
                 tickLine={false}
               />
               <Tooltip
-                cursor={{ fill: "rgba(255,255,255,0.04)" }}
+                cursor={{ fill: "var(--surface-elevated)" }}
                 contentStyle={TOOLTIP_STYLE}
-                labelStyle={{ color: "#e8eaf0" }}
-                itemStyle={{ color: "#e8eaf0" }}
+                labelStyle={{ color: "var(--text-primary)" }}
+                itemStyle={{ color: "var(--text-primary)" }}
                 formatter={(value, _name, props) => [
                   `${value} PRs across ${(props.payload as { acts: number }).acts} activities` as never,
                   props.payload.name as string,
@@ -298,7 +298,7 @@ export function RecordsPage({ activities, koms }: Props) {
                 <span style={{ textAlign: "center" }}>
                   <span className="records-pr-badge">{a.pr_count}</span>
                 </span>
-                <span style={{ textAlign: "center", color: "rgba(255,255,255,0.45)", fontSize: "0.85rem" }}>
+                <span style={{ textAlign: "center", color: "var(--text-muted)", fontSize: "0.85rem" }}>
                   {a.achievement_count ?? 0}
                 </span>
               </a>
