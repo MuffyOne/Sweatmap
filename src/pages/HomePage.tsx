@@ -403,11 +403,11 @@ export function HomePage({ activities, onNavigate }: Props) {
       <CollapsibleSection title="Weekly Distance">
         <ResponsiveContainer width="100%" height={250}>
           <BarChart data={weeklyChart}>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-            <XAxis dataKey="label" tick={{ fill: "rgba(255,255,255,0.55)", fontSize: 12 }} />
-            <YAxis tick={{ fill: "rgba(255,255,255,0.55)", fontSize: 12 }} />
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--grid-stroke)" />
+            <XAxis dataKey="label" tick={{ fill: "var(--tick-color)", fontSize: 12 }} />
+            <YAxis tick={{ fill: "var(--tick-color)", fontSize: 12 }} />
             <Tooltip
-              cursor={{ fill: "rgba(255, 255, 255, 0.04)" }}
+              cursor={{ fill: "var(--surface-elevated)" }}
               contentStyle={TOOLTIP_STYLE}
               formatter={(value) => [`${value} km`, "Distance"]}
             />
@@ -419,11 +419,11 @@ export function HomePage({ activities, onNavigate }: Props) {
       <CollapsibleSection title="Monthly Distance">
         <ResponsiveContainer width="100%" height={250}>
           <BarChart data={monthlyChart}>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-            <XAxis dataKey="label" tick={{ fill: "rgba(255,255,255,0.55)", fontSize: 12 }} />
-            <YAxis tick={{ fill: "rgba(255,255,255,0.55)", fontSize: 12 }} />
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--grid-stroke)" />
+            <XAxis dataKey="label" tick={{ fill: "var(--tick-color)", fontSize: 12 }} />
+            <YAxis tick={{ fill: "var(--tick-color)", fontSize: 12 }} />
             <Tooltip
-              cursor={{ fill: "rgba(255, 255, 255, 0.04)" }}
+              cursor={{ fill: "var(--surface-elevated)" }}
               contentStyle={TOOLTIP_STYLE}
               formatter={(value) => [`${value} km`, "Distance"]}
             />

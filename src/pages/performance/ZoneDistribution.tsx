@@ -107,7 +107,7 @@ function TrainingDistribution({ data }: { data: ZonePoint[] }) {
 
   return (
     <div style={{ marginTop: "2rem", minWidth: 0, overflow: "hidden" }}>
-      <h3 style={{ margin: "0 0 1rem", fontSize: "0.95rem", fontWeight: 600, color: "rgba(255,255,255,0.85)" }}>
+      <h3 style={{ margin: "0 0 1rem", fontSize: "0.95rem", fontWeight: 600, color: "var(--text-primary)" }}>
         Training Distribution
       </h3>
 
@@ -126,11 +126,11 @@ function TrainingDistribution({ data }: { data: ZonePoint[] }) {
           <div key={z.label} style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
             <div style={{ width: 10, height: 10, borderRadius: 2, background: z.color, flexShrink: 0 }} />
             <div>
-              <span style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.85)" }}>
+              <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>
                 {z.pct.toFixed(0)}%
               </span>
-              <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginLeft: "0.3rem" }}>{z.label}</span>
-              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.45)" }}>{z.sub}</div>
+              <span style={{ fontSize: 11, color: "var(--text-muted)", marginLeft: "0.3rem" }}>{z.label}</span>
+              <div style={{ fontSize: 10, color: "var(--text-muted)" }}>{z.sub}</div>
             </div>
           </div>
         ))}
@@ -142,41 +142,41 @@ function TrainingDistribution({ data }: { data: ZonePoint[] }) {
           <div
             key={m.name}
             style={{
-              background: rank === 0 ? "rgba(255,255,255,0.07)" : "rgba(255,255,255,0.03)",
-              border: rank === 0 ? "1px solid rgba(255,255,255,0.18)" : "1px solid rgba(255,255,255,0.06)",
+              background: rank === 0 ? "var(--surface-hover)" : "var(--surface)",
+              border: rank === 0 ? "1px solid var(--border-hover)" : "1px solid var(--border)",
               borderRadius: 10,
               padding: rank === 0 ? "1.1rem 1.25rem" : "0.75rem",
             }}
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
-              <span style={{ fontSize: rank === 0 ? 14 : 13, fontWeight: 600, color: rank === 0 ? "rgba(255,255,255,0.95)" : "rgba(255,255,255,0.6)" }}>
+              <span style={{ fontSize: rank === 0 ? 14 : 13, fontWeight: 600, color: rank === 0 ? "var(--text-primary)" : "var(--text-secondary)" }}>
                 {m.name}
               </span>
               {rank === 0 && (
                 <span style={{ fontSize: 10, color: "#fc4c02", fontWeight: 600 }}>Best match</span>
               )}
             </div>
-            <div style={{ fontSize: 11, color: rank === 0 ? "rgba(255,255,255,0.5)" : "rgba(255,255,255,0.35)", marginBottom: "0.6rem" }}>{m.description}</div>
+            <div style={{ fontSize: 11, color: rank === 0 ? "var(--text-tertiary)" : "var(--text-faint)", marginBottom: "0.6rem" }}>{m.description}</div>
             {/* Mini stacked bar */}
             <div style={{ display: "flex", height: rank === 0 ? 8 : 6, borderRadius: 3, overflow: "hidden", marginBottom: "0.5rem" }}>
               <div style={{ flex: m.easy,     background: "#3b8fd4" }} />
               <div style={{ flex: m.moderate, background: "#d4a820" }} />
               <div style={{ flex: m.hard,     background: "#e03535" }} />
             </div>
-            <div style={{ fontSize: rank === 0 ? 11 : 10, color: rank === 0 ? "rgba(255,255,255,0.5)" : "rgba(255,255,255,0.3)" }}>
+            <div style={{ fontSize: rank === 0 ? 11 : 10, color: rank === 0 ? "var(--text-tertiary)" : "var(--text-faint)" }}>
               {(m.score * 100).toFixed(0)}% match
             </div>
           </div>
         ))}
       </div>
 
-      <div style={{ marginTop: "1rem", fontSize: 11, color: "rgba(255,255,255,0.45)", lineHeight: 1.5 }}>
+      <div style={{ marginTop: "1rem", fontSize: 11, color: "var(--text-muted)", lineHeight: 1.5 }}>
         3-zone model (Easy / Moderate / Hard) based on{" "}
         <a
           href="https://pubmed.ncbi.nlm.nih.gov/20492317/"
           target="_blank"
           rel="noopener noreferrer"
-          style={{ color: "rgba(255,255,255,0.55)", textDecoration: "underline" }}
+          style={{ color: "var(--text-tertiary)", textDecoration: "underline" }}
         >
           Seiler &amp; Tønnessen (2009)
         </a>
@@ -185,7 +185,7 @@ function TrainingDistribution({ data }: { data: ZonePoint[] }) {
           href="https://www.trainingpeaks.com/blog/power-training-levels/"
           target="_blank"
           rel="noopener noreferrer"
-          style={{ color: "rgba(255,255,255,0.55)", textDecoration: "underline" }}
+          style={{ color: "var(--text-tertiary)", textDecoration: "underline" }}
         >
           Coggan's 7-zone model
         </a>
@@ -194,7 +194,7 @@ function TrainingDistribution({ data }: { data: ZonePoint[] }) {
           href="https://pubmed.ncbi.nlm.nih.gov/23752040/"
           target="_blank"
           rel="noopener noreferrer"
-          style={{ color: "rgba(255,255,255,0.55)", textDecoration: "underline" }}
+          style={{ color: "var(--text-tertiary)", textDecoration: "underline" }}
         >
           Stöggl &amp; Sperlich (2014)
         </a>
@@ -350,29 +350,29 @@ export function ZoneDistribution({ activities, onNavigate }: Props) {
             >
               <CartesianGrid
                 strokeDasharray="3 3"
-                stroke="rgba(255,255,255,0.06)"
+                stroke="var(--grid-stroke)"
                 horizontal={false}
               />
               <XAxis
                 type="number"
                 tickFormatter={(v) => formatTime(v as number)}
-                tick={{ fill: "rgba(255,255,255,0.55)", fontSize: 11 }}
+                tick={{ fill: "var(--tick-color)", fontSize: 11 }}
                 axisLine={false}
                 tickLine={false}
               />
               <YAxis
                 type="category"
                 dataKey="label"
-                tick={{ fill: "rgba(255,255,255,0.55)", fontSize: 12 }}
+                tick={{ fill: "var(--tick-color)", fontSize: 12 }}
                 width={40}
                 axisLine={false}
                 tickLine={false}
               />
               <Tooltip
-                cursor={{ fill: "rgba(255, 255, 255, 0.04)" }}
+                cursor={{ fill: "var(--surface-elevated)" }}
                 contentStyle={TOOLTIP_STYLE}
-                labelStyle={{ color: "#e8eaf0" }}
-                itemStyle={{ color: "#e8eaf0" }}
+                labelStyle={{ color: "var(--text-primary)" }}
+                itemStyle={{ color: "var(--text-primary)" }}
                 labelFormatter={(label) => {
                   const zone = POWER_ZONES.find((z) => z.label === label);
                   return zone ? `${zone.label} · ${zone.name}` : String(label);

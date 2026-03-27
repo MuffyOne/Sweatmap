@@ -210,29 +210,29 @@ export function HRZoneDistribution({ activities, onNavigate }: Props) {
             >
               <CartesianGrid
                 strokeDasharray="3 3"
-                stroke="rgba(255,255,255,0.06)"
+                stroke="var(--grid-stroke)"
                 horizontal={false}
               />
               <XAxis
                 type="number"
                 tickFormatter={(v) => formatTime(v as number)}
-                tick={{ fill: "rgba(255,255,255,0.55)", fontSize: 11 }}
+                tick={{ fill: "var(--tick-color)", fontSize: 11 }}
                 axisLine={false}
                 tickLine={false}
               />
               <YAxis
                 type="category"
                 dataKey="label"
-                tick={{ fill: "rgba(255,255,255,0.55)", fontSize: 12 }}
+                tick={{ fill: "var(--tick-color)", fontSize: 12 }}
                 width={40}
                 axisLine={false}
                 tickLine={false}
               />
               <Tooltip
-                cursor={{ fill: "rgba(255, 255, 255, 0.04)" }}
+                cursor={{ fill: "var(--surface-elevated)" }}
                 contentStyle={TOOLTIP_STYLE}
-                labelStyle={{ color: "#e8eaf0" }}
-                itemStyle={{ color: "#e8eaf0" }}
+                labelStyle={{ color: "var(--text-primary)" }}
+                itemStyle={{ color: "var(--text-primary)" }}
                 labelFormatter={(label) => {
                   const zone = HR_ZONE_DEFS.find((z) => z.label === label);
                   return zone ? `${zone.label} · ${zone.name}` : String(label);

@@ -214,24 +214,24 @@ export function FitnessChart({ activities }: Props) {
                 <stop offset="95%" stopColor="#9b7ec8" stopOpacity={0.02} />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--grid-stroke)" vertical={false} />
             <XAxis
               dataKey="date"
-              tick={{ fill: "rgba(255,255,255,0.55)", fontSize: 11 }}
+              tick={{ fill: "var(--tick-color)", fontSize: 11 }}
               axisLine={false}
               tickLine={false}
               interval={0}
             />
             <YAxis
-              tick={{ fill: "rgba(255,255,255,0.55)", fontSize: 11 }}
+              tick={{ fill: "var(--tick-color)", fontSize: 11 }}
               axisLine={false}
               tickLine={false}
               width={32}
             />
             <Tooltip
               contentStyle={TOOLTIP_STYLE}
-              labelStyle={{ color: "#e8eaf0", fontWeight: 600, marginBottom: 4 }}
-              itemStyle={{ color: "#e8eaf0" }}
+              labelStyle={{ color: "var(--text-primary)", fontWeight: 600, marginBottom: 4 }}
+              itemStyle={{ color: "var(--text-primary)" }}
               labelFormatter={(_val, payload) => (payload?.[0]?.payload as DayPoint | undefined)?.fullDate ?? ""}
               formatter={(value, name) => [value as never, name === "ctl" ? "Fitness (CTL)" : name === "atl" ? "Fatigue (ATL)" : (name ?? "")]}
             />
@@ -267,10 +267,10 @@ export function FitnessChart({ activities }: Props) {
         </div>
         <ResponsiveContainer width="100%" height={240}>
           <ComposedChart data={data} margin={{ top: 4, right: 16, bottom: 4, left: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--grid-stroke)" vertical={false} />
             <XAxis dataKey="ix" type="number" domain={["dataMin", "dataMax"]} hide />
             <YAxis
-              tick={{ fill: "rgba(255,255,255,0.55)", fontSize: 11 }}
+              tick={{ fill: "var(--tick-color)", fontSize: 11 }}
               axisLine={false}
               tickLine={false}
               width={32}
@@ -298,15 +298,15 @@ export function FitnessChart({ activities }: Props) {
             ))}
             <Tooltip
               contentStyle={TOOLTIP_STYLE}
-              labelStyle={{ color: "#e8eaf0", fontWeight: 600, marginBottom: 4 }}
-              itemStyle={{ color: "#e8eaf0" }}
+              labelStyle={{ color: "var(--text-primary)", fontWeight: 600, marginBottom: 4 }}
+              itemStyle={{ color: "var(--text-primary)" }}
               labelFormatter={(_val, payload) => (payload?.[0]?.payload as DayPoint | undefined)?.fullDate ?? ""}
               formatter={(value, name) => {
               const zoneNames: Record<string, string> = { tsbT: "Form (TSB)", tsbF: "Form (TSB)", tsbN: "Form (TSB)", tsbP: "Form (TSB)", tsbH: "Form (TSB)" };
               return [value as never, zoneNames[name as string] ?? (name ?? "")];
             }}
             />
-            <ReferenceLine y={0} stroke="rgba(255,255,255,0.2)" strokeWidth={1} />
+            <ReferenceLine y={0} stroke="var(--border-hover)" strokeWidth={1} />
             {/* Transparent continuous line — gives recharts a non-null series to bisect for hover/tooltip */}
             <Line type="linear" dataKey="tsb" stroke="transparent" strokeWidth={0} dot={false} isAnimationActive={false} legendType="none" />
             {([
@@ -330,7 +330,7 @@ export function FitnessChart({ activities }: Props) {
             ))}
           </ComposedChart>
         </ResponsiveContainer>
-        <div style={{ fontSize: "0.67rem", color: "rgba(255,255,255,0.45)", marginTop: "0.25rem", lineHeight: 1.5 }}>
+        <div style={{ fontSize: "0.67rem", color: "var(--text-muted)", marginTop: "0.25rem", lineHeight: 1.5 }}>
           CTL = 42-day chronic load &nbsp;·&nbsp; ATL = 7-day acute load &nbsp;·&nbsp; Form = CTL − ATL &nbsp;·&nbsp; First weeks may underestimate fitness (warms up from zero)
         </div>
       </CollapsibleSection>

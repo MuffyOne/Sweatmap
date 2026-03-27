@@ -183,9 +183,9 @@ export function PowerCurve({ activities }: Props) {
       {curve && !loading && (
         <ResponsiveContainer width="100%" height={250}>
           <LineChart data={curve}>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-            <XAxis dataKey="label" tick={{ fill: "rgba(255,255,255,0.55)", fontSize: 12 }} />
-            <YAxis tick={{ fill: "rgba(255,255,255,0.55)", fontSize: 12 }} unit="W" />
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--grid-stroke)" />
+            <XAxis dataKey="label" tick={{ fill: "var(--tick-color)", fontSize: 12 }} />
+            <YAxis tick={{ fill: "var(--tick-color)", fontSize: 12 }} unit="W" />
             <Tooltip
               contentStyle={TOOLTIP_STYLE}
               formatter={(value) => [`${value} W`, "Best power"]}

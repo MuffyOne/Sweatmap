@@ -1,8 +1,8 @@
 export const TOOLTIP_STYLE = {
-  background: "rgba(12, 15, 24, 0.92)",
-  border: "1px solid rgba(255, 255, 255, 0.1)",
+  background: "var(--tooltip-bg)",
+  border: "1px solid var(--tooltip-border)",
   borderRadius: 10,
-  color: "#e8eaf0",
+  color: "var(--tooltip-text)",
 };
 
 export function formatDuration(seconds: number): string {
