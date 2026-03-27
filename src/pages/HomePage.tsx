@@ -197,8 +197,9 @@ export function HomePage({ activities, onNavigate }: Props) {
     const diff = distKm - expectedKm;
     const remaining = yearlyGoalKm - distKm;
     const kmPerDay = remaining > 0 && daysLeft > 0 ? remaining / daysLeft : 0;
+    const kmPerMonth = kmPerDay * 30.44;
     const pct = Math.min((distKm / yearlyGoalKm) * 100, 100);
-    return { distKm, goal: yearlyGoalKm, remaining, kmPerDay, pct, diff, ahead: diff >= 0 };
+    return { distKm, goal: yearlyGoalKm, remaining, kmPerDay, kmPerMonth, pct, diff, ahead: diff >= 0 };
   }, [activities, yearlyGoalKm]);
 
   const sportBreakdown = useMemo(() => {
@@ -321,7 +322,7 @@ export function HomePage({ activities, onNavigate }: Props) {
                   <div className="goal-progress-fill" style={{ width: `${yearlyGoalData.pct}%` }} />
                 </div>
                 <div className="goal-meta">
-                  {yearlyGoalData.remaining <= 0 ? "Goal reached!" : `${yearlyGoalData.kmPerDay.toFixed(1)} km/day needed`}
+                  {yearlyGoalData.remaining <= 0 ? "Goal reached!" : `${yearlyGoalData.kmPerDay.toFixed(1)} km/day · ${Math.round(yearlyGoalData.kmPerMonth)} km/month needed`}
                 </div>
               </div>
             )}
