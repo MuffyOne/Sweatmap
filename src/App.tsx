@@ -240,6 +240,9 @@ function App() {
             {refreshing && <span className="refreshing-badge">Updating…</span>}
           </div>
         </div>
+        {import.meta.env.VITE_MOCK_DATA === "true" && (
+          <div className="mock-badge">MOCK DATA</div>
+        )}
 
         <div className="sidebar-nav">
           {NAV_ITEMS.filter((item) => !item.condition || item.condition()).map(({ id, label, Icon }) => (

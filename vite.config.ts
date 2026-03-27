@@ -1,3 +1,4 @@
+import path from 'path'
 import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 
@@ -52,6 +53,15 @@ function xertDevProxy(): Plugin {
 }
 
 // https://vite.dev/config/
-export default defineConfig({
-  plugins: [react(), xertDevProxy()],
+export default defineConfig(({ mode }) => {
+  const useMock = mode === 'development' && process.env.VITE_MOCK_DATA === 'true';
+
+  return {
+    plugins: [react(), xertDevProxy()],
+    resolve: {
+      alias: useMock
+        ? [{ find: /\/api\/strava$/, replacement: path.resolve(__dirname, 'src/api/strava.mock') }]
+        : [],
+    },
+  };
 })
