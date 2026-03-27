@@ -1009,7 +1009,7 @@ body {
 
 /* XERT page */
 .xert-page {
-  max-width: 720px;
+  width: 100%;
 }
 
 .xert-login-card {
