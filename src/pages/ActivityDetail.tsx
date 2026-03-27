@@ -118,7 +118,7 @@ export function ActivityDetail({ activity }: Props) {
               <CartesianGrid strokeDasharray="3 3" stroke="var(--grid-stroke)" />
               <XAxis dataKey="time" tickFormatter={formatStreamTime} tick={{ fill: "var(--tick-color)", fontSize: 10 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fill: "var(--tick-color)", fontSize: 10 }} width={40} axisLine={false} tickLine={false} unit="m" domain={["dataMin - 10", "dataMax + 10"]} />
-              <Tooltip contentStyle={TOOLTIP_STYLE} labelFormatter={(v) => formatStreamTime(v as number)} formatter={(v: number) => [`${Math.round(v)} m`, "Elevation"]} />
+              <Tooltip contentStyle={TOOLTIP_STYLE} labelFormatter={(v) => formatStreamTime(v as number)} formatter={(v) => [`${Math.round(v as number)} m`, "Elevation"]} />
               <Area type="monotone" dataKey="altitude" stroke="#22a06b" fill="#22a06b" fillOpacity={0.15} strokeWidth={1.5} dot={false} isAnimationActive={false} />
             </AreaChart>
           </ResponsiveContainer>
