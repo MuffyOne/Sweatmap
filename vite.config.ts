@@ -63,5 +63,15 @@ export default defineConfig(({ mode }) => {
         ? [{ find: /\/api\/strava$/, replacement: path.resolve(__dirname, 'src/api/strava.mock') }]
         : [],
     },
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            recharts: ['recharts'],
+            'date-fns': ['date-fns'],
+          },
+        },
+      },
+    },
   };
 })

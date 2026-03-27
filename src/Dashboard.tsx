@@ -1,15 +1,17 @@
+import React, { Suspense } from "react";
 import type { Activity, SegmentEffort } from "./api/strava";
-import { PowerCurve } from "./pages/performance/PowerCurve";
-import { ZoneDistribution } from "./pages/performance/ZoneDistribution";
-import { HRZoneDistribution } from "./pages/performance/HRZoneDistribution";
-import { Settings } from "./pages/Settings";
-import { TempPerformance } from "./pages/performance/TempPerformance";
-import { FitnessChart } from "./pages/FitnessChart";
-import { RecordsPage } from "./pages/RecordsPage";
-import { HomePage } from "./pages/HomePage";
-import { ActivitiesPage } from "./pages/ActivitiesPage";
-import { ServicesPage } from "./pages/ServicesPage";
-import { XertPage } from "./pages/XertPage";
+
+const HomePage = React.lazy(() => import("./pages/HomePage").then(m => ({ default: m.HomePage })));
+const ActivitiesPage = React.lazy(() => import("./pages/ActivitiesPage").then(m => ({ default: m.ActivitiesPage })));
+const FitnessChart = React.lazy(() => import("./pages/FitnessChart").then(m => ({ default: m.FitnessChart })));
+const RecordsPage = React.lazy(() => import("./pages/RecordsPage").then(m => ({ default: m.RecordsPage })));
+const Settings = React.lazy(() => import("./pages/Settings").then(m => ({ default: m.Settings })));
+const ServicesPage = React.lazy(() => import("./pages/ServicesPage").then(m => ({ default: m.ServicesPage })));
+const XertPage = React.lazy(() => import("./pages/XertPage").then(m => ({ default: m.XertPage })));
+const PowerCurve = React.lazy(() => import("./pages/performance/PowerCurve").then(m => ({ default: m.PowerCurve })));
+const ZoneDistribution = React.lazy(() => import("./pages/performance/ZoneDistribution").then(m => ({ default: m.ZoneDistribution })));
+const HRZoneDistribution = React.lazy(() => import("./pages/performance/HRZoneDistribution").then(m => ({ default: m.HRZoneDistribution })));
+const TempPerformance = React.lazy(() => import("./pages/performance/TempPerformance").then(m => ({ default: m.TempPerformance })));
 
 export type Page = "home" | "performance" | "activities" | "settings" | "fitness" | "records" | "services" | "xert";
 
@@ -24,7 +26,7 @@ interface Props {
   onXertChange: () => void;
 }
 
-export function Dashboard({ activities, koms, page, onNavigate, onForceSync, forceSyncing, fetchedCount, onXertChange }: Props) {
+function PageContent({ activities, koms, page, onNavigate, onForceSync, forceSyncing, fetchedCount, onXertChange }: Props) {
   switch (page) {
     case "home":        return <HomePage activities={activities} onNavigate={onNavigate} />;
     case "activities":  return <ActivitiesPage activities={activities} />;
@@ -42,4 +44,12 @@ export function Dashboard({ activities, koms, page, onNavigate, onForceSync, for
     case "services":    return <ServicesPage onXertChange={onXertChange} />;
     case "xert":        return <XertPage />;
   }
+}
+
+export function Dashboard(props: Props) {
+  return (
+    <Suspense fallback={<div className="loading-screen"><div className="loading-title">Loading…</div></div>}>
+      <PageContent {...props} />
+    </Suspense>
+  );
 }
