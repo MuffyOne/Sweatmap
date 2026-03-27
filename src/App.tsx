@@ -66,14 +66,26 @@ function App() {
   const [collapsed, setCollapsed] = useState(false);
   const [, setTick] = useState(0);
   const refreshNav = () => setTick((t) => t + 1);
-  const [theme, setTheme] = useState<"dark" | "light">(() =>
-    (localStorage.getItem("theme") as "dark" | "light") ?? "dark"
-  );
+  const [theme, setTheme] = useState<"dark" | "light">(() => {
+    const saved = localStorage.getItem("theme") as "dark" | "light" | null;
+    if (saved) return saved;
+    return window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+  });
 
   useEffect(() => {
     document.body.classList.toggle("light", theme === "light");
     localStorage.setItem("theme", theme);
   }, [theme]);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-color-scheme: light)");
+    const handler = (e: MediaQueryListEvent) => {
+      if (!localStorage.getItem("theme")) return; // only follow system if no explicit override
+      setTheme(e.matches ? "light" : "dark");
+    };
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: "instant" });
