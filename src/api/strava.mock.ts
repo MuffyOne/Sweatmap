@@ -5,8 +5,8 @@
  */
 
 // Re-export types from the real module (alias only redirects consumer imports)
-export type { Activity, Athlete, SegmentEffort } from "./strava.types";
-import type { Activity, Athlete, SegmentEffort } from "./strava.types";
+export type { Activity, Athlete, SegmentEffort, ActivityStreams } from "./strava.types";
+import type { Activity, Athlete, SegmentEffort, ActivityStreams } from "./strava.types";
 
 const TOKEN_KEY = "strava_tokens";
 const CACHE_KEY = "strava_cache";
@@ -321,6 +321,41 @@ export async function fetchActivityWatts(activityId: number): Promise<number[] |
   if (!act || !act.average_watts) return null;
   await new Promise((r) => setTimeout(r, 20)); // tiny delay for realism
   return generateWattsStream(act);
+}
+
+export async function fetchActivityStreams(activityId: number): Promise<ActivityStreams | null> {
+  const acts = generateActivities();
+  const act = acts.find((a) => a.id === activityId);
+  if (!act) return null;
+  await new Promise((r) => setTimeout(r, 50));
+
+  const len = Math.min(act.moving_time, 7200);
+  const time = Array.from({ length: len }, (_, i) => i);
+
+  // Altitude: gradual hills
+  const altitude: number[] = [];
+  let alt = randBetween(100, 400);
+  for (let i = 0; i < len; i++) {
+    alt += normalish(0, 0.3);
+    if (i % 300 === 0) alt += normalish(0, 15);
+    altitude.push(Math.max(0, Math.round(alt * 10) / 10));
+  }
+
+  // Speed: m/s with variation
+  const velocity_smooth = time.map(() =>
+    Math.max(0, Math.round((act.average_speed + normalish(0, act.average_speed * 0.15)) * 100) / 100)
+  );
+
+  // Cadence
+  const baseCadence = act.type === "Run" || act.sport_type === "Run" ? 170 : 85;
+  const cadence = time.map(() => Math.round(clamp(normalish(baseCadence, baseCadence * 0.06), baseCadence * 0.7, baseCadence * 1.2)));
+
+  const streams: ActivityStreams = { time, altitude, velocity_smooth, cadence };
+
+  if (act.average_watts) streams.watts = generateWattsStream(act);
+  if (act.average_heartrate) streams.heartrate = generateHRStream(act);
+
+  return streams;
 }
 
 export async function fetchActivityHeartrate(activityId: number): Promise<number[] | null> {

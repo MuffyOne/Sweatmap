@@ -134,6 +134,15 @@ export function ChevronRightIcon() {
   );
 }
 
+export function StravaIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066l-2.084 4.116z" />
+      <path d="M7.578 0L0 14.648h4.697l2.881-5.752 2.881 5.752h4.697L7.578 0z" opacity=".6" />
+    </svg>
+  );
+}
+
 export function SunIcon() {
   return (
     <svg {...SVG_PROPS}>

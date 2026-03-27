@@ -14,8 +14,8 @@ const TOKEN_KEY = "strava_tokens";
 const CACHE_KEY = "strava_cache";
 const CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
-export type { Athlete, SegmentEffort, Activity } from "./strava.types";
-import type { Athlete, SegmentEffort, Activity } from "./strava.types";
+export type { Athlete, SegmentEffort, Activity, ActivityStreams } from "./strava.types";
+import type { Athlete, SegmentEffort, Activity, ActivityStreams } from "./strava.types";
 
 interface Cache {
   activities: Activity[];
@@ -178,6 +178,26 @@ export async function fetchActivityWatts(activityId: number): Promise<number[] |
   if (!res.ok) return null;
   const data = await res.json();
   return data.watts?.data ?? null;
+}
+
+export async function fetchActivityStreams(activityId: number): Promise<ActivityStreams | null> {
+  const token = await getValidToken();
+  const keys = "time,altitude,heartrate,watts,cadence,velocity_smooth";
+  const res = await fetch(
+    `https://www.strava.com/api/v3/activities/${activityId}/streams?keys=${keys}&key_by_type=true`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+  if (res.status === 429) throw new Error("rate_limited");
+  if (!res.ok) return null;
+  const data = await res.json();
+  return {
+    time: data.time?.data ?? undefined,
+    altitude: data.altitude?.data ?? undefined,
+    heartrate: data.heartrate?.data ?? undefined,
+    watts: data.watts?.data ?? undefined,
+    cadence: data.cadence?.data ?? undefined,
+    velocity_smooth: data.velocity_smooth?.data ?? undefined,
+  };
 }
 
 export async function fetchKOMs(athleteId: number): Promise<SegmentEffort[]> {

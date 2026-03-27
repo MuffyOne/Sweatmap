@@ -23,6 +23,15 @@ export interface SegmentEffort {
   activity: { id: number };
 }
 
+export interface ActivityStreams {
+  time?: number[];
+  altitude?: number[];
+  heartrate?: number[];
+  watts?: number[];
+  cadence?: number[];
+  velocity_smooth?: number[];
+}
+
 export interface Activity {
   id: number;
   name: string;
