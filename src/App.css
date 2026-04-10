@@ -666,6 +666,20 @@ body {
   margin-left: auto;
 }
 
+.sort-toggle {
+  background: none;
+  border: none;
+  color: var(--text-primary, #fff);
+  cursor: pointer;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  transition: opacity 0.15s;
+}
+.sort-toggle:hover {
+  opacity: 0.7;
+}
+
 .collapsible-body {
   margin-top: 0.75rem;
 }

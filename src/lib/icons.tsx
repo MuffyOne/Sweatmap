@@ -166,3 +166,29 @@ export function MoonIcon() {
     </svg>
   );
 }
+
+export function SortDescIcon() {
+  return (
+    <svg {...SVG_PROPS} viewBox="0 0 32 24">
+      <line x1="3" y1="6" x2="7" y2="6" />
+      <line x1="3" y1="10" x2="11" y2="10" />
+      <line x1="3" y1="14" x2="15" y2="14" />
+      <line x1="3" y1="18" x2="19" y2="18" />
+      <polyline points="27,4 27,18" />
+      <polyline points="24,15 27,18 30,15" />
+    </svg>
+  );
+}
+
+export function SortAscIcon() {
+  return (
+    <svg {...SVG_PROPS} viewBox="0 0 32 24">
+      <line x1="3" y1="6" x2="19" y2="6" />
+      <line x1="3" y1="10" x2="15" y2="10" />
+      <line x1="3" y1="14" x2="11" y2="14" />
+      <line x1="3" y1="18" x2="7" y2="18" />
+      <polyline points="27,6 27,20" />
+      <polyline points="24,9 27,6 30,9" />
+    </svg>
+  );
+}

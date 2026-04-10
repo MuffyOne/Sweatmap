@@ -4,7 +4,7 @@ import type { Activity } from "../api/strava";
 import { formatDuration, formatDistance, formatPace, RUN_TYPES, normalizeSportLabel } from "../lib/utils";
 import { CollapsibleSection } from "../lib/CollapsibleSection";
 import { ActivityDetail } from "./ActivityDetail";
-import { StravaIcon } from "../lib/icons";
+import { StravaIcon, SortDescIcon, SortAscIcon } from "../lib/icons";
 
 type Period = "week" | "month" | "year" | "last7" | "last30";
 
@@ -23,14 +23,19 @@ interface Props {
   activities: Activity[];
 }
 
+type SortOrder = "newest" | "oldest";
+
 export function ActivitiesPage({ activities }: Props) {
   const [period, setPeriod] = useState<Period>("week");
   const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [sortOrder, setSortOrder] = useState<SortOrder>("newest");
 
   const filtered = useMemo(() => {
     const { start, end } = getInterval(period);
-    return activities.filter((a) => isWithinInterval(parseISO(a.start_date_local), { start, end }));
-  }, [activities, period]);
+    const list = activities.filter((a) => isWithinInterval(parseISO(a.start_date_local), { start, end }));
+    const dir = sortOrder === "newest" ? -1 : 1;
+    return list.sort((a, b) => dir * (new Date(a.start_date_local).getTime() - new Date(b.start_date_local).getTime()));
+  }, [activities, period, sortOrder]);
 
   const toggleExpand = useCallback((id: number) => {
     setExpandedId((prev) => (prev === id ? null : id));
@@ -46,7 +51,16 @@ export function ActivitiesPage({ activities }: Props) {
         ))}
       </div>
       <CollapsibleSection title="Recent Activities" extra={
-        <span style={{ fontSize: "0.75rem", opacity: 0.4 }}>{filtered.length} activities</span>
+        <span style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem" }}>
+          <span style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>{filtered.length} activities</span>
+          <button
+            className="sort-toggle"
+            onClick={(e) => { e.stopPropagation(); setSortOrder((s) => s === "newest" ? "oldest" : "newest"); }}
+            title={sortOrder === "newest" ? "Newest first" : "Oldest first"}
+          >
+            {sortOrder === "newest" ? <SortDescIcon /> : <SortAscIcon />}
+          </button>
+        </span>
       }>
         <div className="recent-activities">
           {filtered.length === 0 && (
