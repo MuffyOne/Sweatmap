@@ -26,14 +26,14 @@ export function XertPage() {
   const [intervals, setIntervals] = useState<XertInterval[] | null>(null);
 
   useEffect(() => {
-    if (connected && !info) {
-      setLoading(true);
-      fetchTrainingInfo()
-        .then(setInfo)
-        .catch((e) => setError(e instanceof Error ? e.message : "Failed to load"))
-        .finally(() => setLoading(false));
-    }
-  }, [connected, info]);
+    if (!connected) return;
+    setLoading(true);
+    setError("");
+    fetchTrainingInfo()
+      .then(setInfo)
+      .catch((e) => setError(e instanceof Error ? e.message : "Failed to load"))
+      .finally(() => setLoading(false));
+  }, [connected]);
 
   useEffect(() => {
     const wid = info?.wotd?.workoutId;
