@@ -97,7 +97,7 @@ function generateActivities(): Activity[] {
     let act: Activity;
 
     if (isRide) {
-      const distKm = clamp(normalish(50, 20), 10, 160);
+      const distKm = clamp(normalish(60, 25), 10, 180);
       const distM = distKm * 1000;
       const avgSpeedMs = clamp(normalish(7.8, 0.8), 6.0, 9.5); // ~28 km/h avg
       const movingTime = Math.round(distM / avgSpeedMs);
@@ -215,7 +215,7 @@ function generateKoms(activities: Activity[]): SegmentEffort[] {
 // ── Stream generation ──
 
 function generateWattsStream(activity: Activity): number[] {
-  const len = Math.min(activity.moving_time, 7200); // cap at 2h for performance
+  const len = Math.min(activity.moving_time, 10800); // cap at 3h
   const avg = activity.average_watts ?? 180;
   const stream: number[] = [];
   let current = avg;
@@ -234,7 +234,7 @@ function generateWattsStream(activity: Activity): number[] {
 }
 
 function generateHRStream(activity: Activity): number[] {
-  const len = Math.min(activity.moving_time, 7200);
+  const len = Math.min(activity.moving_time, 10800);
   const avg = activity.average_heartrate ?? 145;
   const stream: number[] = [];
   let current = avg - 20; // warmup
@@ -329,7 +329,7 @@ export async function fetchActivityStreams(activityId: number): Promise<Activity
   if (!act) return null;
   await new Promise((r) => setTimeout(r, 50));
 
-  const len = Math.min(act.moving_time, 7200);
+  const len = Math.min(act.moving_time, 10800);
   const time = Array.from({ length: len }, (_, i) => i);
 
   // Altitude: gradual hills

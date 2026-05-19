@@ -17,7 +17,7 @@ import { PeriodToggle } from "../../components/PeriodToggle";
 import { StreamProgress } from "../../components/StreamProgress";
 import styles from "./PowerCurve.module.css";
 
-const DURATIONS = [1, 5, 10, 30, 60, 120, 300, 600, 1200, 1800, 3600];
+const ALL_DURATIONS = [1, 5, 10, 30, 60, 120, 300, 600, 1200, 1800, 3600, 5400, 7200, 10800, 14400, 18000, 21600];
 
 function formatDuration(secs: number): string {
   if (secs < 60) return `${secs}s`;
@@ -37,6 +37,18 @@ function computeMMP(watts: number[], secs: number): number {
   return Math.round(max / secs);
 }
 
+function buildCurve(streams: number[][]): CurvePoint[] {
+  if (streams.length === 0) return [];
+  const maxLen = Math.max(...streams.map((s) => s.length));
+  return ALL_DURATIONS
+    .filter((d) => d <= maxLen)
+    .map((d) => ({
+      label: formatDuration(d),
+      watts: Math.max(...streams.map((w) => computeMMP(w, d)).filter((v) => v > 0), 0),
+    }))
+    .filter((p) => p.watts > 0);
+}
+
 type CurveRange = "30d" | "90d";
 
 interface CurvePoint {
@@ -44,7 +56,14 @@ interface CurvePoint {
   watts: number;
 }
 
+interface ChartPoint {
+  label: string;
+  current?: number;
+  best?: number;
+}
+
 const CACHE_KEY_PREFIX = "power_curve_";
+const BEST_CACHE_KEY = "power_curve_alltime";
 
 interface CachedCurve {
   data: CurvePoint[];
@@ -54,10 +73,19 @@ interface CachedCurve {
 function loadCachedCurve(range: CurveRange): CachedCurve | null {
   const raw = localStorage.getItem(CACHE_KEY_PREFIX + range);
   if (!raw) return null;
-  const parsed = JSON.parse(raw);
-  // migrate old format (plain array) to new format
-  if (Array.isArray(parsed)) return { data: parsed, activityCount: -1 };
-  return parsed as CachedCurve;
+  try {
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) return { data: parsed, activityCount: -1 };
+    return parsed as CachedCurve;
+  } catch {
+    return null;
+  }
+}
+
+function loadBestCurve(): CachedCurve | null {
+  const raw = localStorage.getItem(BEST_CACHE_KEY);
+  if (!raw) return null;
+  try { return JSON.parse(raw) as CachedCurve; } catch { return null; }
 }
 
 function saveCurveCache(range: CurveRange, data: CurvePoint[], activityCount: number) {
@@ -74,6 +102,7 @@ export function PowerCurve({ activities }: Props) {
     "30d": loadCachedCurve("30d") ?? undefined,
     "90d": loadCachedCurve("90d") ?? undefined,
   }));
+  const [bestCurve, setBestCurve] = useState<CachedCurve | null>(loadBestCurve);
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState({ done: 0, total: 0 });
   const [error, setError] = useState<string | null>(null);
@@ -85,71 +114,100 @@ export function PowerCurve({ activities }: Props) {
 
   const compute = useCallback(async () => {
     const now = new Date();
-    const since = range === "30d" ? subDays(now, 30) : subDays(now, 90);
+    const since = subDays(now, range === "30d" ? 30 : 90);
 
-    const eligible = activities.filter(
-      (a) => a.average_watts && isAfter(parseISO(a.start_date_local), since)
+    const allPowerActs = activities.filter((a) => a.average_watts);
+    const inRangeIds = new Set(
+      allPowerActs
+        .filter((a) => isAfter(parseISO(a.start_date_local), since))
+        .map((a) => a.id)
     );
 
-    if (eligible.length === 0) {
+    if (inRangeIds.size === 0) {
       setError("No activities with power data in this period.");
       return;
     }
 
     setLoading(true);
     setError(null);
-    setProgress({ done: 0, total: eligible.length });
+    setProgress({ done: 0, total: allPowerActs.length });
 
+    const rangeStreams: number[][] = [];
     const allStreams: number[][] = [];
-    for (let i = 0; i < eligible.length; i++) {
+
+    for (let i = 0; i < allPowerActs.length; i++) {
       try {
-        const watts = await fetchActivityWatts(eligible[i].id);
-        if (watts && watts.length > 0) allStreams.push(watts);
+        const watts = await fetchActivityWatts(allPowerActs[i].id);
+        if (watts && watts.length > 0) {
+          allStreams.push(watts);
+          if (inRangeIds.has(allPowerActs[i].id)) rangeStreams.push(watts);
+        }
       } catch (e: unknown) {
         if (e instanceof Error && e.message === "rate_limited") {
           setError(`Strava's API rate limit was reached after ${i} activities. This happens when too many requests are made in a short period — please wait 15 minutes and try again.`);
-        } else {
-          setError(`Failed fetching activity ${eligible[i].id}.`);
+          setLoading(false);
+          return;
         }
-        setLoading(false);
-        return;
       }
-      setProgress({ done: i + 1, total: eligible.length });
+      setProgress({ done: i + 1, total: allPowerActs.length });
     }
 
-    if (allStreams.length === 0) {
+    if (rangeStreams.length === 0) {
       setError("No power stream data found for activities in this period.");
       setLoading(false);
       return;
     }
 
-    const chartData: CurvePoint[] = DURATIONS.map((d) => ({
-      label: formatDuration(d),
-      watts: Math.max(...allStreams.map((w) => computeMMP(w, d)).filter((v) => v > 0), 0),
-    })).filter((d) => d.watts > 0);
-
-    const entry: CachedCurve = { data: chartData, activityCount: eligible.length };
+    const chartData = buildCurve(rangeStreams);
+    const entry: CachedCurve = { data: chartData, activityCount: inRangeIds.size };
     setCurves((prev) => ({ ...prev, [range]: entry }));
-    saveCurveCache(range, chartData, eligible.length);
+    saveCurveCache(range, chartData, inRangeIds.size);
+
+    const bestData = buildCurve(allStreams);
+    const bestEntry: CachedCurve = { data: bestData, activityCount: allPowerActs.length };
+    setBestCurve(bestEntry);
+    localStorage.setItem(BEST_CACHE_KEY, JSON.stringify(bestEntry));
+
     setLoading(false);
   }, [activities, range]);
 
-  // auto-compute when no cache or when activity count changed
   const eligibleCount = useMemo(() => {
     const since = subDays(new Date(), range === "30d" ? 30 : 90);
     return activities.filter((a) => a.average_watts && isAfter(parseISO(a.start_date_local), since)).length;
   }, [activities, range]);
 
+  const allPowerCount = useMemo(
+    () => activities.filter((a) => a.average_watts).length,
+    [activities]
+  );
+
   useEffect(() => {
-    const needsCompute = !cached || cached.activityCount !== eligibleCount;
-    if (needsCompute && !computingRef.current && eligibleCount > 0) {
+    const rangeStale = !cached || cached.activityCount !== eligibleCount;
+    const bestStale = !bestCurve || bestCurve.activityCount !== allPowerCount;
+    if ((rangeStale || bestStale) && !computingRef.current && eligibleCount > 0) {
       const id = setTimeout(() => {
         computingRef.current = true;
         compute().finally(() => { computingRef.current = false; });
       }, 0);
       return () => clearTimeout(id);
     }
-  }, [range, cached, eligibleCount, compute]);
+  }, [range, cached, bestCurve, eligibleCount, allPowerCount, compute]);
+
+  const mergedCurve = useMemo((): ChartPoint[] | null => {
+    if (!curve && !bestCurve?.data.length) return null;
+    const curMap = new Map((curve ?? []).map((p) => [p.label, p.watts]));
+    const bestMap = new Map((bestCurve?.data ?? []).map((p) => [p.label, p.watts]));
+    const labels = ALL_DURATIONS
+      .map((d) => formatDuration(d))
+      .filter((l) => curMap.has(l) || bestMap.has(l));
+    return labels.map((label) => ({
+      label,
+      current: curMap.get(label),
+      best: bestMap.get(label),
+    }));
+  }, [curve, bestCurve]);
+
+  const rangeLabel = range === "30d" ? "Last 30 days" : "Last 90 days";
 
   return (
     <CollapsibleSection title="Power Curve">
@@ -167,23 +225,39 @@ export function PowerCurve({ activities }: Props) {
 
       {loading && <StreamProgress done={progress.done} total={progress.total} />}
 
-      {curve && !loading && (
+      {mergedCurve && !loading && (
         <ResponsiveContainer width="100%" height={250}>
-          <LineChart data={curve}>
+          <LineChart data={mergedCurve}>
             <CartesianGrid strokeDasharray="3 3" stroke="var(--grid-stroke)" />
             <XAxis dataKey="label" tick={{ fill: "var(--tick-color)", fontSize: 12 }} />
             <YAxis tick={{ fill: "var(--tick-color)", fontSize: 12 }} unit="W" />
             <Tooltip
               contentStyle={TOOLTIP_STYLE}
-              formatter={(value) => [`${value} W`, "Best power"]}
+              formatter={(value, name) => [
+                `${value} W`,
+                name === "current" ? rangeLabel : "All-time best",
+              ]}
             />
             <Line
               type="monotone"
-              dataKey="watts"
+              dataKey="best"
+              name="best"
+              stroke="#7a8fa6"
+              strokeWidth={1.5}
+              strokeDasharray="4 3"
+              dot={false}
+              activeDot={{ r: 4, fill: "#7a8fa6" }}
+              connectNulls
+            />
+            <Line
+              type="monotone"
+              dataKey="current"
+              name="current"
               stroke="#fc4c02"
               strokeWidth={2}
               dot={{ fill: "#fc4c02", r: 4 }}
               activeDot={{ r: 6 }}
+              connectNulls
             />
           </LineChart>
         </ResponsiveContainer>
