@@ -12,8 +12,9 @@ const PowerCurve = React.lazy(() => import("./pages/performance/PowerCurve").the
 const ZoneDistribution = React.lazy(() => import("./pages/performance/ZoneDistribution").then(m => ({ default: m.ZoneDistribution })));
 const HRZoneDistribution = React.lazy(() => import("./pages/performance/HRZoneDistribution").then(m => ({ default: m.HRZoneDistribution })));
 const TempPerformance = React.lazy(() => import("./pages/performance/TempPerformance").then(m => ({ default: m.TempPerformance })));
+const WhatsNewPage = React.lazy(() => import("./pages/WhatsNewPage").then(m => ({ default: m.WhatsNewPage })));
 
-export type Page = "home" | "performance" | "activities" | "settings" | "fitness" | "records" | "services" | "xert";
+export type Page = "home" | "performance" | "activities" | "settings" | "fitness" | "records" | "services" | "xert" | "whatsNew";
 
 interface Props {
   activities: Activity[];
@@ -43,6 +44,7 @@ function PageContent({ activities, koms, page, onNavigate, onForceSync, forceSyn
     case "settings":    return <Settings onForceSync={onForceSync} forceSyncing={forceSyncing} fetchedCount={fetchedCount} />;
     case "services":    return <ServicesPage onXertChange={onXertChange} />;
     case "xert":        return <XertPage />;
+    case "whatsNew":    return <WhatsNewPage onNavigate={onNavigate} />;
   }
 }
 

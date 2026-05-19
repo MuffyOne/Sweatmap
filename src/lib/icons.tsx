@@ -180,6 +180,14 @@ export function SortDescIcon() {
   );
 }
 
+export function SparkleIcon() {
+  return (
+    <svg {...SVG_PROPS}>
+      <path d="M12 2l2.2 7.8L22 12l-7.8 2.2L12 22l-2.2-7.8L2 12l7.8-2.2L12 2z" />
+    </svg>
+  );
+}
+
 export function SortAscIcon() {
   return (
     <svg {...SVG_PROPS} viewBox="0 0 32 24">

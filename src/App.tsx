@@ -16,7 +16,7 @@ import { Dashboard, type Page } from "./Dashboard";
 import {
   HomeIcon, ZapIcon, ListIcon, LogOutIcon, SyncIcon,
   FitnessIcon, TrophyIcon, SettingsIcon, ServicesIcon, XertIcon, ChevronLeftIcon, ChevronRightIcon,
-  SunIcon, MoonIcon,
+  SunIcon, MoonIcon, SparkleIcon,
 } from "./lib/icons";
 import "./App.css";
 
@@ -50,6 +50,7 @@ const PAGE_TITLES: Record<Page, string> = {
   xert: "XERT",
   services: "Services",
   settings: "Settings",
+  whatsNew: "What's New",
 };
 
 function App() {
@@ -99,6 +100,13 @@ function App() {
 
   async function handleForceSync() {
     if (syncing || refreshing || forceSyncing) return;
+    // Clear computed performance caches so they recompute with fresh stream data
+    ["30d", "90d"].forEach((r) => localStorage.removeItem(`power_curve_${r}`));
+    localStorage.removeItem("power_curve_alltime");
+    ["30d", "90d"].forEach((r) => {
+      localStorage.removeItem(`power_zones_${r}`);
+      localStorage.removeItem(`hr_zones_v2_${r}`);
+    });
     setForceSyncing(true);
     setFetchedCount(0);
     try {
@@ -289,6 +297,15 @@ function App() {
         >
           {theme === "dark" ? <SunIcon /> : <MoonIcon />}
           <span>{theme === "dark" ? "Light mode" : "Dark mode"}</span>
+        </button>
+
+        <button
+          className={`sidebar-item${page === "whatsNew" ? " active" : ""}`}
+          onClick={() => setPage("whatsNew")}
+          title={collapsed ? "What's New" : undefined}
+        >
+          <SparkleIcon />
+          <span>What's New</span>
         </button>
 
         <button
