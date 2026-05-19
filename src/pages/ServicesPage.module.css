@@ -1,0 +1,13 @@
+.mt8 {
+  margin-top: 8px;
+}
+
+.mt12 {
+  margin-top: 12px;
+}
+
+.actionsRow {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}

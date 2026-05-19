@@ -5,6 +5,7 @@ import { formatDuration, formatDistance, formatPace, RUN_TYPES, normalizeSportLa
 import { CollapsibleSection } from "../lib/CollapsibleSection";
 import { ActivityDetail } from "./ActivityDetail";
 import { StravaIcon, SortDescIcon, SortAscIcon } from "../lib/icons";
+import styles from "./ActivitiesPage.module.css";
 
 type Period = "week" | "month" | "year" | "last7" | "last30";
 
@@ -51,8 +52,8 @@ export function ActivitiesPage({ activities }: Props) {
         ))}
       </div>
       <CollapsibleSection title="Recent Activities" extra={
-        <span style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem" }}>
-          <span style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>{filtered.length} activities</span>
+        <span className={styles.extraActions}>
+          <span className={styles.activityCount}>{filtered.length} activities</span>
           <button
             className="sort-toggle"
             onClick={(e) => { e.stopPropagation(); setSortOrder((s) => s === "newest" ? "oldest" : "newest"); }}

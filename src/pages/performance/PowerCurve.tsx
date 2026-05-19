@@ -9,9 +9,11 @@ import {
   CartesianGrid,
 } from "recharts";
 import { subDays, parseISO, isAfter } from "date-fns";
+import { clsx } from "clsx";
 import { fetchActivityWatts, type Activity } from "../../api/strava";
 import { TOOLTIP_STYLE } from "../../lib/utils";
 import { CollapsibleSection } from "../../lib/CollapsibleSection";
+import styles from "./PowerCurve.module.css";
 
 const DURATIONS = [1, 5, 10, 30, 60, 120, 300, 600, 1200, 1800, 3600];
 
@@ -149,8 +151,8 @@ export function PowerCurve({ activities }: Props) {
 
   return (
     <CollapsibleSection title="Power Curve">
-      <div className="power-curve-controls" style={{ marginBottom: "1rem" }}>
-        <div className="period-toggle" style={{ marginBottom: 0 }}>
+      <div className={clsx("power-curve-controls", styles.controls)}>
+        <div className={clsx("period-toggle", styles.periodToggleInline)}>
           {(["30d", "90d"] as CurveRange[]).map((r) => (
             <button key={r} className={range === r ? "active" : ""} onClick={() => setRange(r)}>
               {r === "30d" ? "Last 30 days" : "Last 90 days"}
@@ -164,7 +166,7 @@ export function PowerCurve({ activities }: Props) {
       {loading && (
         <div className="power-curve-empty">
           Fetching streams… {progress.done} / {progress.total}
-          <div className="loading-bar-track" style={{ marginTop: "0.75rem" }}>
+          <div className={clsx("loading-bar-track", styles.loadingTrack)}>
             <div
               className="loading-bar-fill"
               style={{

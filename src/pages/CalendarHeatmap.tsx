@@ -1,6 +1,7 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import { format } from "date-fns";
 import type { Activity } from "../api/strava";
+import styles from "./CalendarHeatmap.module.css";
 
 type Metric = "distance" | "time";
 
@@ -147,15 +148,7 @@ export function CalendarHeatmap({ activities }: Props) {
             const cols = getMonthCols(year, month);
             return (
               <div key={`${year}-${month}`} style={{ display: "flex", flexDirection: "column", flex: cols.length, minWidth: 0 }}>
-                {/* Month + year label */}
-                <div style={{
-                  height: 20,
-                  marginBottom: 4,
-                  fontSize: 11,
-                  color: "var(--text-muted)",
-                  whiteSpace: "nowrap",
-                  userSelect: "none",
-                }}>
+                <div className={styles.monthLabel}>
                   {format(new Date(year, month, 1), "MMM ''yy")}
                 </div>
 

@@ -5,6 +5,7 @@ import {
   disconnectXert,
   fetchTrainingInfo,
 } from "../api/xert";
+import styles from "./ServicesPage.module.css";
 
 interface Props {
   onXertChange: () => void;
@@ -96,7 +97,7 @@ export function ServicesPage({ onXertChange }: Props) {
                   onKeyDown={(e) => e.key === "Enter" && handleXertLogin()}
                 />
               </div>
-              <div className="settings-input-row" style={{ marginTop: 8 }}>
+              <div className={`settings-input-row ${styles.mt8}`}>
                 <input
                   type="password"
                   className="settings-input"
@@ -108,10 +109,9 @@ export function ServicesPage({ onXertChange }: Props) {
               </div>
               {error && <div className="xert-error">{error}</div>}
               <button
-                className="btn-service btn-service-active"
+                className={`btn-service btn-service-active ${styles.mt12}`}
                 disabled={logging || !username || !password}
                 onClick={handleXertLogin}
-                style={{ marginTop: 12 }}
               >
                 {logging ? "Connecting..." : "Connect to XERT"}
               </button>
@@ -120,14 +120,14 @@ export function ServicesPage({ onXertChange }: Props) {
             <div className="xert-connected">
               <div className="xert-status-badge">Connected</div>
 
-              {loading && <div className="settings-field-hint" style={{ marginTop: 8 }}>Loading training data...</div>}
-              {error && <div className="xert-error" style={{ marginTop: 8 }}>{error}</div>}
+              {loading && <div className={`settings-field-hint ${styles.mt8}`}>Loading training data...</div>}
+              {error && <div className={`xert-error ${styles.mt8}`}>{error}</div>}
 
-              <div className="settings-field-hint" style={{ marginTop: 8 }}>
+              <div className={`settings-field-hint ${styles.mt8}`}>
                 XERT data is displayed on the Home page.
               </div>
 
-              <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+              <div className={styles.actionsRow}>
                 <button className="btn-service btn-service-active" onClick={handleRefresh} disabled={loading}>
                   {loading ? "Refreshing..." : "Refresh Data"}
                 </button>

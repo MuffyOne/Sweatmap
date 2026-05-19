@@ -7,12 +7,14 @@ import {
   isWithinInterval, format, subWeeks, subMonths, subDays, subYears, parseISO,
   differenceInDays, getDayOfYear, getDaysInYear,
 } from "date-fns";
+import { clsx } from "clsx";
 import type { Activity } from "../api/strava";
 import type { Page } from "../Dashboard";
 import { formatDuration, formatDistance, TOOLTIP_STYLE } from "../lib/utils";
 import { CalendarHeatmap } from "./CalendarHeatmap";
 import { CollapsibleSection } from "../lib/CollapsibleSection";
 import { WEEKLY_KM_GOAL_KEY, YEARLY_KM_GOAL_KEY } from "./Settings";
+import styles from "./HomePage.module.css";
 
 type Period = "week" | "month" | "year" | "last7" | "last30";
 
@@ -252,7 +254,7 @@ export function HomePage({ activities, onNavigate }: Props) {
   }, [activities]);
 
   const periodToggle = (
-    <div className="period-toggle" style={{ marginBottom: 0 }}>
+    <div className={clsx("period-toggle", styles.periodToggleInline)}>
       {(["last7", "last30", "week", "month", "year"] as Period[]).map((p) => (
         <button key={p} className={period === p ? "active" : ""} onClick={() => setPeriod(p)}>
           {p === "last7" ? "Last 7 days" : p === "last30" ? "Last 30 days" : `This ${p}`}
@@ -264,7 +266,7 @@ export function HomePage({ activities, onNavigate }: Props) {
   return (
     <div>
       <CollapsibleSection title="Stats">
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1rem" }}>
+        <div className={styles.statsHeader}>
           {periodToggle}
           <div className="stats-filter-wrapper">
             <button className="stats-filter-btn" onClick={() => setStatsMenuOpen((o) => !o)}>
@@ -290,7 +292,7 @@ export function HomePage({ activities, onNavigate }: Props) {
           </div>
         </div>
         {((enabledStats.has("weeklygoal") && weeklyGoalData) || (enabledStats.has("yearlygoal") && yearlyGoalData)) && (
-          <div className="stats-grid" style={{ marginBottom: "1rem" }}>
+          <div className={`stats-grid ${styles.statsGridSpaced}`}>
             {enabledStats.has("weeklygoal") && weeklyGoalData && (
               <div className="stat-card goal-card stat-card--clickable" onClick={() => onNavigate("settings")}>
                 <div className="stat-card-header">

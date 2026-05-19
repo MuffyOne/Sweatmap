@@ -10,10 +10,12 @@ import {
   Cell,
 } from "recharts";
 import { subDays, parseISO, isAfter } from "date-fns";
+import { clsx } from "clsx";
 import { fetchActivityHeartrate, type Activity } from "../../api/strava";
 import { AGE_KEY } from "../Settings";
 import { formatTime, TOOLTIP_STYLE } from "../../lib/utils";
 import { CollapsibleSection } from "../../lib/CollapsibleSection";
+import styles from "./HRZoneDistribution.module.css";
 
 type Range = "30d" | "90d";
 
@@ -160,8 +162,8 @@ export function HRZoneDistribution({ activities, onNavigate }: Props) {
 
   return (
     <CollapsibleSection title="Time in HR Zones">
-      <div className="power-curve-controls" style={{ marginBottom: "1rem" }}>
-        <div className="period-toggle" style={{ marginBottom: 0 }}>
+      <div className={clsx("power-curve-controls", styles.controls)}>
+        <div className={clsx("period-toggle", styles.periodToggleInline)}>
           {(["30d", "90d"] as Range[]).map((r) => (
             <button key={r} className={range === r ? "active" : ""} onClick={() => setRange(r)}>
               {r === "30d" ? "Last 30 days" : "Last 90 days"}
@@ -181,7 +183,7 @@ export function HRZoneDistribution({ activities, onNavigate }: Props) {
       {loading && (
         <div className="power-curve-empty">
           Fetching streams… {progress.done} / {progress.total}
-          <div className="loading-bar-track" style={{ marginTop: "0.75rem" }}>
+          <div className={clsx("loading-bar-track", styles.loadingTrack)}>
             <div
               className="loading-bar-fill"
               style={{
@@ -200,7 +202,7 @@ export function HRZoneDistribution({ activities, onNavigate }: Props) {
         <>
           <div className="zone-summary">
             Total HR time: <strong>{formatTime(totalSeconds)}</strong>
-            {maxHR && <span style={{ marginLeft: "0.75rem", opacity: 0.5 }}>Max HR {maxHR} bpm</span>}
+            {maxHR && <span className={styles.ftpBadge}>Max HR {maxHR} bpm</span>}
           </div>
           <ResponsiveContainer width="100%" height={HR_ZONE_DEFS.length * 46 + 20}>
             <BarChart

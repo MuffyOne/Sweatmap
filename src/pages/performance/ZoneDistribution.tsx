@@ -10,10 +10,12 @@ import {
   Cell,
 } from "recharts";
 import { subDays, parseISO, isAfter } from "date-fns";
+import { clsx } from "clsx";
 import { fetchActivityWatts, type Activity } from "../../api/strava";
 import { FTP_KEY } from "../Settings";
 import { formatTime, TOOLTIP_STYLE } from "../../lib/utils";
 import { CollapsibleSection } from "../../lib/CollapsibleSection";
+import styles from "./ZoneDistribution.module.css";
 
 type Range = "30d" | "90d";
 
@@ -111,12 +113,10 @@ function TrainingDistribution({ data }: { data: ZonePoint[] }) {
   ];
 
   return (
-    <div style={{ marginTop: "2rem", minWidth: 0, overflow: "hidden" }}>
-      <h3 style={{ margin: "0 0 1rem", fontSize: "0.95rem", fontWeight: 600, color: "var(--text-primary)" }}>
-        Training Distribution
-      </h3>
+    <div className={styles.trainingContainer}>
+      <h3 className={styles.sectionTitle}>Training Distribution</h3>
 
-      <div style={{ display: "flex", height: 28, borderRadius: 6, overflow: "hidden", marginBottom: "0.5rem" }}>
+      <div className={styles.distributionBar}>
         {MACRO_ZONES.map((z) => (
           <div
             key={z.label}
@@ -125,60 +125,49 @@ function TrainingDistribution({ data }: { data: ZonePoint[] }) {
           />
         ))}
       </div>
-      <div style={{ display: "flex", gap: "1.25rem", marginBottom: "1.5rem" }}>
+
+      <div className={styles.legendRow}>
         {MACRO_ZONES.map((z) => (
-          <div key={z.label} style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
-            <div style={{ width: 10, height: 10, borderRadius: 2, background: z.color, flexShrink: 0 }} />
+          <div key={z.label} className={styles.legendItem}>
+            <div className={styles.legendSwatch} style={{ background: z.color }} />
             <div>
-              <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>
-                {z.pct.toFixed(0)}%
-              </span>
-              <span style={{ fontSize: 11, color: "var(--text-muted)", marginLeft: "0.3rem" }}>{z.label}</span>
-              <div style={{ fontSize: 10, color: "var(--text-muted)" }}>{z.sub}</div>
+              <span className={styles.legendPct}>{z.pct.toFixed(0)}%</span>
+              <span className={styles.legendLabel}>{z.label}</span>
+              <div className={styles.legendSub}>{z.sub}</div>
             </div>
           </div>
         ))}
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: "0.75rem" }}>
+      <div className={styles.modelGrid}>
         {scored.map((m, rank) => (
-          <div
-            key={m.name}
-            style={{
-              background: rank === 0 ? "var(--surface-hover)" : "var(--surface)",
-              border: rank === 0 ? "1px solid var(--border-hover)" : "1px solid var(--border)",
-              borderRadius: 10,
-              padding: rank === 0 ? "1.1rem 1.25rem" : "0.75rem",
-            }}
-          >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
-              <span style={{ fontSize: rank === 0 ? 14 : 13, fontWeight: 600, color: rank === 0 ? "var(--text-primary)" : "var(--text-secondary)" }}>
+          <div key={m.name} className={clsx(styles.modelCard, rank === 0 && styles.modelCardBest)}>
+            <div className={styles.modelCardHeader}>
+              <span className={clsx(styles.modelName, rank === 0 && styles.modelNameBest)}>
                 {m.name}
               </span>
-              {rank === 0 && (
-                <span style={{ fontSize: 10, color: "#fc4c02", fontWeight: 600 }}>Best match</span>
-              )}
+              {rank === 0 && <span className={styles.bestBadge}>Best match</span>}
             </div>
-            <div style={{ fontSize: 11, color: rank === 0 ? "var(--text-tertiary)" : "var(--text-faint)", marginBottom: "0.6rem" }}>{m.description}</div>
-            <div style={{ display: "flex", height: rank === 0 ? 8 : 6, borderRadius: 3, overflow: "hidden", marginBottom: "0.5rem" }}>
+            <div className={clsx(styles.modelDesc, rank === 0 && styles.modelDescBest)}>{m.description}</div>
+            <div className={clsx(styles.miniBar, rank === 0 && styles.miniBarBest)}>
               <div style={{ flex: m.easy,     background: "#3b8fd4" }} />
               <div style={{ flex: m.moderate, background: "#d4a820" }} />
               <div style={{ flex: m.hard,     background: "#e03535" }} />
             </div>
-            <div style={{ fontSize: rank === 0 ? 11 : 10, color: rank === 0 ? "var(--text-tertiary)" : "var(--text-faint)" }}>
+            <div className={clsx(styles.modelScore, rank === 0 && styles.modelScoreBest)}>
               {(m.score * 100).toFixed(0)}% match
             </div>
           </div>
         ))}
       </div>
 
-      <div style={{ marginTop: "1rem", fontSize: 11, color: "var(--text-muted)", lineHeight: 1.5 }}>
+      <div className={styles.footnote}>
         3-zone model (Easy / Moderate / Hard) based on{" "}
         <a
           href="https://pubmed.ncbi.nlm.nih.gov/20492317/"
           target="_blank"
           rel="noopener noreferrer"
-          style={{ color: "var(--text-tertiary)", textDecoration: "underline" }}
+          className={styles.footnoteLink}
         >
           Seiler &amp; Tønnessen (2009)
         </a>
@@ -187,7 +176,7 @@ function TrainingDistribution({ data }: { data: ZonePoint[] }) {
           href="https://www.trainingpeaks.com/blog/power-training-levels/"
           target="_blank"
           rel="noopener noreferrer"
-          style={{ color: "var(--text-tertiary)", textDecoration: "underline" }}
+          className={styles.footnoteLink}
         >
           Coggan's 7-zone model
         </a>
@@ -196,7 +185,7 @@ function TrainingDistribution({ data }: { data: ZonePoint[] }) {
           href="https://pubmed.ncbi.nlm.nih.gov/23752040/"
           target="_blank"
           rel="noopener noreferrer"
-          style={{ color: "var(--text-tertiary)", textDecoration: "underline" }}
+          className={styles.footnoteLink}
         >
           Stöggl &amp; Sperlich (2014)
         </a>
@@ -301,8 +290,8 @@ export function ZoneDistribution({ activities, onNavigate }: Props) {
 
   return (
     <CollapsibleSection title="Time in Power Zones">
-      <div className="power-curve-controls" style={{ marginBottom: "1rem" }}>
-        <div className="period-toggle" style={{ marginBottom: 0 }}>
+      <div className={clsx("power-curve-controls", styles.controls)}>
+        <div className={clsx("period-toggle", styles.periodToggleInline)}>
           {(["30d", "90d"] as Range[]).map((r) => (
             <button key={r} className={range === r ? "active" : ""} onClick={() => setRange(r)}>
               {r === "30d" ? "Last 30 days" : "Last 90 days"}
@@ -322,7 +311,7 @@ export function ZoneDistribution({ activities, onNavigate }: Props) {
       {loading && (
         <div className="power-curve-empty">
           Fetching streams… {progress.done} / {progress.total}
-          <div className="loading-bar-track" style={{ marginTop: "0.75rem" }}>
+          <div className={clsx("loading-bar-track", styles.loadingTrack)}>
             <div
               className="loading-bar-fill"
               style={{
@@ -342,7 +331,7 @@ export function ZoneDistribution({ activities, onNavigate }: Props) {
         <>
           <div className="zone-summary">
             Total power time: <strong>{formatTime(totalSeconds)}</strong>
-            <span style={{ marginLeft: "0.75rem", opacity: 0.5 }}>FTP {ftpVal} W</span>
+            <span className={styles.ftpBadge}>FTP {ftpVal} W</span>
           </div>
           <ResponsiveContainer width="100%" height={POWER_ZONES.length * 46 + 20}>
             <BarChart

@@ -1,0 +1,10 @@
+.extraActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.activityCount {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}

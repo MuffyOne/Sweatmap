@@ -10,9 +10,11 @@ import {
   Cell,
 } from "recharts";
 import { format, parseISO, startOfMonth, subMonths, endOfMonth, isWithinInterval, startOfWeek, endOfWeek, subWeeks } from "date-fns";
+import { clsx } from "clsx";
 import type { Activity, SegmentEffort } from "../api/strava";
 import { TOOLTIP_STYLE, formatDistance, formatTime, normalizeSportLabel } from "../lib/utils";
 import { CollapsibleSection } from "../lib/CollapsibleSection";
+import styles from "./RecordsPage.module.css";
 
 interface Props {
   activities: Activity[];
@@ -145,11 +147,11 @@ export function RecordsPage({ activities, koms }: Props) {
         <div className="stats-grid">
           <div className="stat-card">
             <div className="label">All-time PRs</div>
-            <div className="value" style={{ color: "#fc4c02" }}>{allTimePRs.toLocaleString()}</div>
+            <div className={`value ${styles.valueHighlight}`}>{allTimePRs.toLocaleString()}</div>
           </div>
           <div className="stat-card stat-card--clickable" onClick={() => komsRef.current?.scrollIntoView({ behavior: "smooth" })}>
             <div className="label">KOMs / QOMs</div>
-            <div className="value" style={{ color: "#fc4c02" }}>{koms.length}</div>
+            <div className={`value ${styles.valueHighlight}`}>{koms.length}</div>
           </div>
           <div className="stat-card">
             <div className="label">Achievements</div>
@@ -179,7 +181,7 @@ export function RecordsPage({ activities, koms }: Props) {
           {bestActivity && (
             <div className="stat-card">
               <div className="label">Best Single Activity</div>
-              <div className="value" style={{ fontSize: "1.35rem", lineHeight: 1.2 }}>
+              <div className={`value ${styles.valueLarge}`}>
                 {bestActivity.pr_count} <span className="unit">PRs</span>
               </div>
               <div className="records-best-name">{bestActivity.name}</div>
@@ -189,7 +191,7 @@ export function RecordsPage({ activities, koms }: Props) {
       </CollapsibleSection>
 
       <CollapsibleSection title="PRs per Month" extra={
-        <span style={{ fontSize: "0.75rem", opacity: 0.4 }}>last 12 months</span>
+        <span className={styles.extraLabel}>last 12 months</span>
       }>
         <ResponsiveContainer width="100%" height={220}>
           <BarChart data={monthlyPRs} margin={{ top: 4, right: 8, bottom: 4, left: 0 }}>
@@ -221,7 +223,7 @@ export function RecordsPage({ activities, koms }: Props) {
 
       {sportPRs.length > 0 && (
         <CollapsibleSection title="PRs by Sport" extra={
-          <span style={{ fontSize: "0.75rem", opacity: 0.4 }}>
+          <span className={styles.extraLabel}>
             {prActivities.length} activities with PRs
           </span>
         }>
@@ -269,15 +271,15 @@ export function RecordsPage({ activities, koms }: Props) {
 
       {topPRActivities.length > 0 && (
         <CollapsibleSection title="Top Activities by PR Count" extra={
-          <span style={{ fontSize: "0.75rem", opacity: 0.4 }}>click to view on Strava</span>
+          <span className={styles.extraLabel}>click to view on Strava</span>
         }>
           <div className="records-table">
             <div className="records-table-header">
               <span>Activity</span>
               <span>Date</span>
               <span>Distance</span>
-              <span style={{ textAlign: "center" }}>PRs</span>
-              <span style={{ textAlign: "center" }}>Achievements</span>
+              <span className={styles.cellCenter}>PRs</span>
+              <span className={styles.cellCenter}>Achievements</span>
             </div>
             {topPRActivities.map((a) => (
               <a
@@ -295,10 +297,10 @@ export function RecordsPage({ activities, koms }: Props) {
                   {format(parseISO(a.start_date_local), "MMM d, yyyy")}
                 </span>
                 <span className="records-cell-muted">{formatDistance(a.distance)} km</span>
-                <span style={{ textAlign: "center" }}>
+                <span className={styles.cellCenter}>
                   <span className="records-pr-badge">{a.pr_count}</span>
                 </span>
-                <span style={{ textAlign: "center", color: "var(--text-muted)", fontSize: "0.85rem" }}>
+                <span className={styles.cellCenterMuted}>
                   {a.achievement_count ?? 0}
                 </span>
               </a>
@@ -310,10 +312,10 @@ export function RecordsPage({ activities, koms }: Props) {
       {koms.length > 0 && (
         <div ref={komsRef}>
         <CollapsibleSection title="KOM / QOM Segments" extra={
-          <span style={{ fontSize: "0.75rem", opacity: 0.4 }}>click to view on Strava</span>
+          <span className={styles.extraLabel}>click to view on Strava</span>
         }>
           <div className="records-table">
-            <div className="records-table-header" style={{ gridTemplateColumns: "1fr 80px 70px 70px 90px" }}>
+            <div className={clsx("records-table-header", styles.komsGrid)}>
               <span>Segment</span>
               <span>Distance</span>
               <span>Avg Grade</span>
@@ -323,8 +325,7 @@ export function RecordsPage({ activities, koms }: Props) {
             {koms.map((k) => (
               <a
                 key={k.id}
-                className="records-table-row"
-                style={{ gridTemplateColumns: "1fr 80px 70px 70px 90px" }}
+                className={clsx("records-table-row", styles.komsGrid)}
                 href={`https://www.strava.com/segments/${k.segment.id}`}
                 target="_blank"
                 rel="noopener noreferrer"

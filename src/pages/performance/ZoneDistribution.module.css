@@ -1,0 +1,160 @@
+.controls {
+  margin-bottom: 1rem;
+}
+
+.periodToggleInline {
+  margin-bottom: 0 !important;
+}
+
+.loadingTrack {
+  margin-top: 0.75rem;
+}
+
+.ftpBadge {
+  margin-left: 0.75rem;
+  opacity: 0.5;
+}
+
+.trainingContainer {
+  margin-top: 2rem;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.sectionTitle {
+  margin: 0 0 1rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.distributionBar {
+  display: flex;
+  height: 28px;
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.legendRow {
+  display: flex;
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.legendSwatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.legendPct {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.legendLabel {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-left: 0.3rem;
+}
+
+.legendSub {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.modelGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.modelCard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.75rem;
+}
+
+.modelCardBest {
+  background: var(--surface-hover);
+  border-color: var(--border-hover);
+  padding: 1.1rem 1.25rem;
+}
+
+.modelCardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.modelName {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.modelNameBest {
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.bestBadge {
+  font-size: 10px;
+  color: #fc4c02;
+  font-weight: 600;
+}
+
+.modelDesc {
+  font-size: 11px;
+  color: var(--text-faint);
+  margin-bottom: 0.6rem;
+}
+
+.modelDescBest {
+  color: var(--text-tertiary);
+}
+
+.miniBar {
+  display: flex;
+  height: 6px;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.miniBarBest {
+  height: 8px;
+}
+
+.modelScore {
+  font-size: 10px;
+  color: var(--text-faint);
+}
+
+.modelScoreBest {
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+
+.footnote {
+  margin-top: 1rem;
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.footnoteLink {
+  color: var(--text-tertiary);
+  text-decoration: underline;
+}

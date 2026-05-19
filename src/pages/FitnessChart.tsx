@@ -16,6 +16,7 @@ import type { Activity } from "../api/strava";
 import { FTP_KEY } from "./Settings";
 import { TOOLTIP_STYLE } from "../lib/utils";
 import { CollapsibleSection } from "../lib/CollapsibleSection";
+import styles from "./FitnessChart.module.css";
 
 const CTL_DECAY = Math.exp(-1 / 42);
 const ATL_DECAY = Math.exp(-1 / 7);
@@ -162,23 +163,23 @@ export function FitnessChart({ activities }: Props) {
   return (
     <div>
       <CollapsibleSection title="Overview">
-        <div className="stats-grid" style={{ marginBottom: "1.5rem" }}>
+        <div className={`stats-grid ${styles.statsGridSpaced}`}>
           <div className="stat-card">
-            <div className="label" style={{ display: "flex", alignItems: "center" }}>
+            <div className={`label ${styles.labelInline}`}>
               Fitness (CTL)
               <span className="info-tip" data-tip="Chronic Training Load — 42-day exponential average of daily training stress. Higher means more fitness built up over time.">i</span>
             </div>
-            <div className="value" style={{ color: "#4a9eca" }}>{current.ctl}</div>
+            <div className={`value ${styles.valueCTL}`}>{current.ctl}</div>
           </div>
           <div className="stat-card">
-            <div className="label" style={{ display: "flex", alignItems: "center" }}>
+            <div className={`label ${styles.labelInline}`}>
               Fatigue (ATL)
               <span className="info-tip" data-tip="Acute Training Load — 7-day exponential average of daily training stress. Spikes quickly with hard training blocks.">i</span>
             </div>
-            <div className="value" style={{ color: "#9b7ec8" }}>{current.atl}</div>
+            <div className={`value ${styles.valueATL}`}>{current.atl}</div>
           </div>
           <div className="stat-card">
-            <div className="label" style={{ display: "flex", alignItems: "center" }}>
+            <div className={`label ${styles.labelInline}`}>
               Form (TSB)
               <span className="info-tip" data-tip="Training Stress Balance = CTL − ATL. Positive means fresh and rested. Negative means fatigued or in a training block.">i</span>
             </div>
@@ -187,7 +188,7 @@ export function FitnessChart({ activities }: Props) {
             </div>
           </div>
           <div className="stat-card">
-            <div className="label" style={{ display: "flex", alignItems: "center" }}>
+            <div className={`label ${styles.labelInline}`}>
               Status
               <span className="info-tip" data-tip="Transition (>25) · Fresh (+5 to +25) · Neutral (−10 to +5) · Productive (−30 to −10) · High Risk (<−30)">i</span>
             </div>
@@ -197,10 +198,10 @@ export function FitnessChart({ activities }: Props) {
       </CollapsibleSection>
 
       <CollapsibleSection title="Fitness & Fatigue">
-        <div style={{ display: "flex", gap: "1rem", fontSize: "0.72rem", marginBottom: "0.75rem" }}>
-          <span style={{ color: "#4a9eca", opacity: 0.8 }}>● CTL 42d</span>
-          <span style={{ color: "#9b7ec8", opacity: 0.8 }}>● ATL 7d</span>
-          <span style={{ opacity: 0.3 }}>{ftp ? "power-based" : "suffer score"}</span>
+        <div className={styles.legendRow}>
+          <span className={styles.legendCTL}>● CTL 42d</span>
+          <span className={styles.legendATL}>● ATL 7d</span>
+          <span className={styles.legendSource}>{ftp ? "power-based" : "suffer score"}</span>
         </div>
         <ResponsiveContainer width="100%" height={260}>
           <ComposedChart data={data} margin={{ top: 8, right: 16, bottom: 4, left: 0 }}>
@@ -260,9 +261,9 @@ export function FitnessChart({ activities }: Props) {
       </CollapsibleSection>
 
       <CollapsibleSection title="Form (TSB)">
-        <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", fontSize: "0.68rem", marginBottom: "0.75rem" }}>
+        <div className={styles.formLegendRow}>
           {FORM_ZONES.map(z => (
-            <span key={z.label} title={z.tip} style={{ color: z.color, opacity: 0.85, cursor: "default" }}>● {z.label}</span>
+            <span key={z.label} title={z.tip} className={styles.formZoneLabel} style={{ color: z.color }}>● {z.label}</span>
           ))}
         </div>
         <ResponsiveContainer width="100%" height={240}>
@@ -330,7 +331,7 @@ export function FitnessChart({ activities }: Props) {
             ))}
           </ComposedChart>
         </ResponsiveContainer>
-        <div style={{ fontSize: "0.67rem", color: "var(--text-muted)", marginTop: "0.25rem", lineHeight: 1.5 }}>
+        <div className={styles.footnote}>
           CTL = 42-day chronic load &nbsp;·&nbsp; ATL = 7-day acute load &nbsp;·&nbsp; Form = CTL − ATL &nbsp;·&nbsp; First weeks may underestimate fitness (warms up from zero)
         </div>
       </CollapsibleSection>

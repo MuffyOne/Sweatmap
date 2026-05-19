@@ -8,9 +8,11 @@ import {
   ResponsiveContainer,
   CartesianGrid,
 } from "recharts";
+import { clsx } from "clsx";
 import type { Activity } from "../../api/strava";
 import { TOOLTIP_STYLE, RUN_TYPES, RIDE_TYPES } from "../../lib/utils";
 import { CollapsibleSection } from "../../lib/CollapsibleSection";
+import styles from "./TempPerformance.module.css";
 
 type Metric = "speed" | "watts";
 type SportFilter = "all" | "run" | "ride";
@@ -47,15 +49,15 @@ export function TempPerformance({ activities }: Props) {
 
   return (
     <CollapsibleSection title="Temperature vs Performance">
-      <div className="power-curve-controls" style={{ marginBottom: "1rem" }}>
-        <div className="period-toggle" style={{ marginBottom: 0 }}>
+      <div className={clsx("power-curve-controls", styles.controls)}>
+        <div className={clsx("period-toggle", styles.periodToggleInline)}>
           {(["all", "run", "ride"] as SportFilter[]).map((s) => (
             <button key={s} className={sport === s ? "active" : ""} onClick={() => setSport(s)}>
               {s === "all" ? "All" : s === "run" ? "Runs" : "Rides"}
             </button>
           ))}
         </div>
-        <div className="period-toggle" style={{ marginBottom: 0 }}>
+        <div className={clsx("period-toggle", styles.periodToggleInline)}>
           <button className={metric === "speed" ? "active" : ""} onClick={() => setMetric("speed")}>Speed</button>
           <button className={metric === "watts" ? "active" : ""} onClick={() => setMetric("watts")}>Power</button>
         </div>
@@ -98,7 +100,7 @@ export function TempPerformance({ activities }: Props) {
               <Scatter data={data} fill="#fc4c02" fillOpacity={0.55} />
             </ScatterChart>
           </ResponsiveContainer>
-          <div style={{ textAlign: "center", fontSize: "0.72rem", color: "var(--text-muted)", marginTop: "0.25rem" }}>
+          <div className={styles.dataCount}>
             {data.length} {data.length === 1 ? "activity" : "activities"} with temperature data
           </div>
         </>

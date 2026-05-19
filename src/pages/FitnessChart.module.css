@@ -1,0 +1,57 @@
+.statsGridSpaced {
+  margin-bottom: 1.5rem;
+}
+
+.labelInline {
+  display: flex;
+  align-items: center;
+}
+
+.valueCTL {
+  color: #4a9eca;
+}
+
+.valueATL {
+  color: #9b7ec8;
+}
+
+.legendRow {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.72rem;
+  margin-bottom: 0.75rem;
+}
+
+.legendCTL {
+  color: #4a9eca;
+  opacity: 0.8;
+}
+
+.legendATL {
+  color: #9b7ec8;
+  opacity: 0.8;
+}
+
+.legendSource {
+  opacity: 0.3;
+}
+
+.formLegendRow {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  font-size: 0.68rem;
+  margin-bottom: 0.75rem;
+}
+
+.formZoneLabel {
+  opacity: 0.85;
+  cursor: default;
+}
+
+.footnote {
+  font-size: 0.67rem;
+  color: var(--text-muted);
+  margin-top: 0.25rem;
+  line-height: 1.5;
+}

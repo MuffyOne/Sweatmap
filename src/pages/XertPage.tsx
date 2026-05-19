@@ -8,6 +8,7 @@ import {
   type XertTrainingInfo,
   type XertInterval,
 } from "../api/xert";
+import styles from "./XertPage.module.css";
 
 function formatSec(s: number): string {
   if (s < 60) return `${s}s`;
@@ -85,7 +86,7 @@ export function XertPage() {
   return (
     <div className="xert-page">
       {loading && <div className="xert-loading">Loading XERT data...</div>}
-      {error && <div className="xert-error" style={{ marginBottom: 12 }}>{error}</div>}
+      {error && <div className={`xert-error ${styles.errorSpaced}`}>{error}</div>}
 
       {sig && (
         <>
@@ -104,7 +105,7 @@ export function XertPage() {
 
           {/* Workout of the Day */}
           {info?.wotd && (
-            <div className="xert-wotd-card" style={{ marginBottom: 16 }}>
+            <div className={`xert-wotd-card ${styles.wotdCardSpaced}`}>
               <div className="xert-wotd-label">Workout of the Day</div>
               <div className="xert-wotd-name">{info.wotd.name}</div>
               <div className="xert-wotd-meta">

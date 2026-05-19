@@ -1,0 +1,27 @@
+.valueHighlight {
+  color: #fc4c02;
+}
+
+.valueLarge {
+  font-size: 1.35rem;
+  line-height: 1.2;
+}
+
+.extraLabel {
+  font-size: 0.75rem;
+  opacity: 0.4;
+}
+
+.cellCenter {
+  text-align: center;
+}
+
+.cellCenterMuted {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.komsGrid {
+  grid-template-columns: 1fr 80px 70px 70px 90px;
+}
