@@ -1,13 +1,23 @@
 import { useState, useMemo } from "react";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import {
-  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
-} from "recharts";
-import {
-  startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear,
-  isWithinInterval, format, subWeeks, subMonths, subDays, subYears, parseISO,
-  differenceInDays, getDayOfYear, getDaysInYear,
+  startOfWeek,
+  endOfWeek,
+  startOfMonth,
+  endOfMonth,
+  startOfYear,
+  endOfYear,
+  isWithinInterval,
+  format,
+  subWeeks,
+  subMonths,
+  subDays,
+  subYears,
+  parseISO,
+  differenceInDays,
+  getDayOfYear,
+  getDaysInYear,
 } from "date-fns";
-import { clsx } from "clsx";
 import type { Activity } from "../api/strava";
 import type { Page } from "../Dashboard";
 import { formatDuration, formatDistance, TOOLTIP_STYLE } from "../lib/utils";
@@ -20,23 +30,31 @@ import styles from "./HomePage.module.css";
 type Period = "week" | "month" | "year" | "last7" | "last30";
 
 const ALL_STATS = [
-  { id: "count",        label: "Activities"     },
-  { id: "distance",     label: "Distance"       },
-  { id: "time",         label: "Moving Time"    },
-  { id: "elevation",    label: "Elevation"      },
-  { id: "heartrate",    label: "Avg Heart Rate" },
-  { id: "watts",        label: "Avg Power"      },
-  { id: "maxwatts",     label: "Peak Power"     },
-  { id: "weeklygoal",   label: "Weekly Goal"    },
-  { id: "yearlygoal",   label: "Yearly Goal"    },
-  { id: "prcount",      label: "PRs"            },
-  { id: "achievements", label: "Achievements"   },
+  { id: "count", label: "Activities" },
+  { id: "distance", label: "Distance" },
+  { id: "time", label: "Moving Time" },
+  { id: "elevation", label: "Elevation" },
+  { id: "heartrate", label: "Avg Heart Rate" },
+  { id: "watts", label: "Avg Power" },
+  { id: "maxwatts", label: "Peak Power" },
+  { id: "weeklygoal", label: "Weekly Goal" },
+  { id: "yearlygoal", label: "Yearly Goal" },
+  { id: "prcount", label: "PRs" },
+  { id: "achievements", label: "Achievements" },
 ] as const;
 
-type StatId = typeof ALL_STATS[number]["id"];
+type StatId = (typeof ALL_STATS)[number]["id"];
 
 function getDefaultStats(): Set<StatId> {
-  const defaults: StatId[] = ["count", "distance", "time", "elevation", "heartrate", "watts", "maxwatts"];
+  const defaults: StatId[] = [
+    "count",
+    "distance",
+    "time",
+    "elevation",
+    "heartrate",
+    "watts",
+    "maxwatts",
+  ];
   const wg = parseFloat(localStorage.getItem(WEEKLY_KM_GOAL_KEY) ?? "");
   const yg = parseFloat(localStorage.getItem(YEARLY_KM_GOAL_KEY) ?? "");
   if (!isNaN(wg) && wg > 0) defaults.push("weeklygoal");
@@ -54,11 +72,19 @@ function normalizeSportGroup(raw: string): string {
 function getInterval(period: Period): { start: Date; end: Date } {
   const now = new Date();
   switch (period) {
-    case "week":  return { start: startOfWeek(now, { weekStartsOn: 1 }), end: endOfWeek(now, { weekStartsOn: 1 }) };
-    case "month": return { start: startOfMonth(now), end: endOfMonth(now) };
-    case "year":  return { start: startOfYear(now), end: endOfYear(now) };
-    case "last7": return { start: subDays(now, 7), end: now };
-    case "last30":return { start: subDays(now, 30), end: now };
+    case "week":
+      return {
+        start: startOfWeek(now, { weekStartsOn: 1 }),
+        end: endOfWeek(now, { weekStartsOn: 1 }),
+      };
+    case "month":
+      return { start: startOfMonth(now), end: endOfMonth(now) };
+    case "year":
+      return { start: startOfYear(now), end: endOfYear(now) };
+    case "last7":
+      return { start: subDays(now, 7), end: now };
+    case "last30":
+      return { start: subDays(now, 30), end: now };
   }
 }
 
@@ -67,7 +93,10 @@ function getPrevInterval(period: Period): { start: Date; end: Date } {
   switch (period) {
     case "week": {
       const prevWeek = subWeeks(now, 1);
-      return { start: startOfWeek(prevWeek, { weekStartsOn: 1 }), end: endOfWeek(prevWeek, { weekStartsOn: 1 }) };
+      return {
+        start: startOfWeek(prevWeek, { weekStartsOn: 1 }),
+        end: endOfWeek(prevWeek, { weekStartsOn: 1 }),
+      };
     }
     case "month": {
       const prevMonth = subMonths(now, 1);
@@ -77,8 +106,10 @@ function getPrevInterval(period: Period): { start: Date; end: Date } {
       const prevYear = subYears(now, 1);
       return { start: startOfYear(prevYear), end: endOfYear(prevYear) };
     }
-    case "last7":  return { start: subDays(now, 14), end: subDays(now, 7) };
-    case "last30": return { start: subDays(now, 60), end: subDays(now, 30) };
+    case "last7":
+      return { start: subDays(now, 14), end: subDays(now, 7) };
+    case "last30":
+      return { start: subDays(now, 60), end: subDays(now, 30) };
   }
 }
 
@@ -111,7 +142,6 @@ export function HomePage({ activities, onNavigate }: Props) {
   const [enabledStats, setEnabledStats] = useState<Set<StatId>>(getDefaultStats);
   const [statsMenuOpen, setStatsMenuOpen] = useState(false);
 
-
   function toggleStat(id: StatId) {
     setEnabledStats((prev) => {
       const next = new Set(prev);
@@ -139,12 +169,14 @@ export function HomePage({ activities, onNavigate }: Props) {
       totalDistance: acts.reduce((s, a) => s + a.distance, 0),
       totalTime: acts.reduce((s, a) => s + a.moving_time, 0),
       totalElevation: acts.reduce((s, a) => s + a.total_elevation_gain, 0),
-      avgHeartrate: withHR.length > 0
-        ? withHR.reduce((s, a) => s + (a.average_heartrate ?? 0), 0) / withHR.length
-        : null,
-      avgWatts: withWatts.length > 0
-        ? withWatts.reduce((s, a) => s + (a.average_watts ?? 0), 0) / withWatts.length
-        : null,
+      avgHeartrate:
+        withHR.length > 0
+          ? withHR.reduce((s, a) => s + (a.average_heartrate ?? 0), 0) / withHR.length
+          : null,
+      avgWatts:
+        withWatts.length > 0
+          ? withWatts.reduce((s, a) => s + (a.average_watts ?? 0), 0) / withWatts.length
+          : null,
       maxWatts: (() => {
         const withMax = acts.filter((a) => a.max_watts);
         return withMax.length > 0 ? Math.max(...withMax.map((a) => a.max_watts!)) : null;
@@ -203,11 +235,23 @@ export function HomePage({ activities, onNavigate }: Props) {
     const kmPerWeek = kmPerDay * 7;
     const kmPerMonth = kmPerDay * 30.44;
     const pct = Math.min((distKm / yearlyGoalKm) * 100, 100);
-    return { distKm, goal: yearlyGoalKm, remaining, kmPerWeek, kmPerMonth, pct, diff, ahead: diff >= 0 };
+    return {
+      distKm,
+      goal: yearlyGoalKm,
+      remaining,
+      kmPerWeek,
+      kmPerMonth,
+      pct,
+      diff,
+      ahead: diff >= 0,
+    };
   }, [activities, yearlyGoalKm]);
 
   const sportBreakdown = useMemo(() => {
-    const map = new Map<string, { distance: number; time: number; count: number; elevation: number }>();
+    const map = new Map<
+      string,
+      { distance: number; time: number; count: number; elevation: number }
+    >();
     for (const a of filtered) {
       const type = normalizeSportGroup(a.sport_type || a.type);
       const cur = map.get(type) ?? { distance: 0, time: 0, count: 0, elevation: 0 };
@@ -259,7 +303,9 @@ export function HomePage({ activities, onNavigate }: Props) {
       options={["last7", "last30", "week", "month", "year"] as const}
       selected={period}
       onSelect={setPeriod}
-      renderLabel={(p) => p === "last7" ? "Last 7 days" : p === "last30" ? "Last 30 days" : `This ${p}`}
+      renderLabel={(p) =>
+        p === "last7" ? "Last 7 days" : p === "last30" ? "Last 30 days" : `This ${p}`
+      }
       inline
     />
   );
@@ -292,41 +338,64 @@ export function HomePage({ activities, onNavigate }: Props) {
             )}
           </div>
         </div>
-        {((enabledStats.has("weeklygoal") && weeklyGoalData) || (enabledStats.has("yearlygoal") && yearlyGoalData)) && (
+        {((enabledStats.has("weeklygoal") && weeklyGoalData) ||
+          (enabledStats.has("yearlygoal") && yearlyGoalData)) && (
           <div className={`stats-grid ${styles.statsGridSpaced}`}>
             {enabledStats.has("weeklygoal") && weeklyGoalData && (
-              <div className="stat-card goal-card stat-card--clickable" onClick={() => onNavigate("settings")}>
+              <div
+                className="stat-card goal-card stat-card--clickable"
+                onClick={() => onNavigate("settings")}
+              >
                 <div className="stat-card-header">
                   <span className="label">Weekly Goal</span>
-                  <span className={`stat-delta ${weeklyGoalData.ahead ? "stat-delta--up" : "stat-delta--down"}`}>
-                    {weeklyGoalData.ahead ? "▲ On track" : `▼ ${Math.abs(weeklyGoalData.remaining).toFixed(1)} km`}
+                  <span
+                    className={`stat-delta ${weeklyGoalData.ahead ? "stat-delta--up" : "stat-delta--down"}`}
+                  >
+                    {weeklyGoalData.ahead
+                      ? "▲ On track"
+                      : `▼ ${Math.abs(weeklyGoalData.remaining).toFixed(1)} km`}
                   </span>
                 </div>
-                <div className="value">{weeklyGoalData.distKm.toFixed(1)}<span className="unit"> / {weeklyGoalData.goal} km</span></div>
+                <div className="value">
+                  {weeklyGoalData.distKm.toFixed(1)}
+                  <span className="unit"> / {weeklyGoalData.goal} km</span>
+                </div>
                 <div className="goal-progress-bar">
                   <div className="goal-progress-fill" style={{ width: `${weeklyGoalData.pct}%` }} />
                 </div>
                 <div className="goal-meta">
-                  {weeklyGoalData.ahead ? "Goal reached!" : `${weeklyGoalData.kmPerDay.toFixed(1)} km/day needed`}
+                  {weeklyGoalData.ahead
+                    ? "Goal reached!"
+                    : `${weeklyGoalData.kmPerDay.toFixed(1)} km/day needed`}
                 </div>
               </div>
             )}
             {enabledStats.has("yearlygoal") && yearlyGoalData && (
-              <div className="stat-card goal-card stat-card--clickable" onClick={() => onNavigate("settings")}>
+              <div
+                className="stat-card goal-card stat-card--clickable"
+                onClick={() => onNavigate("settings")}
+              >
                 <div className="stat-card-header">
                   <span className="label">Yearly Goal</span>
-                  <span className={`stat-delta ${yearlyGoalData.ahead ? "stat-delta--up" : "stat-delta--down"}`}>
+                  <span
+                    className={`stat-delta ${yearlyGoalData.ahead ? "stat-delta--up" : "stat-delta--down"}`}
+                  >
                     {yearlyGoalData.ahead
                       ? `▲ ${Math.abs(yearlyGoalData.diff!).toFixed(0)} km ahead`
                       : `▼ ${Math.abs(yearlyGoalData.diff!).toFixed(0)} km behind`}
                   </span>
                 </div>
-                <div className="value">{yearlyGoalData.distKm.toFixed(0)}<span className="unit"> / {yearlyGoalData.goal.toLocaleString()} km</span></div>
+                <div className="value">
+                  {yearlyGoalData.distKm.toFixed(0)}
+                  <span className="unit"> / {yearlyGoalData.goal.toLocaleString()} km</span>
+                </div>
                 <div className="goal-progress-bar">
                   <div className="goal-progress-fill" style={{ width: `${yearlyGoalData.pct}%` }} />
                 </div>
                 <div className="goal-meta">
-                  {yearlyGoalData.remaining <= 0 ? "Goal reached!" : `${Math.round(yearlyGoalData.kmPerWeek)} km/week · ${Math.round(yearlyGoalData.kmPerMonth)} km/month needed`}
+                  {yearlyGoalData.remaining <= 0
+                    ? "Goal reached!"
+                    : `${Math.round(yearlyGoalData.kmPerWeek)} km/week · ${Math.round(yearlyGoalData.kmPerMonth)} km/month needed`}
                 </div>
               </div>
             )}
@@ -335,56 +404,122 @@ export function HomePage({ activities, onNavigate }: Props) {
 
         <div className="stats-grid">
           {enabledStats.has("count") && (
-            <div className="stat-card stat-card--clickable" onClick={() => onNavigate("activities")}>
-              <div className="stat-card-header"><span className="label">Activities</span><DeltaBadge current={stats.count} previous={prevStats.count} /></div>
+            <div
+              className="stat-card stat-card--clickable"
+              onClick={() => onNavigate("activities")}
+            >
+              <div className="stat-card-header">
+                <span className="label">Activities</span>
+                <DeltaBadge current={stats.count} previous={prevStats.count} />
+              </div>
               <div className="value">{stats.count}</div>
             </div>
           )}
           {enabledStats.has("distance") && (
-            <div className="stat-card stat-card--clickable" onClick={() => onNavigate("activities")}>
-              <div className="stat-card-header"><span className="label">Distance</span><DeltaBadge current={stats.totalDistance} previous={prevStats.totalDistance} /></div>
-              <div className="value">{formatDistance(stats.totalDistance)}<span className="unit">km</span></div>
+            <div
+              className="stat-card stat-card--clickable"
+              onClick={() => onNavigate("activities")}
+            >
+              <div className="stat-card-header">
+                <span className="label">Distance</span>
+                <DeltaBadge current={stats.totalDistance} previous={prevStats.totalDistance} />
+              </div>
+              <div className="value">
+                {formatDistance(stats.totalDistance)}
+                <span className="unit">km</span>
+              </div>
             </div>
           )}
           {enabledStats.has("time") && (
-            <div className="stat-card stat-card--clickable" onClick={() => onNavigate("activities")}>
-              <div className="stat-card-header"><span className="label">Moving Time</span><DeltaBadge current={stats.totalTime} previous={prevStats.totalTime} /></div>
+            <div
+              className="stat-card stat-card--clickable"
+              onClick={() => onNavigate("activities")}
+            >
+              <div className="stat-card-header">
+                <span className="label">Moving Time</span>
+                <DeltaBadge current={stats.totalTime} previous={prevStats.totalTime} />
+              </div>
               <div className="value">{formatDuration(stats.totalTime)}</div>
             </div>
           )}
           {enabledStats.has("elevation") && (
-            <div className="stat-card stat-card--clickable" onClick={() => onNavigate("activities")}>
-              <div className="stat-card-header"><span className="label">Elevation</span><DeltaBadge current={stats.totalElevation} previous={prevStats.totalElevation} /></div>
-              <div className="value">{Math.round(stats.totalElevation)}<span className="unit">m</span></div>
+            <div
+              className="stat-card stat-card--clickable"
+              onClick={() => onNavigate("activities")}
+            >
+              <div className="stat-card-header">
+                <span className="label">Elevation</span>
+                <DeltaBadge current={stats.totalElevation} previous={prevStats.totalElevation} />
+              </div>
+              <div className="value">
+                {Math.round(stats.totalElevation)}
+                <span className="unit">m</span>
+              </div>
             </div>
           )}
           {enabledStats.has("heartrate") && stats.avgHeartrate && (
-            <div className="stat-card stat-card--clickable" onClick={() => onNavigate("performance")}>
-              <div className="stat-card-header"><span className="label">Avg Heart Rate</span><DeltaBadge current={stats.avgHeartrate} previous={prevStats.avgHeartrate ?? 0} /></div>
-              <div className="value">{Math.round(stats.avgHeartrate)}<span className="unit">bpm</span></div>
+            <div
+              className="stat-card stat-card--clickable"
+              onClick={() => onNavigate("performance")}
+            >
+              <div className="stat-card-header">
+                <span className="label">Avg Heart Rate</span>
+                <DeltaBadge current={stats.avgHeartrate} previous={prevStats.avgHeartrate ?? 0} />
+              </div>
+              <div className="value">
+                {Math.round(stats.avgHeartrate)}
+                <span className="unit">bpm</span>
+              </div>
             </div>
           )}
           {enabledStats.has("watts") && stats.avgWatts && (
-            <div className="stat-card stat-card--clickable" onClick={() => onNavigate("performance")}>
-              <div className="stat-card-header"><span className="label">Avg Power</span><DeltaBadge current={stats.avgWatts} previous={prevStats.avgWatts ?? 0} /></div>
-              <div className="value">{Math.round(stats.avgWatts)}<span className="unit">W</span></div>
+            <div
+              className="stat-card stat-card--clickable"
+              onClick={() => onNavigate("performance")}
+            >
+              <div className="stat-card-header">
+                <span className="label">Avg Power</span>
+                <DeltaBadge current={stats.avgWatts} previous={prevStats.avgWatts ?? 0} />
+              </div>
+              <div className="value">
+                {Math.round(stats.avgWatts)}
+                <span className="unit">W</span>
+              </div>
             </div>
           )}
           {enabledStats.has("maxwatts") && stats.maxWatts && (
-            <div className="stat-card stat-card--clickable" onClick={() => onNavigate("performance")}>
-              <div className="stat-card-header"><span className="label">Peak Power</span><DeltaBadge current={stats.maxWatts} previous={prevStats.maxWatts ?? 0} /></div>
-              <div className="value">{Math.round(stats.maxWatts)}<span className="unit">W</span></div>
+            <div
+              className="stat-card stat-card--clickable"
+              onClick={() => onNavigate("performance")}
+            >
+              <div className="stat-card-header">
+                <span className="label">Peak Power</span>
+                <DeltaBadge current={stats.maxWatts} previous={prevStats.maxWatts ?? 0} />
+              </div>
+              <div className="value">
+                {Math.round(stats.maxWatts)}
+                <span className="unit">W</span>
+              </div>
             </div>
           )}
           {enabledStats.has("prcount") && (
             <div className="stat-card stat-card--clickable" onClick={() => onNavigate("records")}>
-              <div className="stat-card-header"><span className="label">PRs</span><DeltaBadge current={stats.totalPRs} previous={prevStats.totalPRs} /></div>
+              <div className="stat-card-header">
+                <span className="label">PRs</span>
+                <DeltaBadge current={stats.totalPRs} previous={prevStats.totalPRs} />
+              </div>
               <div className="value">{stats.totalPRs}</div>
             </div>
           )}
           {enabledStats.has("achievements") && (
             <div className="stat-card stat-card--clickable" onClick={() => onNavigate("records")}>
-              <div className="stat-card-header"><span className="label">Achievements</span><DeltaBadge current={stats.totalAchievements} previous={prevStats.totalAchievements} /></div>
+              <div className="stat-card-header">
+                <span className="label">Achievements</span>
+                <DeltaBadge
+                  current={stats.totalAchievements}
+                  previous={prevStats.totalAchievements}
+                />
+              </div>
               <div className="value">{stats.totalAchievements}</div>
             </div>
           )}
@@ -395,10 +530,22 @@ export function HomePage({ activities, onNavigate }: Props) {
             {sportBreakdown.map((sport) => (
               <div key={sport.name} className="sport-card">
                 <div className="sport-name">{sport.name}</div>
-                <div className="sport-stat"><span>Activities</span><span>{sport.count}</span></div>
-                <div className="sport-stat"><span>Distance</span><span>{formatDistance(sport.distance)} km</span></div>
-                <div className="sport-stat"><span>Time</span><span>{formatDuration(sport.time)}</span></div>
-                <div className="sport-stat"><span>Elevation</span><span>{Math.round(sport.elevation)} m</span></div>
+                <div className="sport-stat">
+                  <span>Activities</span>
+                  <span>{sport.count}</span>
+                </div>
+                <div className="sport-stat">
+                  <span>Distance</span>
+                  <span>{formatDistance(sport.distance)} km</span>
+                </div>
+                <div className="sport-stat">
+                  <span>Time</span>
+                  <span>{formatDuration(sport.time)}</span>
+                </div>
+                <div className="sport-stat">
+                  <span>Elevation</span>
+                  <span>{Math.round(sport.elevation)} m</span>
+                </div>
               </div>
             ))}
           </div>
