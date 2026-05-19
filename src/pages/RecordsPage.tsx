@@ -7,8 +7,8 @@ import {
   Tooltip,
   ResponsiveContainer,
   CartesianGrid,
-  Cell,
 } from "recharts";
+import { ZoneBarChart } from "../components/ZoneBarChart";
 import { format, parseISO, startOfMonth, subMonths, endOfMonth, isWithinInterval, startOfWeek, endOfWeek, subWeeks } from "date-fns";
 import { clsx } from "clsx";
 import type { Activity, SegmentEffort } from "../api/strava";
@@ -129,7 +129,7 @@ export function RecordsPage({ activities, koms }: Props) {
     }
     return Array.from(map.entries())
       .sort((a, b) => b[1].prs - a[1].prs)
-      .map(([name, data]) => ({ name, ...data }));
+      .map(([name, data], i) => ({ name, ...data, color: SPORT_COLORS[i % SPORT_COLORS.length] }));
   }, [activities]);
 
   // Top 15 activities by PR count
@@ -227,45 +227,18 @@ export function RecordsPage({ activities, koms }: Props) {
             {prActivities.length} activities with PRs
           </span>
         }>
-          <ResponsiveContainer width="100%" height={sportPRs.length * 46 + 20}>
-            <BarChart
-              data={sportPRs}
-              layout="vertical"
-              margin={{ top: 4, right: 64, bottom: 4, left: 90 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--grid-stroke)" horizontal={false} />
-              <XAxis
-                type="number"
-                tick={{ fill: "var(--tick-color)", fontSize: 11 }}
-                axisLine={false}
-                tickLine={false}
-                allowDecimals={false}
-              />
-              <YAxis
-                type="category"
-                dataKey="name"
-                tick={{ fill: "var(--tick-color)", fontSize: 12 }}
-                width={88}
-                axisLine={false}
-                tickLine={false}
-              />
-              <Tooltip
-                cursor={{ fill: "var(--surface-elevated)" }}
-                contentStyle={TOOLTIP_STYLE}
-                labelStyle={{ color: "var(--text-primary)" }}
-                itemStyle={{ color: "var(--text-primary)" }}
-                formatter={(value, _name, props) => [
-                  `${value} PRs across ${(props.payload as { acts: number }).acts} activities` as never,
-                  props.payload.name as string,
-                ]}
-              />
-              <Bar dataKey="prs" radius={[0, 6, 6, 0]} maxBarSize={28} isAnimationActive={false}>
-                {sportPRs.map((_, i) => (
-                  <Cell key={i} fill={SPORT_COLORS[i % SPORT_COLORS.length]} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
+          <ZoneBarChart
+            data={sportPRs}
+            dataKey="prs"
+            labelKey="name"
+            yAxisWidth={88}
+            leftMargin={90}
+            xAxisAllowDecimals={false}
+            tooltipFormatter={(value, _name, props) => [
+              `${value} PRs across ${(props as { payload: { acts: number } }).payload.acts} activities` as never,
+              (props as { payload: { name: string } }).payload.name,
+            ]}
+          />
         </CollapsibleSection>
       )}
 

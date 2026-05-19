@@ -1,20 +1,13 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  CartesianGrid,
-  Cell,
-} from "recharts";
 import { subDays, parseISO, isAfter } from "date-fns";
 import { clsx } from "clsx";
 import { fetchActivityHeartrate, type Activity } from "../../api/strava";
 import { AGE_KEY } from "../Settings";
-import { formatTime, TOOLTIP_STYLE } from "../../lib/utils";
+import { formatTime } from "../../lib/utils";
 import { CollapsibleSection } from "../../lib/CollapsibleSection";
+import { PeriodToggle } from "../../components/PeriodToggle";
+import { StreamProgress } from "../../components/StreamProgress";
+import { ZoneBarChart } from "../../components/ZoneBarChart";
 import styles from "./HRZoneDistribution.module.css";
 
 type Range = "30d" | "90d";
@@ -163,13 +156,13 @@ export function HRZoneDistribution({ activities, onNavigate }: Props) {
   return (
     <CollapsibleSection title="Time in HR Zones">
       <div className={clsx("power-curve-controls", styles.controls)}>
-        <div className={clsx("period-toggle", styles.periodToggleInline)}>
-          {(["30d", "90d"] as Range[]).map((r) => (
-            <button key={r} className={range === r ? "active" : ""} onClick={() => setRange(r)}>
-              {r === "30d" ? "Last 30 days" : "Last 90 days"}
-            </button>
-          ))}
-        </div>
+        <PeriodToggle
+          options={["30d", "90d"] as const}
+          selected={range}
+          onSelect={setRange}
+          renderLabel={(r) => r === "30d" ? "Last 30 days" : "Last 90 days"}
+          inline
+        />
       </div>
 
       {error && <div className="power-curve-error">{error}</div>}
@@ -180,23 +173,7 @@ export function HRZoneDistribution({ activities, onNavigate }: Props) {
         </div>
       )}
 
-      {loading && (
-        <div className="power-curve-empty">
-          Fetching streams… {progress.done} / {progress.total}
-          <div className={clsx("loading-bar-track", styles.loadingTrack)}>
-            <div
-              className="loading-bar-fill"
-              style={{
-                width: progress.total > 0
-                  ? `${Math.round((progress.done / progress.total) * 100)}%`
-                  : "5%",
-                animation: "none",
-                opacity: 1,
-              }}
-            />
-          </div>
-        </div>
-      )}
+      {loading && <StreamProgress done={progress.done} total={progress.total} />}
 
       {data && !loading && (
         <>
@@ -204,50 +181,16 @@ export function HRZoneDistribution({ activities, onNavigate }: Props) {
             Total HR time: <strong>{formatTime(totalSeconds)}</strong>
             {maxHR && <span className={styles.ftpBadge}>Max HR {maxHR} bpm</span>}
           </div>
-          <ResponsiveContainer width="100%" height={HR_ZONE_DEFS.length * 46 + 20}>
-            <BarChart
-              data={data}
-              layout="vertical"
-              margin={{ top: 4, right: 64, left: 8, bottom: 4 }}
-            >
-              <CartesianGrid
-                strokeDasharray="3 3"
-                stroke="var(--grid-stroke)"
-                horizontal={false}
-              />
-              <XAxis
-                type="number"
-                tickFormatter={(v) => formatTime(v as number)}
-                tick={{ fill: "var(--tick-color)", fontSize: 11 }}
-                axisLine={false}
-                tickLine={false}
-              />
-              <YAxis
-                type="category"
-                dataKey="label"
-                tick={{ fill: "var(--tick-color)", fontSize: 12 }}
-                width={40}
-                axisLine={false}
-                tickLine={false}
-              />
-              <Tooltip
-                cursor={{ fill: "var(--surface-elevated)" }}
-                contentStyle={TOOLTIP_STYLE}
-                labelStyle={{ color: "var(--text-primary)" }}
-                itemStyle={{ color: "var(--text-primary)" }}
-                labelFormatter={(label) => {
-                  const zone = HR_ZONE_DEFS.find((z) => z.label === label);
-                  return zone ? `${zone.label} · ${zone.name}` : String(label);
-                }}
-                formatter={(value: unknown) => [formatTime(Number(value)), "Time"]}
-              />
-              <Bar dataKey="seconds" radius={[0, 6, 6, 0]} maxBarSize={28} isAnimationActive={false}>
-                {data.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
+          <ZoneBarChart
+            data={data}
+            dataKey="seconds"
+            tickFormatter={(v) => formatTime(v as number)}
+            tooltipLabelFormatter={(label) => {
+              const zone = HR_ZONE_DEFS.find((z) => z.label === label);
+              return zone ? `${zone.label} · ${zone.name}` : String(label);
+            }}
+            tooltipFormatter={(value) => [formatTime(Number(value)), "Time"]}
+          />
         </>
       )}
     </CollapsibleSection>

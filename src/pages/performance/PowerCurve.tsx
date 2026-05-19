@@ -13,6 +13,8 @@ import { clsx } from "clsx";
 import { fetchActivityWatts, type Activity } from "../../api/strava";
 import { TOOLTIP_STYLE } from "../../lib/utils";
 import { CollapsibleSection } from "../../lib/CollapsibleSection";
+import { PeriodToggle } from "../../components/PeriodToggle";
+import { StreamProgress } from "../../components/StreamProgress";
 import styles from "./PowerCurve.module.css";
 
 const DURATIONS = [1, 5, 10, 30, 60, 120, 300, 600, 1200, 1800, 3600];
@@ -152,35 +154,18 @@ export function PowerCurve({ activities }: Props) {
   return (
     <CollapsibleSection title="Power Curve">
       <div className={clsx("power-curve-controls", styles.controls)}>
-        <div className={clsx("period-toggle", styles.periodToggleInline)}>
-          {(["30d", "90d"] as CurveRange[]).map((r) => (
-            <button key={r} className={range === r ? "active" : ""} onClick={() => setRange(r)}>
-              {r === "30d" ? "Last 30 days" : "Last 90 days"}
-            </button>
-          ))}
-        </div>
+        <PeriodToggle
+          options={["30d", "90d"] as const}
+          selected={range}
+          onSelect={setRange}
+          renderLabel={(r) => r === "30d" ? "Last 30 days" : "Last 90 days"}
+          inline
+        />
       </div>
 
       {error && <div className="power-curve-error">{error}</div>}
 
-      {loading && (
-        <div className="power-curve-empty">
-          Fetching streams… {progress.done} / {progress.total}
-          <div className={clsx("loading-bar-track", styles.loadingTrack)}>
-            <div
-              className="loading-bar-fill"
-              style={{
-                width:
-                  progress.total > 0
-                    ? `${Math.round((progress.done / progress.total) * 100)}%`
-                    : "5%",
-                animation: "none",
-                opacity: 1,
-              }}
-            />
-          </div>
-        </div>
-      )}
+      {loading && <StreamProgress done={progress.done} total={progress.total} />}
 
       {curve && !loading && (
         <ResponsiveContainer width="100%" height={250}>

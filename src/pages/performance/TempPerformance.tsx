@@ -12,6 +12,7 @@ import { clsx } from "clsx";
 import type { Activity } from "../../api/strava";
 import { TOOLTIP_STYLE, RUN_TYPES, RIDE_TYPES } from "../../lib/utils";
 import { CollapsibleSection } from "../../lib/CollapsibleSection";
+import { PeriodToggle } from "../../components/PeriodToggle";
 import styles from "./TempPerformance.module.css";
 
 type Metric = "speed" | "watts";
@@ -50,17 +51,20 @@ export function TempPerformance({ activities }: Props) {
   return (
     <CollapsibleSection title="Temperature vs Performance">
       <div className={clsx("power-curve-controls", styles.controls)}>
-        <div className={clsx("period-toggle", styles.periodToggleInline)}>
-          {(["all", "run", "ride"] as SportFilter[]).map((s) => (
-            <button key={s} className={sport === s ? "active" : ""} onClick={() => setSport(s)}>
-              {s === "all" ? "All" : s === "run" ? "Runs" : "Rides"}
-            </button>
-          ))}
-        </div>
-        <div className={clsx("period-toggle", styles.periodToggleInline)}>
-          <button className={metric === "speed" ? "active" : ""} onClick={() => setMetric("speed")}>Speed</button>
-          <button className={metric === "watts" ? "active" : ""} onClick={() => setMetric("watts")}>Power</button>
-        </div>
+        <PeriodToggle
+          options={["all", "run", "ride"] as const}
+          selected={sport}
+          onSelect={setSport}
+          renderLabel={(s) => s === "all" ? "All" : s === "run" ? "Runs" : "Rides"}
+          inline
+        />
+        <PeriodToggle
+          options={["speed", "watts"] as const}
+          selected={metric}
+          onSelect={setMetric}
+          renderLabel={(m) => m === "speed" ? "Speed" : "Power"}
+          inline
+        />
       </div>
 
       {data.length === 0 ? (

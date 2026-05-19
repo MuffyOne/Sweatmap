@@ -14,6 +14,7 @@ import { formatDuration, formatDistance, TOOLTIP_STYLE } from "../lib/utils";
 import { CalendarHeatmap } from "./CalendarHeatmap";
 import { CollapsibleSection } from "../lib/CollapsibleSection";
 import { WEEKLY_KM_GOAL_KEY, YEARLY_KM_GOAL_KEY } from "./Settings";
+import { PeriodToggle } from "../components/PeriodToggle";
 import styles from "./HomePage.module.css";
 
 type Period = "week" | "month" | "year" | "last7" | "last30";
@@ -254,13 +255,13 @@ export function HomePage({ activities, onNavigate }: Props) {
   }, [activities]);
 
   const periodToggle = (
-    <div className={clsx("period-toggle", styles.periodToggleInline)}>
-      {(["last7", "last30", "week", "month", "year"] as Period[]).map((p) => (
-        <button key={p} className={period === p ? "active" : ""} onClick={() => setPeriod(p)}>
-          {p === "last7" ? "Last 7 days" : p === "last30" ? "Last 30 days" : `This ${p}`}
-        </button>
-      ))}
-    </div>
+    <PeriodToggle
+      options={["last7", "last30", "week", "month", "year"] as const}
+      selected={period}
+      onSelect={setPeriod}
+      renderLabel={(p) => p === "last7" ? "Last 7 days" : p === "last30" ? "Last 30 days" : `This ${p}`}
+      inline
+    />
   );
 
   return (

@@ -1,6 +1,7 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import { format } from "date-fns";
 import type { Activity } from "../api/strava";
+import { PeriodToggle } from "../components/PeriodToggle";
 import styles from "./CalendarHeatmap.module.css";
 
 type Metric = "distance" | "time";
@@ -195,13 +196,12 @@ export function CalendarHeatmap({ activities }: Props) {
   return (
     <div className="heatmap-page" ref={containerRef}>
       <div className="heatmap-controls">
-        <div className="period-toggle">
-          {(["distance", "time"] as Metric[]).map((m) => (
-            <button key={m} className={metric === m ? "active" : ""} onClick={() => setMetric(m)}>
-              {m === "distance" ? "Distance" : "Time"}
-            </button>
-          ))}
-        </div>
+        <PeriodToggle
+          options={["distance", "time"] as const}
+          selected={metric}
+          onSelect={setMetric}
+          renderLabel={(m) => m === "distance" ? "Distance" : "Time"}
+        />
       </div>
 
       <div className="heatmap-rows">

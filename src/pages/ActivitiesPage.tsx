@@ -5,6 +5,7 @@ import { formatDuration, formatDistance, formatPace, RUN_TYPES, normalizeSportLa
 import { CollapsibleSection } from "../lib/CollapsibleSection";
 import { ActivityDetail } from "./ActivityDetail";
 import { StravaIcon, SortDescIcon, SortAscIcon } from "../lib/icons";
+import { PeriodToggle } from "../components/PeriodToggle";
 import styles from "./ActivitiesPage.module.css";
 
 type Period = "week" | "month" | "year" | "last7" | "last30";
@@ -44,13 +45,12 @@ export function ActivitiesPage({ activities }: Props) {
 
   return (
     <div>
-      <div className="period-toggle">
-        {(["last7", "last30", "week", "month", "year"] as Period[]).map((p) => (
-          <button key={p} className={period === p ? "active" : ""} onClick={() => setPeriod(p)}>
-            {p === "last7" ? "Last 7 days" : p === "last30" ? "Last 30 days" : `This ${p}`}
-          </button>
-        ))}
-      </div>
+      <PeriodToggle
+        options={["last7", "last30", "week", "month", "year"] as const}
+        selected={period}
+        onSelect={setPeriod}
+        renderLabel={(p) => p === "last7" ? "Last 7 days" : p === "last30" ? "Last 30 days" : `This ${p}`}
+      />
       <CollapsibleSection title="Recent Activities" extra={
         <span className={styles.extraActions}>
           <span className={styles.activityCount}>{filtered.length} activities</span>
