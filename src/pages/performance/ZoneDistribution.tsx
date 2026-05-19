@@ -17,7 +17,8 @@ import { CollapsibleSection } from "../../lib/CollapsibleSection";
 
 type Range = "30d" | "90d";
 
-// Standard 7-zone power model (% of FTP)
+const RANGE_DAYS: Record<Range, number> = { "30d": 30, "90d": 90 };
+
 const POWER_ZONES = [
   { label: "Z1", name: "Recovery",      min: 0,    max: 0.55,       color: "#7c90aa" },
   { label: "Z2", name: "Endurance",     min: 0.55, max: 0.75,       color: "#3b8fd4" },
@@ -26,6 +27,14 @@ const POWER_ZONES = [
   { label: "Z5", name: "VO2 Max",       min: 1.05, max: 1.20,       color: "#e07820" },
   { label: "Z6", name: "Anaerobic",     min: 1.20, max: 1.50,       color: "#e03535" },
   { label: "Z7", name: "Neuromuscular", min: 1.50, max: Infinity,   color: "#9333ea" },
+];
+
+// Seiler 3-zone model: Easy (Z1+Z2), Moderate (Z3+Z4), Hard (Z5+Z6+Z7)
+const TRAINING_MODELS = [
+  { name: "Polarized",   easy: 80, moderate: 5,  hard: 15, description: "80% easy, 15% hard" },
+  { name: "Pyramidal",   easy: 75, moderate: 20, hard: 5,  description: "75% easy, 20% moderate" },
+  { name: "Threshold",   easy: 55, moderate: 35, hard: 10, description: "55% easy, 35% moderate" },
+  { name: "Sweet Spot",  easy: 60, moderate: 30, hard: 10, description: "60% easy, 30% moderate" },
 ];
 
 const CACHE_KEY_PREFIX = "power_zones_";
@@ -52,9 +61,13 @@ interface CachedZones {
 function loadCache(range: Range): CachedZones | null {
   const raw = localStorage.getItem(CACHE_KEY_PREFIX + range);
   if (!raw) return null;
-  const parsed = JSON.parse(raw);
-  if (Array.isArray(parsed)) return { data: parsed, activityCount: -1 };
-  return parsed as CachedZones;
+  try {
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) return { data: parsed, activityCount: -1 };
+    return parsed as CachedZones;
+  } catch {
+    return null;
+  }
 }
 
 function saveCache(range: Range, data: ZonePoint[], activityCount: number) {
@@ -65,14 +78,6 @@ interface Props {
   activities: Activity[];
   onNavigate: (page: "settings") => void;
 }
-
-// Seiler 3-zone model: Easy (Z1+Z2), Moderate (Z3+Z4), Hard (Z5+Z6+Z7)
-const TRAINING_MODELS = [
-  { name: "Polarized",   easy: 80, moderate: 5,  hard: 15, description: "80% easy, 15% hard" },
-  { name: "Pyramidal",   easy: 75, moderate: 20, hard: 5,  description: "75% easy, 20% moderate" },
-  { name: "Threshold",   easy: 55, moderate: 35, hard: 10, description: "55% easy, 35% moderate" },
-  { name: "Sweet Spot",  easy: 60, moderate: 30, hard: 10, description: "60% easy, 30% moderate" },
-];
 
 function cosineSimilarity(a: number[], b: number[]): number {
   const dot = a.reduce((s, v, i) => s + v * b[i], 0);
@@ -111,7 +116,6 @@ function TrainingDistribution({ data }: { data: ZonePoint[] }) {
         Training Distribution
       </h3>
 
-      {/* Actual distribution stacked bar */}
       <div style={{ display: "flex", height: 28, borderRadius: 6, overflow: "hidden", marginBottom: "0.5rem" }}>
         {MACRO_ZONES.map((z) => (
           <div
@@ -136,7 +140,6 @@ function TrainingDistribution({ data }: { data: ZonePoint[] }) {
         ))}
       </div>
 
-      {/* Model comparison cards */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: "0.75rem" }}>
         {scored.map((m, rank) => (
           <div
@@ -157,7 +160,6 @@ function TrainingDistribution({ data }: { data: ZonePoint[] }) {
               )}
             </div>
             <div style={{ fontSize: 11, color: rank === 0 ? "var(--text-tertiary)" : "var(--text-faint)", marginBottom: "0.6rem" }}>{m.description}</div>
-            {/* Mini stacked bar */}
             <div style={{ display: "flex", height: rank === 0 ? 8 : 6, borderRadius: 3, overflow: "hidden", marginBottom: "0.5rem" }}>
               <div style={{ flex: m.easy,     background: "#3b8fd4" }} />
               <div style={{ flex: m.moderate, background: "#d4a820" }} />
@@ -225,7 +227,7 @@ export function ZoneDistribution({ activities, onNavigate }: Props) {
     if (!ftpValid) return;
 
     const now = new Date();
-    const since = subDays(now, range === "30d" ? 30 : 90);
+    const since = subDays(now, RANGE_DAYS[range]);
     const eligible = activities.filter(
       (a) => a.average_watts && isAfter(parseISO(a.start_date_local), since)
     );
@@ -280,7 +282,7 @@ export function ZoneDistribution({ activities, onNavigate }: Props) {
   }, [activities, range, ftpValid, ftpVal]);
 
   const eligibleCount = useMemo(() => {
-    const since = subDays(new Date(), range === "30d" ? 30 : 90);
+    const since = subDays(new Date(), RANGE_DAYS[range]);
     return activities.filter((a) => a.average_watts && isAfter(parseISO(a.start_date_local), since)).length;
   }, [activities, range]);
 
@@ -379,9 +381,9 @@ export function ZoneDistribution({ activities, onNavigate }: Props) {
                 }}
                 formatter={(value: unknown) => [formatTime(Number(value)), "Time"]}
               />
-              <Bar dataKey="seconds" radius={[0, 6, 6, 0]} maxBarSize={28}>
-                {data.map((entry, index) => (
-                  <Cell key={index} fill={entry.color} />
+              <Bar dataKey="seconds" radius={[0, 6, 6, 0]} maxBarSize={28} isAnimationActive={false}>
+                {data.map((entry) => (
+                  <Cell key={entry.label} fill={entry.color} />
                 ))}
               </Bar>
             </BarChart>
