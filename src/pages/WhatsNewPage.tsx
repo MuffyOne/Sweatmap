@@ -1,6 +1,10 @@
 import type { Page } from "../Dashboard";
 import styles from "./WhatsNewPage.module.css";
 
+// Bump this string whenever new entries are added — any user who hasn't seen
+// the current version will get the highlight dot on the sidebar button.
+export const WHATS_NEW_VERSION = "2025-05-power-curve";
+
 interface Entry {
   tag: string;
   title: string;

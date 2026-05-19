@@ -189,6 +189,7 @@ body {
 }
 
 .sidebar-item {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -244,6 +245,24 @@ body {
   flex: 1;
 }
 
+
+.sidebar-new-badge {
+  position: absolute;
+  top: 50%;
+  right: 0.75rem;
+  transform: translateY(-50%);
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #fc4c02;
+  flex-shrink: 0;
+}
+
+.sidebar.collapsed .sidebar-new-badge {
+  top: 9px;
+  right: 9px;
+  transform: none;
+}
 
 .sidebar-logout {
   color: var(--text-tertiary);

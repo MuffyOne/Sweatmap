@@ -13,6 +13,7 @@ import {
   type SegmentEffort,
 } from "./api/strava";
 import { Dashboard, type Page } from "./Dashboard";
+import { WHATS_NEW_VERSION } from "./pages/WhatsNewPage";
 import {
   HomeIcon, ZapIcon, ListIcon, LogOutIcon, SyncIcon,
   FitnessIcon, TrophyIcon, SettingsIcon, ServicesIcon, XertIcon, ChevronLeftIcon, ChevronRightIcon,
@@ -97,6 +98,9 @@ function App() {
   const [lastSynced, setLastSynced] = useState<number | null>(() => getCache()?.cachedAt ?? null);
 
   const [forceSyncing, setForceSyncing] = useState(false);
+  const [whatsNewSeen, setWhatsNewSeen] = useState(
+    () => localStorage.getItem("whats_new_seen") === WHATS_NEW_VERSION
+  );
 
   async function handleForceSync() {
     if (syncing || refreshing || forceSyncing) return;
@@ -301,11 +305,18 @@ function App() {
 
         <button
           className={`sidebar-item${page === "whatsNew" ? " active" : ""}`}
-          onClick={() => setPage("whatsNew")}
+          onClick={() => {
+            setPage("whatsNew");
+            if (!whatsNewSeen) {
+              localStorage.setItem("whats_new_seen", WHATS_NEW_VERSION);
+              setWhatsNewSeen(true);
+            }
+          }}
           title={collapsed ? "What's New" : undefined}
         >
           <SparkleIcon />
           <span>What's New</span>
+          {!whatsNewSeen && <span className="sidebar-new-badge" aria-label="New updates" />}
         </button>
 
         <button
