@@ -152,7 +152,7 @@ export function MapPage({ activities }: Props) {
     () =>
       renderMode === "heatmap"
         ? { color: "#fc4c02", weight: 3, opacity: 0.2 }
-        : { color: "#fc4c02", weight: 1.5, opacity: 0.7 },
+        : { color: "#fc4c02", weight: 1.5, opacity: 1 },
     [renderMode]
   );
 
