@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useEffect } from "react";
+import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import { format } from "date-fns";
 import type { Activity } from "../api/strava";
 import { PeriodToggle } from "../components/PeriodToggle";
@@ -76,10 +76,13 @@ export function CalendarHeatmap({ activities }: Props) {
   const topMonths = months.slice(0, 6);
   const bottomMonths = months.slice(6);
 
-  function getValue(acts: Activity[]): number {
-    if (metric === "time") return acts.reduce((s, a) => s + a.moving_time, 0) / 3600;
-    return acts.reduce((s, a) => s + a.distance, 0) / 1000;
-  }
+  const getValue = useCallback(
+    (acts: Activity[]) =>
+      metric === "time"
+        ? acts.reduce((s, a) => s + a.moving_time, 0) / 3600
+        : acts.reduce((s, a) => s + a.distance, 0) / 1000,
+    [metric]
+  );
 
   const thresholds = useMemo(() => {
     const values: number[] = [];
@@ -95,7 +98,7 @@ export function CalendarHeatmap({ activities }: Props) {
     values.sort((a, b) => a - b);
     const p = (pct: number) => values[Math.floor(values.length * pct)] ?? 0;
     return [p(0.25), p(0.5), p(0.75), p(0.9)];
-  }, [months, dayMap, metric]);
+  }, [months, dayMap, getValue]);
 
   function getLevel(value: number): 0 | 1 | 2 | 3 | 4 {
     if (value === 0) return 0;

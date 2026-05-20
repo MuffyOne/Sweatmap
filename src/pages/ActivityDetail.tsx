@@ -60,8 +60,6 @@ export function ActivityDetail({ activity }: Props) {
   useEffect(() => {
     if (streams) return; // already cached
     let cancelled = false;
-    setLoading(true);
-    setError(null);
     fetchActivityStreams(activity.id)
       .then((s) => {
         if (!cancelled && s) {
