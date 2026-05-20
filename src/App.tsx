@@ -6,7 +6,6 @@ import {
   loadCache,
   isCacheFresh,
   fetchAndCache,
-  fetchNewActivities,
   syncAndCache,
   processPendingWebhookEvents,
   updateCachedActivities,
@@ -17,21 +16,12 @@ import {
 import { Dashboard, type Page } from "./Dashboard";
 import { WHATS_NEW_VERSION } from "./pages/WhatsNewPage";
 import {
-  HomeIcon, ZapIcon, ListIcon, LogOutIcon, SyncIcon,
+  HomeIcon, ZapIcon, ListIcon, LogOutIcon,
   FitnessIcon, TrophyIcon, SettingsIcon, ServicesIcon, XertIcon, ChevronLeftIcon, ChevronRightIcon,
   SunIcon, MoonIcon, SparkleIcon, MapIcon,
 } from "./lib/icons";
 import "./App.css";
 
-function formatTimeAgo(ts: number): string {
-  const s = Math.floor((Date.now() - ts) / 1000);
-  if (s < 60) return "just now";
-  const m = Math.floor(s / 60);
-  if (m < 60) return `${m}m ago`;
-  const h = Math.floor(m / 60);
-  if (h < 24) return `${h}h ago`;
-  return `${Math.floor(h / 24)}d ago`;
-}
 
 const NAV_ITEMS: { id: Page; label: string; Icon: () => React.ReactElement; condition?: () => boolean }[] = [
   { id: "home", label: "Home", Icon: HomeIcon },
@@ -98,16 +88,13 @@ function App() {
     document.documentElement.scrollTop = 0;
     document.body.scrollTop = 0;
   }, [page]);
-  const [syncing, setSyncing] = useState(false);
-  const [lastSynced, setLastSynced] = useState<number | null>(null);
-
   const [forceSyncing, setForceSyncing] = useState(false);
   const [whatsNewSeen, setWhatsNewSeen] = useState(
     () => localStorage.getItem("whats_new_seen") === WHATS_NEW_VERSION
   );
 
   async function handleForceSync() {
-    if (syncing || refreshing || forceSyncing) return;
+    if (refreshing || forceSyncing) return;
     // Clear computed performance caches so they recompute with fresh stream data
     ["30d", "90d"].forEach((r) => localStorage.removeItem(`power_curve_${r}`));
     localStorage.removeItem("power_curve_alltime");
@@ -123,7 +110,6 @@ function App() {
       setAthleteAvatar(athlete.profile_medium ?? "");
       setActivities(data);
       setKoms(komData);
-      setLastSynced(Date.now());
     } catch {
       // silently ignore — existing data stays intact
     } finally {
@@ -296,16 +282,6 @@ function App() {
         </div>
 
         <div className="sidebar-spacer" />
-
-        <button
-          className="sidebar-item"
-          onClick={handleSync}
-          disabled={syncing || refreshing}
-          title={lastSynced ? `Sync new activities · Last synced ${formatTimeAgo(lastSynced)}` : "Sync new activities only"}
-        >
-          <SyncIcon />
-          <span>{syncing ? "Syncing…" : "Sync"}</span>
-        </button>
 
         <button
           className="sidebar-item"
