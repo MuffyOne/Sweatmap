@@ -3,11 +3,13 @@ import {
   getAuthUrl,
   getStoredTokens,
   exchangeCode,
-  getCache,
+  loadCache,
   isCacheFresh,
   fetchAndCache,
   fetchNewActivities,
   syncAndCache,
+  processPendingWebhookEvents,
+  updateCachedActivities,
   logout,
   type Activity,
   type SegmentEffort,
@@ -17,7 +19,7 @@ import { WHATS_NEW_VERSION } from "./pages/WhatsNewPage";
 import {
   HomeIcon, ZapIcon, ListIcon, LogOutIcon, SyncIcon,
   FitnessIcon, TrophyIcon, SettingsIcon, ServicesIcon, XertIcon, ChevronLeftIcon, ChevronRightIcon,
-  SunIcon, MoonIcon, SparkleIcon,
+  SunIcon, MoonIcon, SparkleIcon, MapIcon,
 } from "./lib/icons";
 import "./App.css";
 
@@ -39,6 +41,7 @@ const NAV_ITEMS: { id: Page; label: string; Icon: () => React.ReactElement; cond
   { id: "records", label: "Records", Icon: TrophyIcon },
   { id: "xert", label: "XERT", Icon: XertIcon, condition: () => !!localStorage.getItem("xert_tokens") },
   { id: "services", label: "Services", Icon: ServicesIcon },
+  { id: "map", label: "Heatmap", Icon: MapIcon },
   { id: "settings", label: "Settings", Icon: SettingsIcon },
 ];
 
@@ -50,6 +53,7 @@ const PAGE_TITLES: Record<Page, string> = {
   activities: "Activities",
   xert: "XERT",
   services: "Services",
+  map: "Heatmap",
   settings: "Settings",
   whatsNew: "What's New",
 };
@@ -95,7 +99,7 @@ function App() {
     document.body.scrollTop = 0;
   }, [page]);
   const [syncing, setSyncing] = useState(false);
-  const [lastSynced, setLastSynced] = useState<number | null>(() => getCache()?.cachedAt ?? null);
+  const [lastSynced, setLastSynced] = useState<number | null>(null);
 
   const [forceSyncing, setForceSyncing] = useState(false);
   const [whatsNewSeen, setWhatsNewSeen] = useState(
@@ -178,14 +182,23 @@ function App() {
 
       setAuthenticated(true);
 
-      const cache = getCache();
+      const cache = await loadCache();
       if (cache) {
         setAthleteName(`${cache.athlete.firstname} ${cache.athlete.lastname}`);
         setAthleteAvatar(cache.athlete.profile_medium ?? "");
         setActivities(cache.activities);
         setKoms(cache.koms ?? []);
+        setLastSynced(cache.cachedAt);
         setLoading(false);
-        if (isCacheFresh(cache)) return;
+        if (isCacheFresh(cache)) {
+          // Apply any webhook events that arrived while the app was closed.
+          const updated = await processPendingWebhookEvents(cache.activities);
+          if (updated) {
+            setActivities(updated);
+            await updateCachedActivities(updated);
+          }
+          return;
+        }
         setRefreshing(true);
       }
 

@@ -1,3 +1,8 @@
+import { dbGet, dbSet, dbClear } from "./db";
+
+export type { Athlete, SegmentEffort, Activity, ActivityStreams } from "./strava.types";
+import type { Athlete, SegmentEffort, Activity, ActivityStreams } from "./strava.types";
+
 const CLIENT_ID = import.meta.env.VITE_STRAVA_CLIENT_ID;
 const REDIRECT_URI = import.meta.env.VITE_STRAVA_REDIRECT_URI;
 // Present in local dev only — calls Strava directly.
@@ -11,32 +16,65 @@ const API_BASE = import.meta.env.VITE_API_BASE ?? "";
 const API_PROXY_EXT = import.meta.env.VITE_API_PROXY_EXT ?? "";
 
 const TOKEN_KEY = "strava_tokens";
-const CACHE_KEY = "strava_cache";
+const LEGACY_CACHE_KEY = "strava_cache"; // kept only for one-time migration from localStorage
 const CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+const ALLTIME_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 
-export type { Athlete, SegmentEffort, Activity, ActivityStreams } from "./strava.types";
-import type { Athlete, SegmentEffort, Activity, ActivityStreams } from "./strava.types";
+// ── Cache types ──
 
-interface Cache {
+export interface Cache {
   activities: Activity[];
   athlete: Athlete;
   koms?: SegmentEffort[];
   cachedAt: number;
 }
 
-export function getCache(): Cache | null {
-  const raw = localStorage.getItem(CACHE_KEY);
+export interface AllTimeCache {
+  activities: Activity[];
+  cachedAt: number;
+}
+
+// ── IndexedDB cache ──
+
+export async function loadCache(): Promise<Cache | null> {
+  const idb = await dbGet<Cache>("cache");
+  if (idb) return idb;
+  // One-time migration from localStorage → IndexedDB
+  const raw = localStorage.getItem(LEGACY_CACHE_KEY);
   if (!raw) return null;
-  return JSON.parse(raw) as Cache;
+  const cache = JSON.parse(raw) as Cache;
+  await dbSet("cache", cache).catch(() => {});
+  localStorage.removeItem(LEGACY_CACHE_KEY);
+  return cache;
 }
 
 export function isCacheFresh(cache: Cache): boolean {
   return Date.now() - cache.cachedAt < CACHE_TTL_MS;
 }
 
-function setCache(data: Omit<Cache, "cachedAt">) {
-  localStorage.setItem(CACHE_KEY, JSON.stringify({ ...data, cachedAt: Date.now() }));
+async function saveCache(data: Omit<Cache, "cachedAt">): Promise<void> {
+  await dbSet("cache", { ...data, cachedAt: Date.now() });
 }
+
+export async function loadAllTimeCache(): Promise<AllTimeCache | null> {
+  return dbGet<AllTimeCache>("alltime_cache");
+}
+
+export function isAllTimeCacheFresh(cache: AllTimeCache): boolean {
+  return Date.now() - cache.cachedAt < ALLTIME_TTL_MS;
+}
+
+async function saveAllTimeCache(activities: Activity[]): Promise<void> {
+  await dbSet("alltime_cache", { activities, cachedAt: Date.now() });
+}
+
+// Applies a delta to the cached activities without a full re-fetch.
+export async function updateCachedActivities(activities: Activity[]): Promise<void> {
+  const cache = await loadCache();
+  if (cache) await saveCache({ ...cache, activities });
+}
+
+// ── Tokens (localStorage — small, auth-critical) ──
 
 interface Tokens {
   access_token: string;
@@ -59,11 +97,13 @@ function storeTokens(tokens: Tokens) {
   localStorage.setItem(TOKEN_KEY, JSON.stringify(tokens));
 }
 
-export function logout() {
+export async function logout() {
   localStorage.removeItem(TOKEN_KEY);
-  localStorage.removeItem(CACHE_KEY);
+  await dbClear().catch(() => {});
   window.location.href = "/";
 }
+
+// ── OAuth ──
 
 export async function exchangeCode(code: string): Promise<Tokens> {
   const res = CLIENT_SECRET
@@ -113,7 +153,6 @@ async function refreshTokens(refreshToken: string): Promise<Tokens> {
 async function getValidToken(): Promise<string> {
   let tokens = getStoredTokens();
   if (!tokens) throw new Error("Not authenticated");
-
   const now = Math.floor(Date.now() / 1000);
   if (tokens.expires_at < now + 60) {
     tokens = await refreshTokens(tokens.refresh_token);
@@ -121,12 +160,23 @@ async function getValidToken(): Promise<string> {
   return tokens.access_token;
 }
 
+// ── Strava API ──
+
 export async function fetchAthlete(): Promise<Athlete> {
   const token = await getValidToken();
   const res = await fetch("https://www.strava.com/api/v3/athlete", {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) throw new Error(`Strava API error: ${res.status}`);
+  return res.json();
+}
+
+export async function fetchActivity(activityId: number): Promise<Activity | null> {
+  const token = await getValidToken();
+  const res = await fetch(`https://www.strava.com/api/v3/activities/${activityId}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) return null;
   return res.json();
 }
 
@@ -153,6 +203,24 @@ export async function fetchAllActivities(onProgress?: (count: number) => void): 
     if (batch.length < 200) break;
     page++;
   }
+  return all;
+}
+
+// Fetches every activity ever (no date filter), throttled between pages.
+export async function fetchAndCacheAllTime(
+  onProgress?: (count: number) => void
+): Promise<Activity[]> {
+  const all: Activity[] = [];
+  let page = 1;
+  while (true) {
+    const batch = await fetchActivities(page, 200);
+    all.push(...batch);
+    onProgress?.(all.length);
+    if (batch.length < 200) break;
+    page++;
+    await new Promise((r) => setTimeout(r, 1100)); // throttle between pages
+  }
+  await saveAllTimeCache(all);
   return all;
 }
 
@@ -219,10 +287,14 @@ export async function fetchKOMs(athleteId: number): Promise<SegmentEffort[]> {
   return all;
 }
 
-export async function fetchAndCache(onProgress?: (count: number) => void): Promise<{ activities: Activity[]; athlete: Athlete; koms: SegmentEffort[] }> {
+// ── High-level cache operations ──
+
+export async function fetchAndCache(
+  onProgress?: (count: number) => void
+): Promise<{ activities: Activity[]; athlete: Athlete; koms: SegmentEffort[] }> {
   const athlete = await fetchAthlete();
   const [activities, koms] = await Promise.all([fetchAllActivities(onProgress), fetchKOMs(athlete.id)]);
-  setCache({ athlete, activities, koms });
+  await saveCache({ athlete, activities, koms });
   return { athlete, activities, koms };
 }
 
@@ -230,7 +302,6 @@ export async function fetchNewActivities(
   existing: Activity[],
   onProgress?: (count: number) => void
 ): Promise<Activity[]> {
-  // Fetch only activities newer than the most recent cached one
   const latestAt = existing.reduce((max, a) => {
     const t = Math.floor(new Date(a.start_date).getTime() / 1000);
     return t > max ? t : max;
@@ -249,27 +320,69 @@ export async function fetchNewActivities(
   const existingIds = new Set(existing.map((a) => a.id));
   const merged = [...newOnes.filter((a) => !existingIds.has(a.id)), ...existing];
 
-  const cache = getCache();
-  if (cache) setCache({ athlete: cache.athlete, activities: merged, koms: cache.koms });
+  const cache = await loadCache();
+  if (cache) await saveCache({ athlete: cache.athlete, activities: merged, koms: cache.koms });
 
   return merged;
 }
 
-// Force sync: re-fetches the last year of activities (picks up renames/deletions)
+// Force sync: re-fetches the last year (picks up renames/deletions)
 // and preserves any cached activities older than the 1-year window.
-export async function syncAndCache(onProgress?: (count: number) => void): Promise<{ activities: Activity[]; athlete: Athlete; koms: SegmentEffort[] }> {
+export async function syncAndCache(
+  onProgress?: (count: number) => void
+): Promise<{ activities: Activity[]; athlete: Athlete; koms: SegmentEffort[] }> {
   const oneYearAgoMs = Date.now() - 365 * 24 * 60 * 60 * 1000;
   const athlete = await fetchAthlete();
   const [freshActivities, koms] = await Promise.all([fetchAllActivities(onProgress), fetchKOMs(athlete.id)]);
 
-  // Preserve activities older than 1 year that aren't covered by the re-fetch
-  const cache = getCache();
-  const oldActivities = cache?.activities.filter(
-    (a) => new Date(a.start_date).getTime() < oneYearAgoMs
-  ) ?? [];
+  const cache = await loadCache();
+  const oldActivities =
+    cache?.activities.filter((a) => new Date(a.start_date).getTime() < oneYearAgoMs) ?? [];
   const freshIds = new Set(freshActivities.map((a) => a.id));
   const activities = [...freshActivities, ...oldActivities.filter((a) => !freshIds.has(a.id))];
 
-  setCache({ athlete, activities, koms });
+  await saveCache({ athlete, activities, koms });
   return { athlete, activities, koms };
+}
+
+// ── Webhook event processing ──
+
+interface WebhookEvent {
+  aspect_type: "create" | "update" | "delete";
+  object_id: number;
+  object_type: "activity" | "athlete";
+}
+
+// Called on app load to apply any Strava push events that arrived while offline.
+// Returns the updated activities array, or null if nothing changed / webhook not configured.
+export async function processPendingWebhookEvents(
+  existing: Activity[]
+): Promise<Activity[] | null> {
+  try {
+    const res = await fetch(`${API_BASE}/api/pending-events`);
+    if (!res.ok) return null;
+    const events: WebhookEvent[] = await res.json();
+    if (events.length === 0) return null;
+
+    let activities = [...existing];
+    for (const event of events) {
+      if (event.object_type !== "activity") continue;
+      if (event.aspect_type === "create" || event.aspect_type === "update") {
+        const updated = await fetchActivity(event.object_id);
+        if (updated) {
+          const idx = activities.findIndex((a) => a.id === event.object_id);
+          if (idx >= 0) activities[idx] = updated;
+          else activities = [updated, ...activities];
+        }
+      } else if (event.aspect_type === "delete") {
+        activities = activities.filter((a) => a.id !== event.object_id);
+      }
+    }
+
+    // Clear the processed events from the server queue
+    await fetch(`${API_BASE}/api/pending-events`, { method: "DELETE" });
+    return activities;
+  } catch {
+    return null; // webhook not configured — fail silently
+  }
 }

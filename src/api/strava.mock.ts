@@ -36,6 +36,47 @@ function normalish(mean: number, std: number): number {
 
 function clamp(v: number, lo: number, hi: number) { return Math.max(lo, Math.min(hi, v)); }
 
+// ── Polyline encoder (Google format) ──
+
+function encodeCoord(v: number): string {
+  let val = Math.round(v * 1e5);
+  val = val < 0 ? ~(val << 1) : val << 1;
+  let out = "";
+  while (val >= 0x20) {
+    out += String.fromCharCode(((0x20 | (val & 0x1f)) + 63));
+    val >>= 5;
+  }
+  out += String.fromCharCode(val + 63);
+  return out;
+}
+
+function generatePolyline(actId: number, distKm: number): string {
+  const r = mulberry32(actId * 7919);
+  const steps = Math.max(20, Math.round(distKm * 2));
+  // Pick a random starting location from a few known cycling cities
+  const bases: [number, number][] = [
+    [51.5, -0.1], [48.85, 2.35], [40.71, -74.0],
+    [37.77, -122.4], [45.52, -122.68], [52.37, 4.9],
+  ];
+  const base = bases[Math.floor(r() * bases.length)];
+  let lat = base[0];
+  let lng = base[1];
+  let encoded = "";
+  let prevLat = 0;
+  let prevLng = 0;
+  for (let i = 0; i < steps; i++) {
+    lat += (r() - 0.5) * 0.02;
+    lng += (r() - 0.5) * 0.025;
+    const iLat = Math.round(lat * 1e5);
+    const iLng = Math.round(lng * 1e5);
+    encoded += encodeCoord((iLat - prevLat) / 1e5);
+    encoded += encodeCoord((iLng - prevLng) / 1e5);
+    prevLat = iLat;
+    prevLng = iLng;
+  }
+  return encoded;
+}
+
 // ── Data generation ──
 
 const MOCK_ATHLETE: Athlete = {
@@ -110,8 +151,9 @@ function generateActivities(): Activity[] {
       const maxHR = Math.round(clamp(avgHR + randBetween(20, 40), 160, 200));
       const sportType = rand() < 0.08 ? "GravelRide" : rand() < 0.05 ? "VirtualRide" : "Ride";
 
+      const rideId = id++;
       act = {
-        id: id++,
+        id: rideId,
         name: pick(RIDE_NAMES),
         type: sportType === "VirtualRide" ? "VirtualRide" : "Ride",
         sport_type: sportType,
@@ -132,6 +174,7 @@ function generateActivities(): Activity[] {
         pr_count: rand() < 0.3 ? randInt(1, 4) : 0,
         achievement_count: rand() < 0.4 ? randInt(1, 6) : 0,
         average_temp: temp,
+        map: sportType !== "VirtualRide" ? { summary_polyline: generatePolyline(rideId, distKm) } : undefined,
       };
     } else {
       // Running
@@ -146,8 +189,9 @@ function generateActivities(): Activity[] {
       const maxHR = Math.round(clamp(avgHR + randBetween(15, 35), 165, 200));
       const sportType = rand() < 0.1 ? "TrailRun" : "Run";
 
+      const runId = id++;
       act = {
-        id: id++,
+        id: runId,
         name: distKm > 15 ? "Long Run" : pick(RUN_NAMES),
         type: "Run",
         sport_type: sportType,
@@ -166,6 +210,7 @@ function generateActivities(): Activity[] {
         pr_count: rand() < 0.25 ? randInt(1, 3) : 0,
         achievement_count: rand() < 0.35 ? randInt(1, 4) : 0,
         average_temp: temp,
+        map: { summary_polyline: generatePolyline(runId, distKm) },
       };
     }
 
@@ -268,13 +313,14 @@ export async function exchangeCode(_code: string) {
   localStorage.setItem(TOKEN_KEY, JSON.stringify(getStoredTokens()));
 }
 
-export function logout() {
+export async function logout() {
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(CACHE_KEY);
   window.location.href = "/";
 }
 
-export function getCache(): Cache | null {
+// loadCache mirrors strava.ts but uses localStorage (mock doesn't need IndexedDB).
+export async function loadCache(): Promise<Cache | null> {
   const raw = localStorage.getItem(CACHE_KEY);
   if (!raw) return null;
   return JSON.parse(raw) as Cache;
@@ -284,20 +330,47 @@ export function isCacheFresh(cache: Cache): boolean {
   return Date.now() - cache.cachedAt < 7 * 24 * 60 * 60 * 1000;
 }
 
+export async function loadAllTimeCache(): Promise<{ activities: Activity[]; cachedAt: number } | null> {
+  return null; // mock: always show the prompt so the full UX is testable
+}
+
+export function isAllTimeCacheFresh(cache: { cachedAt: number }): boolean {
+  return Date.now() - cache.cachedAt < 30 * 24 * 60 * 60 * 1000;
+}
+
+export async function fetchAndCacheAllTime(
+  onProgress?: (count: number) => void
+): Promise<Activity[]> {
+  await new Promise((r) => setTimeout(r, 800));
+  const acts = generateActivities();
+  onProgress?.(acts.length);
+  return acts;
+}
+
+export async function fetchActivity(activityId: number): Promise<Activity | null> {
+  const acts = generateActivities();
+  return acts.find((a) => a.id === activityId) ?? null;
+}
+
+export async function processPendingWebhookEvents(_existing: Activity[]): Promise<Activity[] | null> {
+  return null; // no webhook in mock mode
+}
+
+export async function updateCachedActivities(_activities: Activity[]): Promise<void> {
+  // no-op in mock
+}
+
 export async function fetchAndCache(
   onProgress?: (count: number) => void
 ): Promise<{ activities: Activity[]; athlete: Athlete; koms: SegmentEffort[] }> {
-  // Simulate a brief loading delay
   await new Promise((r) => setTimeout(r, 300));
   const activities = generateActivities();
   onProgress?.(activities.length);
   const koms = generateKoms(activities);
-
   localStorage.setItem(
     CACHE_KEY,
     JSON.stringify({ activities, athlete: MOCK_ATHLETE, koms, cachedAt: Date.now() })
   );
-
   return { activities, athlete: MOCK_ATHLETE, koms };
 }
 
