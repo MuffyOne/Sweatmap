@@ -151,7 +151,6 @@ function App() {
         setAthleteAvatar(cache.athlete.profile_medium ?? "");
         setActivities(cache.activities);
         setKoms(cache.koms ?? []);
-        setLastSynced(cache.cachedAt);
         setLoading(false);
         if (isCacheFresh(cache)) {
           // Apply any webhook events that arrived while the app was closed.
@@ -171,7 +170,6 @@ function App() {
         setAthleteAvatar(athlete.profile_medium ?? "");
         setActivities(data);
         setKoms(komData);
-        setLastSynced(Date.now());
       } catch (e) {
         if (!cache) setError(`Failed to fetch activities: ${e}`);
       } finally {
