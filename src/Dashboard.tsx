@@ -13,8 +13,9 @@ const ZoneDistribution = React.lazy(() => import("./pages/performance/ZoneDistri
 const HRZoneDistribution = React.lazy(() => import("./pages/performance/HRZoneDistribution").then(m => ({ default: m.HRZoneDistribution })));
 const TempPerformance = React.lazy(() => import("./pages/performance/TempPerformance").then(m => ({ default: m.TempPerformance })));
 const WhatsNewPage = React.lazy(() => import("./pages/WhatsNewPage").then(m => ({ default: m.WhatsNewPage })));
+const MapPage = React.lazy(() => import("./pages/MapPage").then(m => ({ default: m.MapPage })));
 
-export type Page = "home" | "performance" | "activities" | "settings" | "fitness" | "records" | "services" | "xert" | "whatsNew";
+export type Page = "home" | "performance" | "activities" | "settings" | "fitness" | "records" | "services" | "xert" | "whatsNew" | "map";
 
 interface Props {
   activities: Activity[];
@@ -45,6 +46,7 @@ function PageContent({ activities, koms, page, onNavigate, onForceSync, forceSyn
     case "services":    return <ServicesPage onXertChange={onXertChange} />;
     case "xert":        return <XertPage />;
     case "whatsNew":    return <WhatsNewPage onNavigate={onNavigate} />;
+    case "map":         return <MapPage activities={activities} />;
   }
 }
 

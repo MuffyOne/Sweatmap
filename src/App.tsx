@@ -17,7 +17,7 @@ import { WHATS_NEW_VERSION } from "./pages/WhatsNewPage";
 import {
   HomeIcon, ZapIcon, ListIcon, LogOutIcon, SyncIcon,
   FitnessIcon, TrophyIcon, SettingsIcon, ServicesIcon, XertIcon, ChevronLeftIcon, ChevronRightIcon,
-  SunIcon, MoonIcon, SparkleIcon,
+  SunIcon, MoonIcon, SparkleIcon, MapIcon,
 } from "./lib/icons";
 import "./App.css";
 
@@ -39,6 +39,7 @@ const NAV_ITEMS: { id: Page; label: string; Icon: () => React.ReactElement; cond
   { id: "records", label: "Records", Icon: TrophyIcon },
   { id: "xert", label: "XERT", Icon: XertIcon, condition: () => !!localStorage.getItem("xert_tokens") },
   { id: "services", label: "Services", Icon: ServicesIcon },
+  { id: "map", label: "Heatmap", Icon: MapIcon },
   { id: "settings", label: "Settings", Icon: SettingsIcon },
 ];
 
@@ -52,6 +53,7 @@ const PAGE_TITLES: Record<Page, string> = {
   services: "Services",
   settings: "Settings",
   whatsNew: "What's New",
+  map: "Heatmap",
 };
 
 function App() {

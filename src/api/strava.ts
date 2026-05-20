@@ -14,6 +14,9 @@ const TOKEN_KEY = "strava_tokens";
 const CACHE_KEY = "strava_cache";
 const CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
+const ALLTIME_CACHE_KEY = "strava_alltime_cache";
+const ALLTIME_CACHE_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
+
 export type { Athlete, SegmentEffort, Activity, ActivityStreams } from "./strava.types";
 import type { Athlete, SegmentEffort, Activity, ActivityStreams } from "./strava.types";
 
@@ -36,6 +39,26 @@ export function isCacheFresh(cache: Cache): boolean {
 
 function setCache(data: Omit<Cache, "cachedAt">) {
   localStorage.setItem(CACHE_KEY, JSON.stringify({ ...data, cachedAt: Date.now() }));
+}
+
+interface AllTimeCache {
+  activities: Activity[];
+  cachedAt: number;
+}
+
+export function getAllTimeCache(): AllTimeCache | null {
+  const raw = localStorage.getItem(ALLTIME_CACHE_KEY);
+  if (!raw) return null;
+  return JSON.parse(raw) as AllTimeCache;
+}
+
+export function isAllTimeCacheFresh(): boolean {
+  const cache = getAllTimeCache();
+  return !!cache && Date.now() - cache.cachedAt < ALLTIME_CACHE_TTL_MS;
+}
+
+function saveAllTimeCache(activities: Activity[]) {
+  localStorage.setItem(ALLTIME_CACHE_KEY, JSON.stringify({ activities, cachedAt: Date.now() }));
 }
 
 interface Tokens {
@@ -62,6 +85,7 @@ function storeTokens(tokens: Tokens) {
 export function logout() {
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(CACHE_KEY);
+  localStorage.removeItem(ALLTIME_CACHE_KEY);
   window.location.href = "/";
 }
 
@@ -253,6 +277,26 @@ export async function fetchNewActivities(
   if (cache) setCache({ athlete: cache.athlete, activities: merged, koms: cache.koms });
 
   return merged;
+}
+
+// Fetches every activity ever recorded (no date filter), throttled between pages.
+// Strava allows 100 requests / 15 min; each page is 1 request.
+// At 1.1 s/page, 100 pages (20 000 activities) stays well within limits.
+export async function fetchAndCacheAllTime(
+  onProgress?: (count: number) => void
+): Promise<Activity[]> {
+  const all: Activity[] = [];
+  let page = 1;
+  while (true) {
+    const batch = await fetchActivities(page, 200); // no `after` → all time
+    all.push(...batch);
+    onProgress?.(all.length);
+    if (batch.length < 200) break;
+    page++;
+    await new Promise((r) => setTimeout(r, 1100)); // throttle between pages
+  }
+  saveAllTimeCache(all);
+  return all;
 }
 
 // Force sync: re-fetches the last year of activities (picks up renames/deletions)

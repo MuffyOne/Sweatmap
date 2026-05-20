@@ -54,4 +54,5 @@ export interface Activity {
   pr_count?: number;
   achievement_count?: number;
   average_temp?: number;
+  map?: { summary_polyline: string };
 }

@@ -36,6 +36,52 @@ function normalish(mean: number, std: number): number {
 
 function clamp(v: number, lo: number, hi: number) { return Math.max(lo, Math.min(hi, v)); }
 
+// ── Polyline encoding ──
+
+function encodePolylineValue(v: number): string {
+  v = v < 0 ? ~(v << 1) : v << 1;
+  let out = "";
+  while (v >= 0x20) {
+    out += String.fromCharCode((0x20 | (v & 0x1f)) + 63);
+    v >>= 5;
+  }
+  return out + String.fromCharCode(v + 63);
+}
+
+function encodePolyline(coords: [number, number][]): string {
+  let out = "", prevLat = 0, prevLng = 0;
+  for (const [lat, lng] of coords) {
+    const iLat = Math.round(lat * 1e5);
+    const iLng = Math.round(lng * 1e5);
+    out += encodePolylineValue(iLat - prevLat) + encodePolylineValue(iLng - prevLng);
+    prevLat = iLat;
+    prevLng = iLng;
+  }
+  return out;
+}
+
+// Generates a fake loop route near Paris, seeded per activity ID (independent of global rand).
+function generatePolyline(actId: number, distKm: number): string {
+  const rng = mulberry32(actId * 7919);
+  const centerLat = 48.8566 + (rng() - 0.5) * 0.3;
+  const centerLng = 2.3522 + (rng() - 0.5) * 0.5;
+  const radiusLat = (distKm / (2 * Math.PI)) / 111;
+  const radiusLng = radiusLat / Math.cos(centerLat * (Math.PI / 180));
+  const numPoints = Math.min(Math.max(20, Math.round(distKm * 0.8)), 100);
+  const rotation = rng() * Math.PI * 2;
+  const axisRatio = 0.4 + rng() * 0.9;
+  const coords: [number, number][] = [];
+  for (let i = 0; i <= numPoints; i++) {
+    const angle = (i / numPoints) * 2 * Math.PI;
+    const noise = radiusLat * 0.1;
+    coords.push([
+      centerLat + axisRatio * radiusLat * Math.cos(angle + rotation) + (rng() - 0.5) * noise,
+      centerLng + radiusLng * Math.sin(angle) + (rng() - 0.5) * noise * 1.5,
+    ]);
+  }
+  return encodePolyline(coords);
+}
+
 // ── Data generation ──
 
 const MOCK_ATHLETE: Athlete = {
@@ -96,6 +142,8 @@ function generateActivities(): Activity[] {
 
     let act: Activity;
 
+    const actId = id++;
+
     if (isRide) {
       const distKm = clamp(normalish(60, 25), 10, 180);
       const distM = distKm * 1000;
@@ -111,7 +159,7 @@ function generateActivities(): Activity[] {
       const sportType = rand() < 0.08 ? "GravelRide" : rand() < 0.05 ? "VirtualRide" : "Ride";
 
       act = {
-        id: id++,
+        id: actId,
         name: pick(RIDE_NAMES),
         type: sportType === "VirtualRide" ? "VirtualRide" : "Ride",
         sport_type: sportType,
@@ -132,6 +180,7 @@ function generateActivities(): Activity[] {
         pr_count: rand() < 0.3 ? randInt(1, 4) : 0,
         achievement_count: rand() < 0.4 ? randInt(1, 6) : 0,
         average_temp: temp,
+        map: { summary_polyline: generatePolyline(actId, distKm) },
       };
     } else {
       // Running
@@ -147,7 +196,7 @@ function generateActivities(): Activity[] {
       const sportType = rand() < 0.1 ? "TrailRun" : "Run";
 
       act = {
-        id: id++,
+        id: actId,
         name: distKm > 15 ? "Long Run" : pick(RUN_NAMES),
         type: "Run",
         sport_type: sportType,
@@ -166,6 +215,7 @@ function generateActivities(): Activity[] {
         pr_count: rand() < 0.25 ? randInt(1, 3) : 0,
         achievement_count: rand() < 0.35 ? randInt(1, 4) : 0,
         average_temp: temp,
+        map: { summary_polyline: generatePolyline(actId, distKm) },
       };
     }
 
@@ -313,6 +363,24 @@ export async function syncAndCache(
   onProgress?: (count: number) => void
 ): Promise<{ activities: Activity[]; athlete: Athlete; koms: SegmentEffort[] }> {
   return fetchAndCache(onProgress);
+}
+
+export function getAllTimeCache(): { activities: Activity[]; cachedAt: number } | null {
+  return null; // mock: no persistent all-time cache — always show the prompt so the UX is testable
+}
+
+export function isAllTimeCacheFresh(): boolean {
+  return false;
+}
+
+export async function fetchAndCacheAllTime(
+  onProgress?: (count: number) => void
+): Promise<Activity[]> {
+  // Simulate a short fetch delay for realism
+  await new Promise((r) => setTimeout(r, 800));
+  const acts = generateActivities();
+  onProgress?.(acts.length);
+  return acts;
 }
 
 export async function fetchActivityWatts(activityId: number): Promise<number[] | null> {
