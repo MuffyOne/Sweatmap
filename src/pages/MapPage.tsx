@@ -156,7 +156,7 @@ export function MapPage({ activities }: Props) {
     [renderMode]
   );
 
-  const showAllTimePrompt = range === "all" && !allTimeFetched && !allTimeDeclined;
+  const showAllTimePrompt = range === "all" && !allTimeFetched && !allTimeDeclined && !allTimeFetching;
 
   return (
     <div className={styles.page}>
