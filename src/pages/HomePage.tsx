@@ -321,16 +321,25 @@ export function HomePage({ activities }: Props) {
               <>
                 <div className="stats-filter-backdrop" onClick={() => setStatsMenuOpen(false)} />
                 <div className="stats-filter-menu">
-                  {ALL_STATS.map((s) => (
-                    <label key={s.id} className="stats-filter-item">
-                      <input
-                        type="checkbox"
-                        checked={enabledStats.has(s.id)}
-                        onChange={() => toggleStat(s.id)}
-                      />
-                      {s.label}
-                    </label>
-                  ))}
+                  {ALL_STATS.map((s) => {
+                    const isGoalUnset =
+                      (s.id === "weeklygoal" && !weeklyGoalKm) ||
+                      (s.id === "yearlygoal" && !yearlyGoalKm);
+                    return (
+                      <label
+                        key={s.id}
+                        className={`stats-filter-item${isGoalUnset ? " stats-filter-item--disabled" : ""}`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={enabledStats.has(s.id)}
+                          onChange={() => toggleStat(s.id)}
+                          disabled={isGoalUnset}
+                        />
+                        {s.label}
+                      </label>
+                    );
+                  })}
                 </div>
               </>
             )}

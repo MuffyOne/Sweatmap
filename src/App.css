@@ -577,6 +577,12 @@ body {
   cursor: pointer;
 }
 
+.stats-filter-item--disabled {
+  opacity: 0.38;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 /* ── Stat cards ── */
 .stats-grid {
   display: grid;
