@@ -7,25 +7,11 @@ interface Props {
   extra?: ReactNode;
 }
 
-const STORAGE_PREFIX = "section_collapsed_";
-
-function getKey(title: string) {
-  return STORAGE_PREFIX + title.toLowerCase().replace(/[^a-z0-9]+/g, "_");
-}
-
 export function CollapsibleSection({ title, children, defaultOpen = true, extra }: Props) {
-  const [open, setOpen] = useState(() => {
-    const stored = localStorage.getItem(getKey(title));
-    if (stored !== null) return stored === "1";
-    return defaultOpen;
-  });
+  const [open, setOpen] = useState(defaultOpen);
 
   function toggle() {
-    setOpen((prev) => {
-      const next = !prev;
-      localStorage.setItem(getKey(title), next ? "1" : "0");
-      return next;
-    });
+    setOpen((prev) => !prev);
   }
 
   return (

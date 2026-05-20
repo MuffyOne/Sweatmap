@@ -30,7 +30,7 @@ interface Props {
 
 function PageContent({ activities, koms, page, onNavigate, onForceSync, forceSyncing, fetchedCount, onXertChange }: Props) {
   switch (page) {
-    case "home":        return <HomePage activities={activities} onNavigate={onNavigate} />;
+    case "home":        return <HomePage activities={activities} />;
     case "activities":  return <ActivitiesPage activities={activities} />;
     case "fitness":     return <FitnessChart activities={activities} />;
     case "records":     return <RecordsPage activities={activities} koms={koms} />;

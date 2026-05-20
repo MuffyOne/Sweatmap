@@ -19,7 +19,6 @@ import {
   getDaysInYear,
 } from "date-fns";
 import type { Activity } from "../api/strava";
-import type { Page } from "../Dashboard";
 import { formatDuration, formatDistance, TOOLTIP_STYLE } from "../lib/utils";
 import { CalendarHeatmap } from "./CalendarHeatmap";
 import { CollapsibleSection } from "../lib/CollapsibleSection";
@@ -134,10 +133,9 @@ function DeltaBadge({ current, previous }: { current: number; previous: number }
 
 interface Props {
   activities: Activity[];
-  onNavigate: (page: Page) => void;
 }
 
-export function HomePage({ activities, onNavigate }: Props) {
+export function HomePage({ activities }: Props) {
   const [period, setPeriod] = useState<Period>("week");
   const [enabledStats, setEnabledStats] = useState<Set<StatId>>(getDefaultStats);
   const [statsMenuOpen, setStatsMenuOpen] = useState(false);
@@ -343,8 +341,7 @@ export function HomePage({ activities, onNavigate }: Props) {
           <div className={`stats-grid ${styles.statsGridSpaced}`}>
             {enabledStats.has("weeklygoal") && weeklyGoalData && (
               <div
-                className="stat-card goal-card stat-card--clickable"
-                onClick={() => onNavigate("settings")}
+                className="stat-card goal-card"
               >
                 <div className="stat-card-header">
                   <span className="label">Weekly Goal</span>
@@ -372,8 +369,7 @@ export function HomePage({ activities, onNavigate }: Props) {
             )}
             {enabledStats.has("yearlygoal") && yearlyGoalData && (
               <div
-                className="stat-card goal-card stat-card--clickable"
-                onClick={() => onNavigate("settings")}
+                className="stat-card goal-card"
               >
                 <div className="stat-card-header">
                   <span className="label">Yearly Goal</span>
@@ -405,8 +401,7 @@ export function HomePage({ activities, onNavigate }: Props) {
         <div className="stats-grid">
           {enabledStats.has("count") && (
             <div
-              className="stat-card stat-card--clickable"
-              onClick={() => onNavigate("activities")}
+              className="stat-card"
             >
               <div className="stat-card-header">
                 <span className="label">Activities</span>
@@ -417,8 +412,7 @@ export function HomePage({ activities, onNavigate }: Props) {
           )}
           {enabledStats.has("distance") && (
             <div
-              className="stat-card stat-card--clickable"
-              onClick={() => onNavigate("activities")}
+              className="stat-card"
             >
               <div className="stat-card-header">
                 <span className="label">Distance</span>
@@ -432,8 +426,7 @@ export function HomePage({ activities, onNavigate }: Props) {
           )}
           {enabledStats.has("time") && (
             <div
-              className="stat-card stat-card--clickable"
-              onClick={() => onNavigate("activities")}
+              className="stat-card"
             >
               <div className="stat-card-header">
                 <span className="label">Moving Time</span>
@@ -444,8 +437,7 @@ export function HomePage({ activities, onNavigate }: Props) {
           )}
           {enabledStats.has("elevation") && (
             <div
-              className="stat-card stat-card--clickable"
-              onClick={() => onNavigate("activities")}
+              className="stat-card"
             >
               <div className="stat-card-header">
                 <span className="label">Elevation</span>
@@ -459,8 +451,7 @@ export function HomePage({ activities, onNavigate }: Props) {
           )}
           {enabledStats.has("heartrate") && stats.avgHeartrate && (
             <div
-              className="stat-card stat-card--clickable"
-              onClick={() => onNavigate("performance")}
+              className="stat-card"
             >
               <div className="stat-card-header">
                 <span className="label">Avg Heart Rate</span>
@@ -474,8 +465,7 @@ export function HomePage({ activities, onNavigate }: Props) {
           )}
           {enabledStats.has("watts") && stats.avgWatts && (
             <div
-              className="stat-card stat-card--clickable"
-              onClick={() => onNavigate("performance")}
+              className="stat-card"
             >
               <div className="stat-card-header">
                 <span className="label">Avg Power</span>
@@ -489,8 +479,7 @@ export function HomePage({ activities, onNavigate }: Props) {
           )}
           {enabledStats.has("maxwatts") && stats.maxWatts && (
             <div
-              className="stat-card stat-card--clickable"
-              onClick={() => onNavigate("performance")}
+              className="stat-card"
             >
               <div className="stat-card-header">
                 <span className="label">Peak Power</span>
@@ -503,7 +492,7 @@ export function HomePage({ activities, onNavigate }: Props) {
             </div>
           )}
           {enabledStats.has("prcount") && (
-            <div className="stat-card stat-card--clickable" onClick={() => onNavigate("records")}>
+            <div className="stat-card">
               <div className="stat-card-header">
                 <span className="label">PRs</span>
                 <DeltaBadge current={stats.totalPRs} previous={prevStats.totalPRs} />
@@ -512,7 +501,7 @@ export function HomePage({ activities, onNavigate }: Props) {
             </div>
           )}
           {enabledStats.has("achievements") && (
-            <div className="stat-card stat-card--clickable" onClick={() => onNavigate("records")}>
+            <div className="stat-card">
               <div className="stat-card-header">
                 <span className="label">Achievements</span>
                 <DeltaBadge
