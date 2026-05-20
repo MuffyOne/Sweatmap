@@ -117,29 +117,6 @@ function App() {
     }
   }
 
-  async function handleSync() {
-    if (syncing || refreshing) return;
-    setSyncing(true);
-    setFetchedCount(0);
-    try {
-      if (activities.length === 0) {
-        const { athlete, activities: data, koms: komData } = await fetchAndCache(setFetchedCount);
-        setAthleteName(`${athlete.firstname} ${athlete.lastname}`);
-        setAthleteAvatar(athlete.profile_medium ?? "");
-        setActivities(data);
-        setKoms(komData);
-      } else {
-        const merged = await fetchNewActivities(activities, setFetchedCount);
-        setActivities(merged);
-      }
-      setLastSynced(Date.now());
-    } catch {
-      // silently ignore — existing data stays intact
-    } finally {
-      setSyncing(false);
-    }
-  }
-
   useEffect(() => {
     async function init() {
       const params = new URLSearchParams(window.location.search);
