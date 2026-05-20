@@ -6,7 +6,6 @@ import {
   loadCache,
   isCacheFresh,
   fetchAndCache,
-  fetchNewActivities,
   syncAndCache,
   processPendingWebhookEvents,
   updateCachedActivities,
@@ -17,7 +16,7 @@ import {
 import { Dashboard, type Page } from "./Dashboard";
 import { WHATS_NEW_VERSION } from "./pages/WhatsNewPage";
 import {
-  HomeIcon, ZapIcon, ListIcon, LogOutIcon, SyncIcon,
+  HomeIcon, ZapIcon, ListIcon, LogOutIcon,
   FitnessIcon, TrophyIcon, SettingsIcon, ServicesIcon, XertIcon, ChevronLeftIcon, ChevronRightIcon,
   SunIcon, MoonIcon, SparkleIcon, MapIcon,
 } from "./lib/icons";
@@ -296,16 +295,6 @@ function App() {
         </div>
 
         <div className="sidebar-spacer" />
-
-        <button
-          className="sidebar-item"
-          onClick={handleSync}
-          disabled={syncing || refreshing}
-          title={lastSynced ? `Sync new activities · Last synced ${formatTimeAgo(lastSynced)}` : "Sync new activities only"}
-        >
-          <SyncIcon />
-          <span>{syncing ? "Syncing…" : "Sync"}</span>
-        </button>
 
         <button
           className="sidebar-item"
