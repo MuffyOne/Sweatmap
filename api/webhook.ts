@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { kv } from "@vercel/kv";
+import { Redis } from "@upstash/redis";
 
 // Strava pushes activity events here.
 // GET  — subscription verification handshake (one-time, during webhook-setup)
@@ -35,15 +35,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (event.object_type !== "activity") return;
 
     try {
-      await kv.rpush("webhook_events", JSON.stringify({
+      const redis = Redis.fromEnv();
+      await redis.rpush("webhook_events", JSON.stringify({
         aspect_type: event.aspect_type,
         object_id: event.object_id,
         object_type: event.object_type,
       }));
       // Keep the queue bounded to the last 500 events.
-      await kv.ltrim("webhook_events", -500, -1);
+      await redis.ltrim("webhook_events", -500, -1);
     } catch {
-      // KV not configured — silently ignore.
+      // Redis not configured — silently ignore.
     }
     return;
   }
