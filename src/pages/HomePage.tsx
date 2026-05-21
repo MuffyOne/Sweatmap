@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
+import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import {
   startOfWeek,
   endOfWeek,
@@ -17,8 +17,6 @@ import {
   differenceInDays,
   getDayOfYear,
   getDaysInYear,
-  addDays,
-  getDaysInMonth,
 } from "date-fns";
 import type { Activity } from "../api/strava";
 import { formatDuration, formatDistance, TOOLTIP_STYLE } from "../lib/utils";
@@ -123,7 +121,7 @@ type TrendMetric = "distance" | "elevation";
 
 interface TrendPoint { label: string; distance: number; elevation: number }
 
-function TrendChart({ data, period }: { data: TrendPoint[]; period: Period }) {
+function TrendChart({ data }: { data: TrendPoint[] }) {
   const [metric, setMetric] = useState<TrendMetric>("distance");
   const isDistance = metric === "distance";
   const color = isDistance ? "#fc4c02" : "#60a5fa";
@@ -141,12 +139,18 @@ function TrendChart({ data, period }: { data: TrendPoint[]; period: Period }) {
         />
       </div>
       <ResponsiveContainer width="100%" height={200}>
-        <LineChart data={data} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+        <AreaChart data={data} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+          <defs>
+            <linearGradient id="trendFill" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor={color} stopOpacity={0.3} />
+              <stop offset="95%" stopColor={color} stopOpacity={0.02} />
+            </linearGradient>
+          </defs>
           <CartesianGrid strokeDasharray="3 3" stroke="var(--grid-stroke)" />
           <XAxis
             dataKey="label"
             tick={{ fill: "var(--tick-color)", fontSize: 11 }}
-            interval={period === "month" || period === "last30" ? 4 : 0}
+            interval={data.length > 20 ? Math.ceil(data.length / 10) - 1 : 0}
           />
           <YAxis
             tick={{ fill: "var(--tick-color)", fontSize: 11 }}
@@ -157,15 +161,16 @@ function TrendChart({ data, period }: { data: TrendPoint[]; period: Period }) {
             contentStyle={TOOLTIP_STYLE}
             formatter={(value) => [`${value} ${unit}`, label]}
           />
-          <Line
-            type="monotone"
+          <Area
+            type="stepAfter"
             dataKey={metric}
             stroke={color}
             strokeWidth={2}
+            fill="url(#trendFill)"
             dot={false}
             activeDot={{ r: 4 }}
           />
-        </LineChart>
+        </AreaChart>
       </ResponsiveContainer>
     </div>
   );
@@ -351,68 +356,18 @@ export function HomePage({ activities }: Props) {
   }, [activities]);
 
   const trendData = useMemo(() => {
-    const now = new Date();
-
-    function bucket(day: Date) {
-      const dayStr = format(day, "yyyy-MM-dd");
-      const acts = activities.filter(
-        (a) => format(parseISO(a.start_date_local), "yyyy-MM-dd") === dayStr
-      );
-      return {
-        distance: Math.round(acts.reduce((s, a) => s + a.distance / 1000, 0) * 10) / 10,
-        elevation: Math.round(acts.reduce((s, a) => s + a.total_elevation_gain, 0)),
-      };
-    }
-
-    function cumulate(pts: { label: string; distance: number; elevation: number }[]) {
-      let d = 0, e = 0;
-      return pts.map((p) => {
-        d += p.distance;
-        e += p.elevation;
-        return { label: p.label, distance: Math.round(d * 10) / 10, elevation: e };
-      });
-    }
-
-    if (period === "week") {
-      const { start } = getInterval(period);
-      return cumulate(Array.from({ length: 7 }, (_, i) => {
-        const day = addDays(start, i);
-        return { label: format(day, "EEE"), ...bucket(day) };
-      }));
-    }
-    if (period === "last7") {
-      return cumulate(Array.from({ length: 7 }, (_, i) => {
-        const day = addDays(subDays(now, 6), i);
-        return { label: format(day, "EEE d"), ...bucket(day) };
-      }));
-    }
-    if (period === "month") {
-      const start = startOfMonth(now);
-      return cumulate(Array.from({ length: getDaysInMonth(now) }, (_, i) => {
-        const day = addDays(start, i);
-        return { label: format(day, "d"), ...bucket(day) };
-      }));
-    }
-    if (period === "last30") {
-      return cumulate(Array.from({ length: 30 }, (_, i) => {
-        const day = addDays(subDays(now, 29), i);
-        return { label: format(day, "d MMM"), ...bucket(day) };
-      }));
-    }
-    // year: monthly buckets
-    return cumulate(Array.from({ length: 12 }, (_, i) => {
-      const monthStart = new Date(now.getFullYear(), i, 1);
-      const acts = activities.filter((a) => {
-        const d = parseISO(a.start_date_local);
-        return d.getFullYear() === now.getFullYear() && d.getMonth() === i;
-      });
-      return {
-        label: format(monthStart, "MMM"),
-        distance: Math.round(acts.reduce((s, a) => s + a.distance / 1000, 0) * 10) / 10,
-        elevation: Math.round(acts.reduce((s, a) => s + a.total_elevation_gain, 0)),
-      };
-    }));
-  }, [activities, period]);
+    const sorted = [...filtered].sort(
+      (a, b) => parseISO(a.start_date_local).getTime() - parseISO(b.start_date_local).getTime()
+    );
+    const labelFmt = period === "week" || period === "last7" ? "EEE d" : "d MMM";
+    return sorted.reduce<{ label: string; distance: number; elevation: number }[]>((acc, a) => {
+      const prev = acc[acc.length - 1];
+      const distSum = Math.round(((prev?.distance ?? 0) + a.distance / 1000) * 10) / 10;
+      const elevSum = Math.round((prev?.elevation ?? 0) + a.total_elevation_gain);
+      acc.push({ label: format(parseISO(a.start_date_local), labelFmt), distance: distSum, elevation: elevSum });
+      return acc;
+    }, []);
+  }, [filtered, period]);
 
   const periodToggle = (
     <PeriodToggle
@@ -663,7 +618,7 @@ export function HomePage({ activities }: Props) {
             ))}
           </div>
         )}
-        <TrendChart data={trendData} period={period} />
+        <TrendChart data={trendData} />
       </CollapsibleSection>
 
       <CollapsibleSection title="Weekly Distance">

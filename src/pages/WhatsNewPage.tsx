@@ -3,7 +3,7 @@ import styles from "./WhatsNewPage.module.css";
 
 // Bump this string whenever new entries are added — any user who hasn't seen
 // the current version will get the highlight dot on the sidebar button.
-export const WHATS_NEW_VERSION = "2026-05-20-heatmap-cache";
+export const WHATS_NEW_VERSION = "2026-05-21-trend-chart";
 
 interface Entry {
   tag: string;
@@ -17,6 +17,16 @@ interface DateGroup {
 }
 
 const GROUPS: DateGroup[] = [
+  {
+    date: "21 May 2026",
+    entries: [
+      {
+        tag: "Home",
+        title: "Cumulative distance & elevation chart",
+        body: "A new chart in the Stats section shows your running total of distance or elevation over the selected period. Each point on the line is the sum of all activity up to that day, so you can see at a glance how your week, month, or year is building up. Toggle between Distance and Elevation using the selector above the chart.",
+      },
+    ],
+  },
   {
     date: "20 May 2026",
     entries: [
