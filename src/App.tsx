@@ -6,6 +6,7 @@ import {
   loadCache,
   isCacheFresh,
   fetchAndCache,
+  fetchNewActivities,
   syncAndCache,
   processPendingWebhookEvents,
   updateCachedActivities,
@@ -153,11 +154,24 @@ function App() {
         setKoms(cache.koms ?? []);
         setLoading(false);
         if (isCacheFresh(cache)) {
-          // Apply any webhook events that arrived while the app was closed.
-          const updated = await processPendingWebhookEvents(cache.activities);
-          if (updated) {
-            setActivities(updated);
-            await updateCachedActivities(updated);
+          // 1. Apply any Strava webhook events that arrived while offline.
+          const afterWebhook = await processPendingWebhookEvents(cache.activities);
+          const current = afterWebhook ?? cache.activities;
+          if (afterWebhook) {
+            setActivities(afterWebhook);
+            await updateCachedActivities(afterWebhook);
+          }
+
+          // 2. Background sync fallback — runs at most once per hour so new
+          //    activities always surface even when webhooks are not configured.
+          const LIVE_SYNC_KEY = "strava_live_sync";
+          const LIVE_SYNC_INTERVAL = 60 * 60 * 1000; // 1 hour
+          const lastSync = parseInt(localStorage.getItem(LIVE_SYNC_KEY) ?? "0");
+          if (Date.now() - lastSync > LIVE_SYNC_INTERVAL) {
+            localStorage.setItem(LIVE_SYNC_KEY, String(Date.now()));
+            fetchNewActivities(current)
+              .then((merged) => setActivities(merged))
+              .catch(() => {});
           }
           return;
         }
