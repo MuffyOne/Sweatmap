@@ -747,6 +747,13 @@ body {
   margin-left: 0.3rem;
 }
 
+.stat-na {
+  font-size: 1.4rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
+}
+
 /* ── Chart sections ── */
 .chart-section {
   background: var(--surface);

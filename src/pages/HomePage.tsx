@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import {
   startOfWeek,
   endOfWeek,
@@ -17,6 +17,8 @@ import {
   differenceInDays,
   getDayOfYear,
   getDaysInYear,
+  addDays,
+  getDaysInMonth,
 } from "date-fns";
 import type { Activity } from "../api/strava";
 import { formatDuration, formatDistance, TOOLTIP_STYLE } from "../lib/utils";
@@ -115,6 +117,58 @@ function getPrevInterval(period: Period): { start: Date; end: Date } {
 function pctChange(current: number, previous: number): number | null {
   if (previous === 0) return current > 0 ? 100 : null;
   return ((current - previous) / previous) * 100;
+}
+
+type TrendMetric = "distance" | "elevation";
+
+interface TrendPoint { label: string; distance: number; elevation: number }
+
+function TrendChart({ data, period }: { data: TrendPoint[]; period: Period }) {
+  const [metric, setMetric] = useState<TrendMetric>("distance");
+  const isDistance = metric === "distance";
+  const color = isDistance ? "#fc4c02" : "#60a5fa";
+  const unit = isDistance ? "km" : "m";
+  const label = isDistance ? "Distance" : "Elevation";
+  return (
+    <div>
+      <div style={{ marginBottom: 10 }}>
+        <PeriodToggle
+          options={["distance", "elevation"] as const}
+          selected={metric}
+          onSelect={setMetric}
+          renderLabel={(m) => (m === "distance" ? "Distance" : "Elevation")}
+          inline
+        />
+      </div>
+      <ResponsiveContainer width="100%" height={200}>
+        <LineChart data={data} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="var(--grid-stroke)" />
+          <XAxis
+            dataKey="label"
+            tick={{ fill: "var(--tick-color)", fontSize: 11 }}
+            interval={period === "month" || period === "last30" ? 4 : 0}
+          />
+          <YAxis
+            tick={{ fill: "var(--tick-color)", fontSize: 11 }}
+            tickFormatter={(v) => `${v}${unit}`}
+            width={52}
+          />
+          <Tooltip
+            contentStyle={TOOLTIP_STYLE}
+            formatter={(value) => [`${value} ${unit}`, label]}
+          />
+          <Line
+            type="monotone"
+            dataKey={metric}
+            stroke={color}
+            strokeWidth={2}
+            dot={false}
+            activeDot={{ r: 4 }}
+          />
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
+  );
 }
 
 function DeltaBadge({ current, previous }: { current: number; previous: number }) {
@@ -296,6 +350,70 @@ export function HomePage({ activities }: Props) {
     });
   }, [activities]);
 
+  const trendData = useMemo(() => {
+    const now = new Date();
+
+    function bucket(day: Date) {
+      const dayStr = format(day, "yyyy-MM-dd");
+      const acts = activities.filter(
+        (a) => format(parseISO(a.start_date_local), "yyyy-MM-dd") === dayStr
+      );
+      return {
+        distance: Math.round(acts.reduce((s, a) => s + a.distance / 1000, 0) * 10) / 10,
+        elevation: Math.round(acts.reduce((s, a) => s + a.total_elevation_gain, 0)),
+      };
+    }
+
+    function cumulate(pts: { label: string; distance: number; elevation: number }[]) {
+      let d = 0, e = 0;
+      return pts.map((p) => {
+        d += p.distance;
+        e += p.elevation;
+        return { label: p.label, distance: Math.round(d * 10) / 10, elevation: e };
+      });
+    }
+
+    if (period === "week") {
+      const { start } = getInterval(period);
+      return cumulate(Array.from({ length: 7 }, (_, i) => {
+        const day = addDays(start, i);
+        return { label: format(day, "EEE"), ...bucket(day) };
+      }));
+    }
+    if (period === "last7") {
+      return cumulate(Array.from({ length: 7 }, (_, i) => {
+        const day = addDays(subDays(now, 6), i);
+        return { label: format(day, "EEE d"), ...bucket(day) };
+      }));
+    }
+    if (period === "month") {
+      const start = startOfMonth(now);
+      return cumulate(Array.from({ length: getDaysInMonth(now) }, (_, i) => {
+        const day = addDays(start, i);
+        return { label: format(day, "d"), ...bucket(day) };
+      }));
+    }
+    if (period === "last30") {
+      return cumulate(Array.from({ length: 30 }, (_, i) => {
+        const day = addDays(subDays(now, 29), i);
+        return { label: format(day, "d MMM"), ...bucket(day) };
+      }));
+    }
+    // year: monthly buckets
+    return cumulate(Array.from({ length: 12 }, (_, i) => {
+      const monthStart = new Date(now.getFullYear(), i, 1);
+      const acts = activities.filter((a) => {
+        const d = parseISO(a.start_date_local);
+        return d.getFullYear() === now.getFullYear() && d.getMonth() === i;
+      });
+      return {
+        label: format(monthStart, "MMM"),
+        distance: Math.round(acts.reduce((s, a) => s + a.distance / 1000, 0) * 10) / 10,
+        elevation: Math.round(acts.reduce((s, a) => s + a.total_elevation_gain, 0)),
+      };
+    }));
+  }, [activities, period]);
+
   const periodToggle = (
     <PeriodToggle
       options={["last7", "last30", "week", "month", "year"] as const}
@@ -458,45 +576,42 @@ export function HomePage({ activities }: Props) {
               </div>
             </div>
           )}
-          {enabledStats.has("heartrate") && stats.avgHeartrate && (
-            <div
-              className="stat-card"
-            >
+          {enabledStats.has("heartrate") && (
+            <div className="stat-card">
               <div className="stat-card-header">
                 <span className="label">Avg Heart Rate</span>
-                <DeltaBadge current={stats.avgHeartrate} previous={prevStats.avgHeartrate ?? 0} />
+                {stats.avgHeartrate ? <DeltaBadge current={stats.avgHeartrate} previous={prevStats.avgHeartrate ?? 0} /> : null}
               </div>
               <div className="value">
-                {Math.round(stats.avgHeartrate)}
-                <span className="unit">bpm</span>
+                {stats.avgHeartrate
+                  ? <>{Math.round(stats.avgHeartrate)}<span className="unit">bpm</span></>
+                  : <span className="stat-na">N/A</span>}
               </div>
             </div>
           )}
-          {enabledStats.has("watts") && stats.avgWatts && (
-            <div
-              className="stat-card"
-            >
+          {enabledStats.has("watts") && (
+            <div className="stat-card">
               <div className="stat-card-header">
                 <span className="label">Avg Power</span>
-                <DeltaBadge current={stats.avgWatts} previous={prevStats.avgWatts ?? 0} />
+                {stats.avgWatts ? <DeltaBadge current={stats.avgWatts} previous={prevStats.avgWatts ?? 0} /> : null}
               </div>
               <div className="value">
-                {Math.round(stats.avgWatts)}
-                <span className="unit">W</span>
+                {stats.avgWatts
+                  ? <>{Math.round(stats.avgWatts)}<span className="unit">W</span></>
+                  : <span className="stat-na">N/A</span>}
               </div>
             </div>
           )}
-          {enabledStats.has("maxwatts") && stats.maxWatts && (
-            <div
-              className="stat-card"
-            >
+          {enabledStats.has("maxwatts") && (
+            <div className="stat-card">
               <div className="stat-card-header">
                 <span className="label">Peak Power</span>
-                <DeltaBadge current={stats.maxWatts} previous={prevStats.maxWatts ?? 0} />
+                {stats.maxWatts ? <DeltaBadge current={stats.maxWatts} previous={prevStats.maxWatts ?? 0} /> : null}
               </div>
               <div className="value">
-                {Math.round(stats.maxWatts)}
-                <span className="unit">W</span>
+                {stats.maxWatts
+                  ? <>{Math.round(stats.maxWatts)}<span className="unit">W</span></>
+                  : <span className="stat-na">N/A</span>}
               </div>
             </div>
           )}
@@ -548,6 +663,7 @@ export function HomePage({ activities }: Props) {
             ))}
           </div>
         )}
+        <TrendChart data={trendData} period={period} />
       </CollapsibleSection>
 
       <CollapsibleSection title="Weekly Distance">
