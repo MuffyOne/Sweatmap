@@ -52,16 +52,14 @@ export function ActivitiesPage({ activities }: Props) {
         renderLabel={(p) => p === "last7" ? "Last 7 days" : p === "last30" ? "Last 30 days" : `This ${p}`}
       />
       <CollapsibleSection title="Recent Activities" extra={
-        <span className={styles.extraActions}>
+        <button
+          className={`sort-toggle ${styles.extraActions}`}
+          onClick={(e) => { e.stopPropagation(); setSortOrder((s) => s === "newest" ? "oldest" : "newest"); }}
+          title={sortOrder === "newest" ? "Newest first" : "Oldest first"}
+        >
           <span className={styles.activityCount}>{filtered.length} activities</span>
-          <button
-            className="sort-toggle"
-            onClick={(e) => { e.stopPropagation(); setSortOrder((s) => s === "newest" ? "oldest" : "newest"); }}
-            title={sortOrder === "newest" ? "Newest first" : "Oldest first"}
-          >
-            {sortOrder === "newest" ? <SortDescIcon /> : <SortAscIcon />}
-          </button>
-        </span>
+          {sortOrder === "newest" ? <SortDescIcon /> : <SortAscIcon />}
+        </button>
       }>
         <div className="recent-activities">
           {filtered.length === 0 && (
