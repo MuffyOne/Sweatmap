@@ -31,8 +31,8 @@ const NAV_ITEMS: { id: Page; label: string; Icon: () => React.ReactElement; cond
   { id: "activities", label: "Activities", Icon: ListIcon },
   { id: "records", label: "Records", Icon: TrophyIcon },
   { id: "xert", label: "XERT", Icon: XertIcon, condition: () => !!localStorage.getItem("xert_tokens") },
-  { id: "services", label: "Services", Icon: ServicesIcon },
   { id: "map", label: "Heatmap", Icon: MapIcon },
+  { id: "services", label: "Services", Icon: ServicesIcon },
   { id: "settings", label: "Settings", Icon: SettingsIcon },
 ];
 

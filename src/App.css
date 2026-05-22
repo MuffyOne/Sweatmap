@@ -868,19 +868,21 @@ body {
   text-decoration: none;
   color: inherit;
   cursor: pointer;
-  transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
 }
 
 .activity-row:hover {
-  transform: translateX(5px);
-  border-color: var(--accent-border);
+  transform: translateY(-4px);
+  border-color: var(--card-hover-border);
+  box-shadow: var(--card-hover-shadow);
   background: var(--accent-glow);
-  box-shadow: -3px 0 0 rgba(252, 76, 2, 0.65), 0 4px 20px rgba(252, 76, 2, 0.08);
+  z-index: 10;
 }
 
 .activity-item.expanded .activity-row:hover {
   transform: none;
   box-shadow: none;
+  border-color: var(--border);
 }
 
 .activity-row .activity-name {
