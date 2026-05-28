@@ -1,11 +1,13 @@
 import type { Page } from "../Dashboard";
+import { CollapsibleSection } from "../lib/CollapsibleSection";
 import styles from "./WhatsNewPage.module.css";
 
 // Bump this string whenever new entries are added — any user who hasn't seen
 // the current version will get the highlight dot on the sidebar button.
-export const WHATS_NEW_VERSION = "2026-05-21-trend-chart";
+export const WHATS_NEW_VERSION = "2026-05-28-wtd-power";
 
 interface Entry {
+  id?: string;
   tag: string;
   title: string;
   body: string;
@@ -17,6 +19,21 @@ interface DateGroup {
 }
 
 const GROUPS: DateGroup[] = [
+  {
+    date: "28 May 2026",
+    entries: [
+      {
+        tag: "Home",
+        title: "Avg Weighted Power stat",
+        body: "The Stats section now shows your average weighted (normalized) power across the selected period, with a comparison delta to the previous period. Toggle it on or off from the Customize menu.",
+      },
+      {
+        tag: "Home",
+        title: "Calories stat",
+        body: "A new Calories card shows total energy expenditure for the selected period, using power meter data when available.",
+      },
+    ],
+  },
   {
     date: "21 May 2026",
     entries: [
@@ -31,6 +48,7 @@ const GROUPS: DateGroup[] = [
     date: "20 May 2026",
     entries: [
       {
+        id: "gps-map",
         tag: "Heatmap",
         title: "GPS activity map",
         body: "A new Heatmap page lets you visualise all your rides, runs, and hikes on an interactive map. Filter by time range and sport type, and switch between heatmap mode (overlapping transparent traces showing your most-ridden roads) and routes mode (individual lines at full opacity).",
@@ -76,28 +94,28 @@ interface Props {
 export function WhatsNewPage({ onNavigate }: Props) {
   return (
     <div className={styles.page}>
-      {GROUPS.map((group) => (
-        <div key={group.date} className={styles.dateGroup}>
-          <div className={styles.dateLabel}>{group.date}</div>
-          {group.entries.map((e, i) => (
-            <div key={i} className={styles.card}>
-              <span className={styles.tag}>{e.tag}</span>
-              <div className={styles.title}>{e.title}</div>
-              <p className={styles.body}>{e.body}</p>
-            </div>
-          ))}
-        </div>
+      {GROUPS.map((group, gi) => (
+        <CollapsibleSection key={group.date} title={group.date} defaultOpen={gi === 0}>
+          <div className={styles.dateGroup}>
+            {group.entries.map((e, i) => (
+              <div key={i} className={styles.card}>
+                <span className={styles.tag}>{e.tag}</span>
+                <div className={styles.title}>{e.title}</div>
+                <p className={styles.body}>{e.body}</p>
+                {e.id === "gps-map" && (
+                  <p className={styles.body} style={{ marginTop: "0.5rem" }}>
+                    To explore the new map, head to the{" "}
+                    <button className="link-btn" onClick={() => onNavigate("map")}>Heatmap</button>
+                    {" "}page. To refresh your activity data, go to{" "}
+                    <button className="link-btn" onClick={() => onNavigate("settings")}>Settings</button>
+                    {" "}and press <strong>Force Sync</strong>.
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        </CollapsibleSection>
       ))}
-
-      <div className={styles.cta}>
-        <p className={styles.ctaText}>
-          To explore the new map, head to the{" "}
-          <button className="link-btn" onClick={() => onNavigate("map")}>Heatmap</button>
-          {" "}page. To refresh your activity data, go to{" "}
-          <button className="link-btn" onClick={() => onNavigate("settings")}>Settings</button>
-          {" "}and press <strong>Force Sync</strong>.
-        </p>
-      </div>
     </div>
   );
 }

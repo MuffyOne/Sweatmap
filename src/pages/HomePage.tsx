@@ -1,5 +1,15 @@
 import { useState, useMemo } from "react";
-import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
+import {
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  CartesianGrid,
+} from "recharts";
 import {
   startOfWeek,
   endOfWeek,
@@ -35,7 +45,9 @@ const ALL_STATS = [
   { id: "elevation", label: "Elevation" },
   { id: "heartrate", label: "Avg Heart Rate" },
   { id: "watts", label: "Avg Power" },
+  { id: "np", label: "Avg Wtd Power" },
   { id: "maxwatts", label: "Peak Power" },
+  { id: "calories", label: "Calories" },
   { id: "weeklygoal", label: "Weekly Goal" },
   { id: "yearlygoal", label: "Yearly Goal" },
   { id: "prcount", label: "PRs" },
@@ -52,7 +64,9 @@ function getDefaultStats(): Set<StatId> {
     "elevation",
     "heartrate",
     "watts",
+    "np",
     "maxwatts",
+    "calories",
   ];
   const wg = parseFloat(localStorage.getItem(WEEKLY_KM_GOAL_KEY) ?? "");
   const yg = parseFloat(localStorage.getItem(YEARLY_KM_GOAL_KEY) ?? "");
@@ -119,7 +133,11 @@ function pctChange(current: number, previous: number): number | null {
 
 type TrendMetric = "distance" | "elevation";
 
-interface TrendPoint { label: string; distance: number; elevation: number }
+interface TrendPoint {
+  label: string;
+  distance: number;
+  elevation: number;
+}
 
 function TrendChart({ data }: { data: TrendPoint[] }) {
   const [metric, setMetric] = useState<TrendMetric>("distance");
@@ -234,10 +252,17 @@ export function HomePage({ activities }: Props) {
         withWatts.length > 0
           ? withWatts.reduce((s, a) => s + (a.average_watts ?? 0), 0) / withWatts.length
           : null,
+      avgNP: (() => {
+        const withNP = acts.filter((a) => a.weighted_average_watts);
+        return withNP.length > 0
+          ? withNP.reduce((s, a) => s + (a.weighted_average_watts ?? 0), 0) / withNP.length
+          : null;
+      })(),
       maxWatts: (() => {
         const withMax = acts.filter((a) => a.max_watts);
         return withMax.length > 0 ? Math.max(...withMax.map((a) => a.max_watts!)) : null;
       })(),
+      totalCalories: acts.reduce((s, a) => s + (a.kilojoules ?? a.calories ?? 0), 0),
       totalPRs: acts.reduce((s, a) => s + (a.pr_count ?? 0), 0),
       totalAchievements: acts.reduce((s, a) => s + (a.achievement_count ?? 0), 0),
     };
@@ -364,7 +389,11 @@ export function HomePage({ activities }: Props) {
       const prev = acc[acc.length - 1];
       const distSum = Math.round(((prev?.distance ?? 0) + a.distance / 1000) * 10) / 10;
       const elevSum = Math.round((prev?.elevation ?? 0) + a.total_elevation_gain);
-      acc.push({ label: format(parseISO(a.start_date_local), labelFmt), distance: distSum, elevation: elevSum });
+      acc.push({
+        label: format(parseISO(a.start_date_local), labelFmt),
+        distance: distSum,
+        elevation: elevSum,
+      });
       return acc;
     }, []);
   }, [filtered, period]);
@@ -422,9 +451,7 @@ export function HomePage({ activities }: Props) {
           (enabledStats.has("yearlygoal") && yearlyGoalData)) && (
           <div className={`stats-grid ${styles.statsGridSpaced}`}>
             {enabledStats.has("weeklygoal") && weeklyGoalData && (
-              <div
-                className="stat-card goal-card"
-              >
+              <div className="stat-card goal-card">
                 <div className="stat-card-header">
                   <span className="label">Weekly Goal</span>
                   <span
@@ -450,9 +477,7 @@ export function HomePage({ activities }: Props) {
               </div>
             )}
             {enabledStats.has("yearlygoal") && yearlyGoalData && (
-              <div
-                className="stat-card goal-card"
-              >
+              <div className="stat-card goal-card">
                 <div className="stat-card-header">
                   <span className="label">Yearly Goal</span>
                   <span
@@ -482,9 +507,7 @@ export function HomePage({ activities }: Props) {
 
         <div className="stats-grid">
           {enabledStats.has("count") && (
-            <div
-              className="stat-card"
-            >
+            <div className="stat-card">
               <div className="stat-card-header">
                 <span className="label">Activities</span>
                 <DeltaBadge current={stats.count} previous={prevStats.count} />
@@ -493,9 +516,7 @@ export function HomePage({ activities }: Props) {
             </div>
           )}
           {enabledStats.has("distance") && (
-            <div
-              className="stat-card"
-            >
+            <div className="stat-card">
               <div className="stat-card-header">
                 <span className="label">Distance</span>
                 <DeltaBadge current={stats.totalDistance} previous={prevStats.totalDistance} />
@@ -507,9 +528,7 @@ export function HomePage({ activities }: Props) {
             </div>
           )}
           {enabledStats.has("time") && (
-            <div
-              className="stat-card"
-            >
+            <div className="stat-card">
               <div className="stat-card-header">
                 <span className="label">Moving Time</span>
                 <DeltaBadge current={stats.totalTime} previous={prevStats.totalTime} />
@@ -518,9 +537,7 @@ export function HomePage({ activities }: Props) {
             </div>
           )}
           {enabledStats.has("elevation") && (
-            <div
-              className="stat-card"
-            >
+            <div className="stat-card">
               <div className="stat-card-header">
                 <span className="label">Elevation</span>
                 <DeltaBadge current={stats.totalElevation} previous={prevStats.totalElevation} />
@@ -535,12 +552,19 @@ export function HomePage({ activities }: Props) {
             <div className="stat-card">
               <div className="stat-card-header">
                 <span className="label">Avg Heart Rate</span>
-                {stats.avgHeartrate ? <DeltaBadge current={stats.avgHeartrate} previous={prevStats.avgHeartrate ?? 0} /> : null}
+                {stats.avgHeartrate ? (
+                  <DeltaBadge current={stats.avgHeartrate} previous={prevStats.avgHeartrate ?? 0} />
+                ) : null}
               </div>
               <div className="value">
-                {stats.avgHeartrate
-                  ? <>{Math.round(stats.avgHeartrate)}<span className="unit">bpm</span></>
-                  : <span className="stat-na">N/A</span>}
+                {stats.avgHeartrate ? (
+                  <>
+                    {Math.round(stats.avgHeartrate)}
+                    <span className="unit">bpm</span>
+                  </>
+                ) : (
+                  <span className="stat-na">N/A</span>
+                )}
               </div>
             </div>
           )}
@@ -548,12 +572,39 @@ export function HomePage({ activities }: Props) {
             <div className="stat-card">
               <div className="stat-card-header">
                 <span className="label">Avg Power</span>
-                {stats.avgWatts ? <DeltaBadge current={stats.avgWatts} previous={prevStats.avgWatts ?? 0} /> : null}
+                {stats.avgWatts ? (
+                  <DeltaBadge current={stats.avgWatts} previous={prevStats.avgWatts ?? 0} />
+                ) : null}
               </div>
               <div className="value">
-                {stats.avgWatts
-                  ? <>{Math.round(stats.avgWatts)}<span className="unit">W</span></>
-                  : <span className="stat-na">N/A</span>}
+                {stats.avgWatts ? (
+                  <>
+                    {Math.round(stats.avgWatts)}
+                    <span className="unit">W</span>
+                  </>
+                ) : (
+                  <span className="stat-na">N/A</span>
+                )}
+              </div>
+            </div>
+          )}
+          {enabledStats.has("np") && (
+            <div className="stat-card">
+              <div className="stat-card-header">
+                <span className="label">Avg Wtd Power</span>
+                {stats.avgNP ? (
+                  <DeltaBadge current={stats.avgNP} previous={prevStats.avgNP ?? 0} />
+                ) : null}
+              </div>
+              <div className="value">
+                {stats.avgNP ? (
+                  <>
+                    {Math.round(stats.avgNP)}
+                    <span className="unit">W</span>
+                  </>
+                ) : (
+                  <span className="stat-na">N/A</span>
+                )}
               </div>
             </div>
           )}
@@ -561,11 +612,31 @@ export function HomePage({ activities }: Props) {
             <div className="stat-card">
               <div className="stat-card-header">
                 <span className="label">Peak Power</span>
-                {stats.maxWatts ? <DeltaBadge current={stats.maxWatts} previous={prevStats.maxWatts ?? 0} /> : null}
+                {stats.maxWatts ? (
+                  <DeltaBadge current={stats.maxWatts} previous={prevStats.maxWatts ?? 0} />
+                ) : null}
               </div>
               <div className="value">
-                {stats.maxWatts
-                  ? <>{Math.round(stats.maxWatts)}<span className="unit">W</span></>
+                {stats.maxWatts ? (
+                  <>
+                    {Math.round(stats.maxWatts)}
+                    <span className="unit">W</span>
+                  </>
+                ) : (
+                  <span className="stat-na">N/A</span>
+                )}
+              </div>
+            </div>
+          )}
+          {enabledStats.has("calories") && (
+            <div className="stat-card">
+              <div className="stat-card-header">
+                <span className="label">Calories</span>
+                <DeltaBadge current={stats.totalCalories} previous={prevStats.totalCalories} />
+              </div>
+              <div className="value">
+                {stats.totalCalories > 0
+                  ? <>{Math.round(stats.totalCalories).toLocaleString()}<span className="unit">kcal</span></>
                   : <span className="stat-na">N/A</span>}
               </div>
             </div>
