@@ -25,3 +25,9 @@
 .komsGrid {
   grid-template-columns: 1fr 80px 70px 70px 90px;
 }
+
+.yearBestDate {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}

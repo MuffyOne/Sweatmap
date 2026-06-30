@@ -4,7 +4,7 @@ import styles from "./WhatsNewPage.module.css";
 
 // Bump this string whenever new entries are added — any user who hasn't seen
 // the current version will get the highlight dot on the sidebar button.
-export const WHATS_NEW_VERSION = "2026-05-28-wtd-power";
+export const WHATS_NEW_VERSION = "2026-06-30-records-year-bests";
 
 interface Entry {
   id?: string;
@@ -19,6 +19,21 @@ interface DateGroup {
 }
 
 const GROUPS: DateGroup[] = [
+  {
+    date: "30 June 2026",
+    entries: [
+      {
+        tag: "Records",
+        title: "Top Climbing Day of the year",
+        body: "The Records page now shows your biggest elevation day of the current year — the single activity with the most total elevation gain. Click the card to open that activity on Strava.",
+      },
+      {
+        tag: "Records",
+        title: "Top Speed of the year",
+        body: "A new card on the Records page highlights the highest max speed you have reached in any activity this year, shown in km/h. Click to view the activity on Strava.",
+      },
+    ],
+  },
   {
     date: "28 May 2026",
     entries: [

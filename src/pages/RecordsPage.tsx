@@ -116,6 +116,25 @@ export function RecordsPage({ activities, koms }: Props) {
     return { longestStreak: longest, currentStreak: curStreak };
   }, [activities]);
 
+  // Year bests
+  const currentYear = new Date().getFullYear();
+
+  const topClimbDay = useMemo(
+    () => activities
+      .filter((a) => new Date(a.start_date_local).getFullYear() === currentYear && a.total_elevation_gain > 0)
+      .reduce<Activity | null>((best, a) =>
+        a.total_elevation_gain > (best?.total_elevation_gain ?? 0) ? a : best, null),
+    [activities, currentYear]
+  );
+
+  const topSpeedActivity = useMemo(
+    () => activities
+      .filter((a) => new Date(a.start_date_local).getFullYear() === currentYear && (a.max_speed ?? 0) > 0)
+      .reduce<Activity | null>((best, a) =>
+        (a.max_speed ?? 0) > (best?.max_speed ?? 0) ? a : best, null),
+    [activities, currentYear]
+  );
+
   // Sport breakdown of PRs
   const sportPRs = useMemo(() => {
     const map = new Map<string, { prs: number; acts: number }>();
@@ -189,6 +208,41 @@ export function RecordsPage({ activities, koms }: Props) {
           )}
         </div>
       </CollapsibleSection>
+
+      {(topClimbDay || topSpeedActivity) && (
+        <CollapsibleSection title={`${currentYear} Bests`}>
+          <div className="stats-grid">
+            {topClimbDay && (
+              <div
+                className="stat-card stat-card--clickable"
+                onClick={() => window.open(`https://www.strava.com/activities/${topClimbDay.id}`, "_blank", "noopener,noreferrer")}
+              >
+                <div className="label">Top Climbing Day</div>
+                <div className="value">
+                  {Math.round(topClimbDay.total_elevation_gain).toLocaleString()}
+                  <span className="unit">m</span>
+                </div>
+                <div className="records-best-name">{topClimbDay.name}</div>
+                <div className={styles.yearBestDate}>{format(parseISO(topClimbDay.start_date_local), "MMM d, yyyy")}</div>
+              </div>
+            )}
+            {topSpeedActivity && (
+              <div
+                className="stat-card stat-card--clickable"
+                onClick={() => window.open(`https://www.strava.com/activities/${topSpeedActivity.id}`, "_blank", "noopener,noreferrer")}
+              >
+                <div className="label">Top Speed</div>
+                <div className="value">
+                  {(topSpeedActivity.max_speed * 3.6).toFixed(1)}
+                  <span className="unit">km/h</span>
+                </div>
+                <div className="records-best-name">{topSpeedActivity.name}</div>
+                <div className={styles.yearBestDate}>{format(parseISO(topSpeedActivity.start_date_local), "MMM d, yyyy")}</div>
+              </div>
+            )}
+          </div>
+        </CollapsibleSection>
+      )}
 
       <CollapsibleSection title="PRs per Month" extra={
         <span className={styles.extraLabel}>last 12 months</span>
