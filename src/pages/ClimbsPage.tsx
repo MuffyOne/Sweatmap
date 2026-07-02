@@ -1,245 +1,185 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { format, parseISO } from "date-fns";
-import { fetchSegmentEfforts, type ClimbEffort, type CustomClimb } from "../api/strava";
+import type { Activity, CustomClimb } from "../api/strava";
 import { PRESET_CLIMBS } from "../lib/presetClimbs";
+import { decodePolyline, haversineMeters } from "../lib/polyline";
 import { formatTime } from "../lib/utils";
+import { CollapsibleSection } from "../lib/CollapsibleSection";
 import type { Page } from "../Dashboard";
 import styles from "./ClimbsPage.module.css";
 
 export const CUSTOM_CLIMBS_KEY = "custom_climbs";
 
-
-interface ClimbConfig {
-  segmentId: number;
-  name: string;
-  country: string | null;
-  region?: string;
-  length_km?: number;
-  elevation_m?: number;
-  avg_gradient?: number;
-  isCustom: boolean;
-}
-
-type EffortState =
-  | { status: "loading" }
-  | { status: "done"; efforts: ClimbEffort[] }
-  | { status: "error" };
-
-function loadCustomClimbs(): CustomClimb[] {
-  try {
-    return JSON.parse(localStorage.getItem(CUSTOM_CLIMBS_KEY) ?? "[]");
-  } catch {
-    return [];
-  }
-}
+const MATCH_RADIUS_M = 450;
 
 interface Props {
+  activities: Activity[];
   onNavigate: (page: Page) => void;
 }
 
-export function ClimbsPage({ onNavigate }: Props) {
-  const [effortMap, setEffortMap] = useState<Map<number, EffortState>>(new Map());
-  const [expanded, setExpanded] = useState<Set<number>>(new Set());
-  const [customClimbs, setCustomClimbs] = useState<CustomClimb[]>(loadCustomClimbs);
+interface ClimbConfig {
+  name: string;
+  country: string | null;
+  region?: string;
+  start: [number, number];
+  end: [number, number];
+  segmentId?: number;
+  length_km?: number;
+  elevation_m?: number;
+  avg_gradient?: number;
+}
+
+function loadCustomClimbs(): CustomClimb[] {
+  try { return JSON.parse(localStorage.getItem(CUSTOM_CLIMBS_KEY) ?? "[]"); }
+  catch { return []; }
+}
+
+function routeMatchesClimb(
+  points: [number, number][],
+  start: [number, number],
+  end: [number, number],
+  radius: number
+): boolean {
+  let hitStart = false;
+  let hitEnd = false;
+  for (const [lat, lng] of points) {
+    if (!hitStart && haversineMeters(lat, lng, start[0], start[1]) < radius) hitStart = true;
+    if (!hitEnd && haversineMeters(lat, lng, end[0], end[1]) < radius) hitEnd = true;
+    if (hitStart && hitEnd) return true;
+  }
+  return false;
+}
+
+export function ClimbsPage({ activities, onNavigate }: Props) {
+  const customClimbs = useMemo<CustomClimb[]>(loadCustomClimbs, []);
 
   const allClimbs = useMemo<ClimbConfig[]>(() => {
-    const presets: ClimbConfig[] = PRESET_CLIMBS.map((c) => ({ ...c, isCustom: false }));
-    const custom: ClimbConfig[] = customClimbs.map((c) => ({
-      segmentId: c.segmentId,
-      name: c.name,
-      country: c.country,
-      length_km: c.length_km,
-      elevation_m: c.elevation_m,
-      avg_gradient: c.avg_gradient,
-      isCustom: true,
-    }));
-    const presetIds = new Set(presets.map((p) => p.segmentId));
-    return [...presets, ...custom.filter((c) => !presetIds.has(c.segmentId))];
+    const presetSegIds = new Set(PRESET_CLIMBS.map((p) => p.segmentId).filter(Boolean));
+    const custom: ClimbConfig[] = customClimbs
+      .filter((c) => !presetSegIds.has(c.segmentId))
+      .map((c) => ({
+        name: c.name,
+        country: c.country,
+        start: c.start,
+        end: c.end,
+        segmentId: c.segmentId,
+        length_km: c.length_km,
+        elevation_m: c.elevation_m,
+        avg_gradient: c.avg_gradient,
+      }));
+    return [...(PRESET_CLIMBS as ClimbConfig[]), ...custom];
   }, [customClimbs]);
 
-  const climbKey = allClimbs.map((c) => c.segmentId).join(",");
+  const decodedRoutes = useMemo(
+    () =>
+      activities
+        .filter((a) => a.map?.summary_polyline)
+        .map((a) => ({
+          activity: a,
+          points: decodePolyline(a.map!.summary_polyline),
+        })),
+    [activities]
+  );
 
-  useEffect(() => {
-    for (const climb of allClimbs) {
-      const id = climb.segmentId;
-      setEffortMap((prev) => {
-        if (prev.has(id)) return prev;
-        const next = new Map(prev);
-        next.set(id, { status: "loading" });
-        return next;
-      });
-      fetchSegmentEfforts(id)
-        .then((efforts) =>
-          setEffortMap((prev) => new Map(prev).set(id, { status: "done", efforts }))
-        )
-        .catch(() =>
-          setEffortMap((prev) => new Map(prev).set(id, { status: "error" }))
-        );
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [climbKey]);
+  const matchedClimbs = useMemo(() => {
+    return allClimbs
+      .map((climb) => {
+        const matches = decodedRoutes
+          .filter(({ points }) =>
+            routeMatchesClimb(points, climb.start, climb.end, MATCH_RADIUS_M)
+          )
+          .map(({ activity }) => activity)
+          .sort(
+            (a, b) =>
+              new Date(b.start_date_local).getTime() -
+              new Date(a.start_date_local).getTime()
+          );
+        return { climb, matches };
+      })
+      .filter(({ matches }) => matches.length > 0);
+  }, [allClimbs, decodedRoutes]);
 
-  // Listen for custom climb changes from the Settings page
-  useEffect(() => {
-    function onStorage(e: StorageEvent) {
-      if (e.key === CUSTOM_CLIMBS_KEY) setCustomClimbs(loadCustomClimbs());
-    }
-    window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
-  }, []);
-
-  function toggleExpanded(segmentId: number) {
-    setExpanded((prev) => {
-      const next = new Set(prev);
-      if (next.has(segmentId)) next.delete(segmentId);
-      else next.add(segmentId);
-      return next;
-    });
+  if (matchedClimbs.length === 0) {
+    return (
+      <div className={styles.empty}>
+        <div className={styles.emptyTitle}>No famous climbs detected yet</div>
+        <p className={styles.emptyBody}>
+          The app scans your GPS routes for {allClimbs.length} famous climbs automatically. Add a custom climb via{" "}
+          <button className="link-btn" onClick={() => onNavigate("settings")}>Settings → My Climbs</button>.
+        </p>
+      </div>
+    );
   }
 
   return (
     <div>
       <p className={styles.hint}>
-        Segment IDs for famous climbs are approximate — if a climb shows 0 ascents and you have ridden it, add the exact Strava segment in{" "}
-        <span className={styles.hintLink} onClick={() => onNavigate("settings")}>Settings → My Climbs</span>.
+        Detected from your GPS routes · {matchedClimbs.length} climb{matchedClimbs.length !== 1 ? "s" : ""} found ·{" "}
+        <button className="link-btn" onClick={() => onNavigate("settings")}>Add a custom climb</button>
       </p>
 
-      <div className={styles.grid}>
-        {allClimbs.map((climb) => {
-          const state = effortMap.get(climb.segmentId);
-          const efforts = state?.status === "done" ? state.efforts : [];
-          const loading = !state || state.status === "loading";
-          const isExpanded = expanded.has(climb.segmentId);
+      {matchedClimbs.map(({ climb, matches }, i) => {
+        const last = matches[0];
+        const bestPower = matches.reduce<number | null>((best, a) => {
+          if (!a.average_watts) return best;
+          return best === null || a.average_watts > best ? a.average_watts : best;
+        }, null);
 
-          // Prefer preset metadata; fall back to live segment data from first effort
-          const seg = efforts[0]?.segment;
-          const displayLength = climb.length_km ?? (seg ? Math.round((seg.distance / 1000) * 10) / 10 : null);
-          const displayElevation = climb.elevation_m ?? (seg ? Math.round(seg.elevation_high - seg.elevation_low) : null);
-          const displayGradient = climb.avg_gradient ?? seg?.average_grade ?? null;
+        const locationLabel = [climb.region, climb.country].filter(Boolean).join(" · ");
+        const extra = (
+          <span className={styles.climbExtra}>
+            {locationLabel && <span className={styles.location}>{locationLabel}</span>}
+            <span>{matches.length} ascent{matches.length !== 1 ? "s" : ""}</span>
+            <span className={styles.dot}>·</span>
+            <span>last {format(parseISO(last.start_date_local), "d MMM yyyy")}</span>
+          </span>
+        );
 
-          const bestTime = efforts.length
-            ? Math.min(...efforts.map((e) => e.elapsed_time))
-            : null;
-          const bestPower = efforts.reduce<number | null>((best, e) => {
-            if (!e.average_watts || !e.device_watts) return best;
-            return best === null || e.average_watts > best ? e.average_watts : best;
-          }, null);
-          const bestHR = efforts.reduce<number | null>((best, e) => {
-            if (!e.average_heartrate) return best;
-            return best === null || e.average_heartrate > best ? e.average_heartrate : best;
-          }, null);
-          const lastEffort = efforts[0];
-
-          return (
-            <div key={climb.segmentId} className={styles.card}>
-              <div className={styles.cardHeader}>
-                <div className={styles.climbName}>{climb.name}</div>
-                <div className={styles.chips}>
-                  {climb.region && <span className={styles.chip}>{climb.region}</span>}
-                  {climb.country && <span className={styles.chip}>{climb.country}</span>}
-                </div>
-              </div>
-
+        return (
+          <CollapsibleSection
+            key={climb.name}
+            title={climb.name}
+            extra={extra}
+            defaultOpen={i < 3}
+          >
+            {(climb.length_km || climb.elevation_m || climb.avg_gradient || bestPower) && (
               <div className={styles.meta}>
-                {displayLength !== null ? <><span>{displayLength} km</span><span className={styles.metaDot}>·</span></> : null}
-                {displayElevation !== null ? <><span>{displayElevation.toLocaleString()} m</span><span className={styles.metaDot}>·</span></> : null}
-                {displayGradient !== null ? <span>{displayGradient}%</span> : null}
-                {loading && !displayLength && <span className={styles.metaPlaceholder}>Loading…</span>}
+                {climb.length_km && <span>{climb.length_km} km</span>}
+                {climb.elevation_m && <><span className={styles.dot}>·</span><span>{climb.elevation_m.toLocaleString()} m gain</span></>}
+                {climb.avg_gradient && <><span className={styles.dot}>·</span><span>{climb.avg_gradient}% avg</span></>}
+                {bestPower && <><span className={styles.dot}>·</span><span>best power {Math.round(bestPower)} W</span></>}
               </div>
+            )}
 
-              <div className={styles.statsRow}>
-                {loading ? (
-                  <div className={styles.skeleton} />
-                ) : efforts.length === 0 ? (
-                  <div className={styles.noEfforts}>No ascents recorded</div>
-                ) : (
-                  <>
-                    <div className={styles.statItem}>
-                      <div className={styles.statValue}>{efforts.length}</div>
-                      <div className={styles.statLabel}>ascents</div>
-                    </div>
-                    {bestTime !== null && (
-                      <div className={styles.statItem}>
-                        <div className={styles.statValue}>{formatTime(bestTime)}</div>
-                        <div className={styles.statLabel}>best time</div>
-                      </div>
-                    )}
-                    {bestPower !== null && (
-                      <div className={styles.statItem}>
-                        <div className={styles.statValue}>{Math.round(bestPower)}<span className={styles.statUnit}>W</span></div>
-                        <div className={styles.statLabel}>best power</div>
-                      </div>
-                    )}
-                    {bestHR !== null && (
-                      <div className={styles.statItem}>
-                        <div className={styles.statValue}>{Math.round(bestHR)}<span className={styles.statUnit}>bpm</span></div>
-                        <div className={styles.statLabel}>best HR</div>
-                      </div>
-                    )}
-                  </>
-                )}
+            <div className={styles.table}>
+              <div className={styles.tableHeader}>
+                <span>Activity</span>
+                <span>Date</span>
+                <span>Duration</span>
+                <span>Avg Power</span>
+                <span>Avg HR</span>
+                <span></span>
               </div>
-
-              {!loading && lastEffort && (
-                <div className={styles.lastEffort}>
-                  Last: {format(parseISO(lastEffort.start_date_local), "d MMM yyyy")}
-                </div>
-              )}
-
-              {!loading && efforts.length > 0 && (
-                <button
-                  className={styles.expandBtn}
-                  onClick={() => toggleExpanded(climb.segmentId)}
+              {matches.map((a) => (
+                <a
+                  key={a.id}
+                  className={styles.tableRow}
+                  href={`https://www.strava.com/activities/${a.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
                 >
-                  {isExpanded ? "Hide attempts ▴" : `Show ${efforts.length} attempt${efforts.length !== 1 ? "s" : ""} ▾`}
-                </button>
-              )}
-
-              {isExpanded && (
-                <div className={styles.effortTable}>
-                  <div className={styles.effortHeader}>
-                    <span>Date</span>
-                    <span>Time</span>
-                    <span>Power</span>
-                    <span>HR</span>
-                    <span>Rank</span>
-                    <span></span>
-                  </div>
-                  {efforts.map((e) => (
-                    <div key={e.id} className={styles.effortRow}>
-                      <span className={styles.effortDate}>
-                        {format(parseISO(e.start_date_local), "d MMM yyyy")}
-                      </span>
-                      <span className={styles.effortTime}>{formatTime(e.elapsed_time)}</span>
-                      <span className={styles.effortMuted}>
-                        {e.average_watts && e.device_watts
-                          ? `${Math.round(e.average_watts)} W`
-                          : "—"}
-                      </span>
-                      <span className={styles.effortMuted}>
-                        {e.average_heartrate ? `${Math.round(e.average_heartrate)} bpm` : "—"}
-                      </span>
-                      <span className={styles.effortMuted}>
-                        {e.pr_rank === 1 ? "🥇" : e.pr_rank === 2 ? "🥈" : e.pr_rank === 3 ? "🥉" : e.pr_rank ? `#${e.pr_rank}` : "—"}
-                      </span>
-                      <span>
-                        <a
-                          href={`https://www.strava.com/activities/${e.activity.id}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className={styles.stravaLink}
-                        >
-                          ↗
-                        </a>
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
+                  <span className={styles.activityName}>{a.name}</span>
+                  <span className={styles.muted}>{format(parseISO(a.start_date_local), "d MMM yyyy")}</span>
+                  <span className={styles.muted}>{formatTime(a.moving_time)}</span>
+                  <span className={styles.muted}>{a.average_watts ? `${Math.round(a.average_watts)} W` : "—"}</span>
+                  <span className={styles.muted}>{a.average_heartrate ? `${Math.round(a.average_heartrate)} bpm` : "—"}</span>
+                  <span className={styles.stravaArrow}>↗</span>
+                </a>
+              ))}
             </div>
-          );
-        })}
-      </div>
+          </CollapsibleSection>
+        );
+      })}
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import { dbGet, dbSet, dbClear } from "./db";
 
-export type { Athlete, SegmentEffort, Activity, ActivityStreams, ClimbEffort, SegmentInfo, CustomClimb } from "./strava.types";
-import type { Athlete, SegmentEffort, Activity, ActivityStreams, ClimbEffort, SegmentInfo } from "./strava.types";
+export type { Athlete, SegmentEffort, Activity, ActivityStreams, SegmentInfo, CustomClimb } from "./strava.types";
+import type { Athlete, SegmentEffort, Activity, ActivityStreams, SegmentInfo } from "./strava.types";
 
 const CLIENT_ID = import.meta.env.VITE_STRAVA_CLIENT_ID;
 const REDIRECT_URI = import.meta.env.VITE_STRAVA_REDIRECT_URI;
@@ -19,7 +19,6 @@ const TOKEN_KEY = "strava_tokens";
 const LEGACY_CACHE_KEY = "strava_cache"; // kept only for one-time migration from localStorage
 const CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 const ALLTIME_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
-const CLIMB_TTL_MS = 6 * 60 * 60 * 1000; // 6 hours
 
 // ── Cache types ──
 
@@ -346,40 +345,7 @@ export async function syncAndCache(
   return { athlete, activities, koms };
 }
 
-// ── Climb / segment efforts ──
-
-interface ClimbEffortCache {
-  efforts: ClimbEffort[];
-  cachedAt: number;
-}
-
-export async function fetchSegmentEfforts(segmentId: number): Promise<ClimbEffort[]> {
-  const cacheKey = `climb_efforts_${segmentId}`;
-  const cached = await dbGet<ClimbEffortCache>(cacheKey);
-  if (cached && Date.now() - cached.cachedAt < CLIMB_TTL_MS) {
-    return cached.efforts;
-  }
-
-  const token = await getValidToken();
-  const efforts: ClimbEffort[] = [];
-  let page = 1;
-  while (true) {
-    const params = new URLSearchParams({ segment_id: String(segmentId), per_page: "200", page: String(page) });
-    const res = await fetch(
-      `https://www.strava.com/api/v3/segment_efforts?${params}`,
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-    if (!res.ok) break;
-    const batch: ClimbEffort[] = await res.json();
-    efforts.push(...batch);
-    if (batch.length < 200) break;
-    page++;
-  }
-
-  efforts.sort((a, b) => new Date(b.start_date_local).getTime() - new Date(a.start_date_local).getTime());
-  await dbSet(cacheKey, { efforts, cachedAt: Date.now() });
-  return efforts;
-}
+// ── Segment info ──
 
 export async function fetchSegmentInfo(segmentId: number): Promise<SegmentInfo | null> {
   const token = await getValidToken();

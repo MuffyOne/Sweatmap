@@ -74,13 +74,19 @@ export function Settings({ onForceSync, forceSyncing, fetchedCount }: Props) {
     try {
       const info = await fetchSegmentInfo(segmentId);
       if (!info) { setClimbError("Segment not found. Check the URL or ID."); return; }
+      if (!info.start_latlng?.length || !info.end_latlng?.length) {
+        setClimbError("This segment has no GPS data — it cannot be used for climb detection.");
+        return;
+      }
       const climb: CustomClimb = {
         segmentId: info.id,
         name: info.name,
+        country: info.country,
+        start: info.start_latlng,
+        end: info.end_latlng,
         length_km: Math.round((info.distance / 1000) * 10) / 10,
         elevation_m: Math.round(info.elevation_high - info.elevation_low),
         avg_gradient: info.average_grade,
-        country: info.country,
       };
       const updated = [...customClimbs, climb];
       setCustomClimbs(updated);

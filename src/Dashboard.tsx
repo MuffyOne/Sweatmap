@@ -48,7 +48,7 @@ function PageContent({ activities, koms, page, onNavigate, onForceSync, forceSyn
     case "xert":        return <XertPage />;
     case "whatsNew":    return <WhatsNewPage onNavigate={onNavigate} />;
     case "map":         return <MapPage activities={activities} />;
-    case "climbs":      return <ClimbsPage onNavigate={onNavigate} />;
+    case "climbs":      return <ClimbsPage activities={activities} onNavigate={onNavigate} />;
   }
 }
 

@@ -1,63 +1,28 @@
 .hint {
   font-size: 12px;
   color: var(--text-muted);
-  margin: 0 0 1.25rem;
-  line-height: 1.5;
+  margin: 0 0 0.5rem;
 }
 
-.hintLink {
-  color: var(--accent, #fc4c02);
-  cursor: pointer;
-  text-decoration: underline;
-}
-
-.grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1rem;
-}
-
-.card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 1rem 1.125rem;
-}
-
-.cardHeader {
-  margin-bottom: 0.5rem;
-}
-
-.climbName {
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 0.3rem;
-}
-
-.chips {
+.climbExtra {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.3rem;
-}
-
-.chip {
-  font-size: 10px;
-  font-weight: 600;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 12px;
   color: var(--text-muted);
-  background: var(--surface-elevated, var(--surface-hover));
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  padding: 1px 6px;
+  font-weight: 400;
+  flex-wrap: wrap;
 }
 
-.categoryChip {
-  font-size: 10px;
-  font-weight: 700;
-  color: #fc4c02;
-  background: rgba(252, 76, 2, 0.1);
-  border-radius: 4px;
-  padding: 1px 5px;
+.location {
+  color: var(--text-secondary);
+  font-weight: 500;
+  margin-right: 0.25rem;
+}
+
+.dot {
+  color: var(--text-muted);
+  opacity: 0.5;
 }
 
 .meta {
@@ -68,174 +33,103 @@
   font-size: 12px;
   color: var(--text-secondary);
   margin-bottom: 0.75rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid var(--border);
 }
 
-.metaDot {
-  color: var(--text-muted);
-}
-
-.metaPlaceholder {
-  color: var(--text-muted);
-  font-style: italic;
-}
-
-.statsRow {
-  display: flex;
-  gap: 1.25rem;
-  flex-wrap: wrap;
-  min-height: 2.5rem;
-  align-items: flex-start;
-}
-
-.statItem {
-  display: flex;
-  flex-direction: column;
-  gap: 0.1rem;
-}
-
-.statValue {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  line-height: 1.2;
-}
-
-.statUnit {
-  font-size: 0.7rem;
-  font-weight: 500;
-  color: var(--text-muted);
-  margin-left: 2px;
-}
-
-.statLabel {
-  font-size: 10px;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.noEfforts {
-  font-size: 12px;
-  color: var(--text-faint, var(--text-muted));
-  font-style: italic;
-  padding: 0.25rem 0;
-}
-
-.skeleton {
-  height: 2.5rem;
-  width: 100%;
-  background: var(--surface-elevated, var(--surface-hover));
-  border-radius: 6px;
-  animation: shimmer 1.4s ease-in-out infinite;
-  background-size: 200% 100%;
-  background-image: linear-gradient(
-    90deg,
-    var(--surface-elevated, var(--surface-hover)) 25%,
-    var(--border) 50%,
-    var(--surface-elevated, var(--surface-hover)) 75%
-  );
-}
-
-@keyframes shimmer {
-  0%   { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
-}
-
-.lastEffort {
-  margin-top: 0.6rem;
-  font-size: 11px;
-  color: var(--text-muted);
-}
-
-.expandBtn {
-  margin-top: 0.75rem;
-  background: none;
-  border: none;
-  padding: 0;
-  font-size: 12px;
-  color: var(--accent, #fc4c02);
-  cursor: pointer;
-  font-weight: 600;
-}
-
-.expandBtn:hover {
-  text-decoration: underline;
-}
-
-.effortTable {
-  margin-top: 0.75rem;
-  border-top: 1px solid var(--border);
+.table {
   overflow-x: auto;
 }
 
-.effortHeader,
-.effortRow {
+.tableHeader,
+.tableRow {
   display: grid;
-  grid-template-columns: 1fr 70px 70px 80px 50px 24px;
+  grid-template-columns: 1fr 90px 70px 80px 80px 20px;
   gap: 0.5rem;
   align-items: center;
-  padding: 0.35rem 0;
-  font-size: 12px;
+  padding: 0.38rem 0;
+  font-size: 13px;
 }
 
-.effortHeader {
-  color: var(--text-muted);
-  font-weight: 600;
+.tableHeader {
   font-size: 10px;
+  font-weight: 600;
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.04em;
   border-bottom: 1px solid var(--border);
+  padding-bottom: 0.4rem;
+  margin-bottom: 0.1rem;
 }
 
-.effortRow {
+.tableRow {
   border-bottom: 1px solid var(--border);
   color: var(--text-primary);
+  text-decoration: none;
 }
 
-.effortRow:last-child {
+.tableRow:last-child {
   border-bottom: none;
 }
 
-.effortDate {
-  font-size: 12px;
+.tableRow:hover {
+  background: var(--surface-hover);
+  border-radius: 4px;
+}
+
+.activityName {
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.effortTime {
-  font-weight: 600;
+.muted {
+  color: var(--text-muted);
   font-variant-numeric: tabular-nums;
 }
 
-.effortMuted {
+.stravaArrow {
   color: var(--text-muted);
+  text-align: right;
+  font-size: 12px;
 }
 
-.stravaLink {
-  color: var(--text-muted);
-  text-decoration: none;
-  font-size: 14px;
-}
-
-.stravaLink:hover {
+.tableRow:hover .stravaArrow {
   color: var(--accent, #fc4c02);
 }
 
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+  gap: 0.75rem;
+}
+
+.emptyTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.emptyBody {
+  font-size: 13px;
+  color: var(--text-muted);
+  max-width: 380px;
+  line-height: 1.6;
+}
+
 @media (max-width: 768px) {
-  .grid {
-    grid-template-columns: 1fr;
+  .tableHeader,
+  .tableRow {
+    grid-template-columns: 1fr 70px 60px 20px;
   }
 
-  .effortHeader,
-  .effortRow {
-    grid-template-columns: 1fr 65px 65px 24px;
-  }
-
-  .effortHeader > :nth-child(4),
-  .effortRow > :nth-child(4),
-  .effortHeader > :nth-child(5),
-  .effortRow > :nth-child(5) {
+  /* Hide Avg Power and Avg HR columns on mobile */
+  .tableHeader > :nth-child(4),
+  .tableRow > :nth-child(4),
+  .tableHeader > :nth-child(5),
+  .tableRow > :nth-child(5) {
     display: none;
   }
 }
