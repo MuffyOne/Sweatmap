@@ -4,7 +4,7 @@ import styles from "./WhatsNewPage.module.css";
 
 // Bump this string whenever new entries are added — any user who hasn't seen
 // the current version will get the highlight dot on the sidebar button.
-export const WHATS_NEW_VERSION = "2026-07-02-responsive";
+export const WHATS_NEW_VERSION = "2026-07-02-climbs";
 
 interface Entry {
   id?: string;
@@ -22,6 +22,11 @@ const GROUPS: DateGroup[] = [
   {
     date: "2 July 2026",
     entries: [
+      {
+        tag: "Climbs",
+        title: "Famous climb tracker",
+        body: "A new Climbs page tracks your history on 15 famous named climbs — Alpe d\'Huez, Mont Ventoux, Stelvio, Mortirolo, Zoncolan, and more. Each card shows your ascent count, best time, best power, and best HR. Expand a card to see the full history of all your attempts. Add your own climbs via Settings → My Climbs.",
+      },
       {
         tag: "General",
         title: "Mobile responsive layout",

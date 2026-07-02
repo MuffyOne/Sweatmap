@@ -14,8 +14,9 @@ const HRZoneDistribution = React.lazy(() => import("./pages/performance/HRZoneDi
 const TempPerformance = React.lazy(() => import("./pages/performance/TempPerformance").then(m => ({ default: m.TempPerformance })));
 const WhatsNewPage = React.lazy(() => import("./pages/WhatsNewPage").then(m => ({ default: m.WhatsNewPage })));
 const MapPage = React.lazy(() => import("./pages/MapPage").then(m => ({ default: m.MapPage })));
+const ClimbsPage = React.lazy(() => import("./pages/ClimbsPage").then(m => ({ default: m.ClimbsPage })));
 
-export type Page = "home" | "performance" | "activities" | "settings" | "fitness" | "records" | "services" | "xert" | "whatsNew" | "map";
+export type Page = "home" | "performance" | "activities" | "settings" | "fitness" | "records" | "services" | "xert" | "whatsNew" | "map" | "climbs";
 
 interface Props {
   activities: Activity[];
@@ -47,6 +48,7 @@ function PageContent({ activities, koms, page, onNavigate, onForceSync, forceSyn
     case "xert":        return <XertPage />;
     case "whatsNew":    return <WhatsNewPage onNavigate={onNavigate} />;
     case "map":         return <MapPage activities={activities} />;
+    case "climbs":      return <ClimbsPage onNavigate={onNavigate} />;
   }
 }
 

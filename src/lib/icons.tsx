@@ -211,6 +211,16 @@ export function SortAscIcon() {
   );
 }
 
+export function MountainIcon() {
+  return (
+    <svg {...SVG_PROPS}>
+      <polygon points="12,2 22,20 2,20" />
+      <polyline points="6,20 12,10 16,16" />
+      <circle cx="17" cy="8" r="1.5" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
 export function HamburgerIcon() {
   return (
     <svg {...SVG_PROPS}>

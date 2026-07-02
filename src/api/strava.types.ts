@@ -23,6 +23,58 @@ export interface SegmentEffort {
   activity: { id: number };
 }
 
+export interface ClimbEffort {
+  id: number;
+  elapsed_time: number;
+  moving_time: number;
+  start_date: string;
+  start_date_local: string;
+  distance: number;
+  average_watts?: number;
+  device_watts?: boolean;
+  average_heartrate?: number;
+  max_heartrate?: number;
+  kom_rank?: number | null;
+  pr_rank?: number | null;
+  segment: {
+    id: number;
+    name: string;
+    distance: number;
+    average_grade: number;
+    maximum_grade: number;
+    elevation_high: number;
+    elevation_low: number;
+    climb_category: number;
+    city: string | null;
+    state: string | null;
+    country: string | null;
+  };
+  activity: { id: number };
+}
+
+export interface SegmentInfo {
+  id: number;
+  name: string;
+  distance: number;
+  average_grade: number;
+  maximum_grade: number;
+  elevation_high: number;
+  elevation_low: number;
+  climb_category: number;
+  city: string | null;
+  state: string | null;
+  country: string | null;
+}
+
+export interface CustomClimb {
+  segmentId: number;
+  name: string;
+  length_km: number;
+  elevation_m: number;
+  avg_gradient: number;
+  country: string | null;
+}
+
 export interface ActivityStreams {
   time?: number[];
   altitude?: number[];

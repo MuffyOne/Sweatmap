@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { fetchSegmentInfo, type CustomClimb } from "../api/strava";
+import { CUSTOM_CLIMBS_KEY } from "./ClimbsPage";
 
 export const FTP_KEY = "power_zones_ftp";
 export const AGE_KEY = "settings_age";
@@ -11,11 +13,25 @@ interface Props {
   fetchedCount: number;
 }
 
+function loadCustomClimbs(): CustomClimb[] {
+  try { return JSON.parse(localStorage.getItem(CUSTOM_CLIMBS_KEY) ?? "[]"); }
+  catch { return []; }
+}
+
+function saveCustomClimbs(climbs: CustomClimb[]) {
+  localStorage.setItem(CUSTOM_CLIMBS_KEY, JSON.stringify(climbs));
+  window.dispatchEvent(new StorageEvent("storage", { key: CUSTOM_CLIMBS_KEY }));
+}
+
 export function Settings({ onForceSync, forceSyncing, fetchedCount }: Props) {
   const [ftp, setFtp] = useState(() => localStorage.getItem(FTP_KEY) ?? "");
   const [age, setAge] = useState(() => localStorage.getItem(AGE_KEY) ?? "");
   const [weeklyGoal, setWeeklyGoal] = useState(() => localStorage.getItem(WEEKLY_KM_GOAL_KEY) ?? "");
   const [yearlyGoal, setYearlyGoal] = useState(() => localStorage.getItem(YEARLY_KM_GOAL_KEY) ?? "");
+  const [customClimbs, setCustomClimbs] = useState<CustomClimb[]>(loadCustomClimbs);
+  const [climbInput, setClimbInput] = useState("");
+  const [climbAdding, setClimbAdding] = useState(false);
+  const [climbError, setClimbError] = useState<string | null>(null);
 
   function handleFtp(val: string) {
     setFtp(val);
@@ -39,6 +55,48 @@ export function Settings({ onForceSync, forceSyncing, fetchedCount }: Props) {
   function handleYearlyGoal(val: string) {
     setYearlyGoal(val);
     localStorage.setItem(YEARLY_KM_GOAL_KEY, val);
+  }
+
+  async function handleAddClimb() {
+    const raw = climbInput.trim();
+    const match = raw.match(/(\d+)\/?$/);
+    const segmentId = match ? parseInt(match[1], 10) : NaN;
+    if (isNaN(segmentId)) {
+      setClimbError("Enter a Strava segment URL or numeric segment ID.");
+      return;
+    }
+    if (customClimbs.some((c) => c.segmentId === segmentId)) {
+      setClimbError("This segment is already in your list.");
+      return;
+    }
+    setClimbAdding(true);
+    setClimbError(null);
+    try {
+      const info = await fetchSegmentInfo(segmentId);
+      if (!info) { setClimbError("Segment not found. Check the URL or ID."); return; }
+      const climb: CustomClimb = {
+        segmentId: info.id,
+        name: info.name,
+        length_km: Math.round((info.distance / 1000) * 10) / 10,
+        elevation_m: Math.round(info.elevation_high - info.elevation_low),
+        avg_gradient: info.average_grade,
+        country: info.country,
+      };
+      const updated = [...customClimbs, climb];
+      setCustomClimbs(updated);
+      saveCustomClimbs(updated);
+      setClimbInput("");
+    } catch {
+      setClimbError("Failed to fetch segment. Check your connection and try again.");
+    } finally {
+      setClimbAdding(false);
+    }
+  }
+
+  function handleRemoveClimb(segmentId: number) {
+    const updated = customClimbs.filter((c) => c.segmentId !== segmentId);
+    setCustomClimbs(updated);
+    saveCustomClimbs(updated);
   }
 
   const ftpVal = parseInt(ftp, 10);
@@ -153,6 +211,46 @@ export function Settings({ onForceSync, forceSyncing, fetchedCount }: Props) {
           </div>
         </div>
       </div>
+      <div className="settings-section">
+        <div className="settings-field">
+          <div className="settings-field-label">My Climbs</div>
+          <div className="settings-field-hint">
+            Add a custom climb by pasting a Strava segment URL or bare segment ID. It will appear on the Climbs page alongside the preset famous climbs.
+          </div>
+          <div className="settings-input-row">
+            <input
+              type="text"
+              className="settings-input"
+              style={{ flex: 1, maxWidth: "none" }}
+              value={climbInput}
+              placeholder="https://www.strava.com/segments/629438"
+              onChange={(e) => { setClimbInput(e.target.value); setClimbError(null); }}
+              onKeyDown={(e) => { if (e.key === "Enter") handleAddClimb(); }}
+            />
+            <button className="btn-compute" onClick={handleAddClimb} disabled={climbAdding}>
+              {climbAdding ? "Adding…" : "Add"}
+            </button>
+          </div>
+          {climbError && <div className="settings-computed" style={{ color: "var(--danger, #e05)" }}>{climbError}</div>}
+          {customClimbs.length > 0 && (
+            <div style={{ marginTop: "0.75rem", display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+              {customClimbs.map((c) => (
+                <div key={c.segmentId} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: "13px", color: "var(--text-secondary)" }}>
+                  <span>{c.name} <span style={{ color: "var(--text-muted)", fontSize: "11px" }}>#{c.segmentId}</span></span>
+                  <button
+                    onClick={() => handleRemoveClimb(c.segmentId)}
+                    style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: "16px", padding: "0 0.25rem" }}
+                    title="Remove"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
       <div className="settings-bmac">
         <a
           href="https://buymeacoffee.com/muffyzzg"
