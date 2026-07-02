@@ -4,6 +4,12 @@
   height: calc(100vh - 130px);
 }
 
+@media (max-width: 768px) {
+  .page {
+    height: calc(100dvh - 60px);
+  }
+}
+
 .controls {
   display: flex;
   align-items: center;

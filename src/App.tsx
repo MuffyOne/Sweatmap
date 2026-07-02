@@ -19,7 +19,7 @@ import { WHATS_NEW_VERSION } from "./pages/WhatsNewPage";
 import {
   HomeIcon, ZapIcon, ListIcon, LogOutIcon,
   FitnessIcon, TrophyIcon, SettingsIcon, ServicesIcon, XertIcon, ChevronLeftIcon, ChevronRightIcon,
-  SunIcon, MoonIcon, SparkleIcon, MapIcon,
+  SunIcon, MoonIcon, SparkleIcon, MapIcon, HamburgerIcon,
 } from "./lib/icons";
 import "./App.css";
 
@@ -61,6 +61,7 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState<Page>("home");
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [, setTick] = useState(0);
   const refreshNav = () => setTick((t) => t + 1);
   const [theme, setTheme] = useState<"dark" | "light">(() => {
@@ -244,7 +245,15 @@ function App() {
 
   return (
     <div className="layout">
-      <nav className={`sidebar${collapsed ? " collapsed" : ""}`}>
+      <div className="mobile-header">
+        <button className="mobile-hamburger" onClick={() => setMobileNavOpen(true)} aria-label="Open navigation">
+          <HamburgerIcon />
+        </button>
+        <span className="mobile-page-title">{PAGE_TITLES[page]}</span>
+        {athleteAvatar && <img src={athleteAvatar} alt="" className="athlete-avatar" />}
+      </div>
+      {mobileNavOpen && <div className="mobile-backdrop" onClick={() => setMobileNavOpen(false)} />}
+      <nav className={`sidebar${collapsed ? " collapsed" : ""}${mobileNavOpen ? " mobile-open" : ""}`}>
         <div className="sidebar-profile">
           {athleteAvatar && <img src={athleteAvatar} alt="" className="athlete-avatar" />}
           <div className="sidebar-profile-info">
@@ -261,7 +270,7 @@ function App() {
             <button
               key={id}
               className={`sidebar-item${page === id ? " active" : ""}`}
-              onClick={() => setPage(id)}
+              onClick={() => { setPage(id); setMobileNavOpen(false); }}
               title={collapsed ? label : undefined}
             >
               <Icon />
@@ -274,7 +283,7 @@ function App() {
 
         <button
           className="sidebar-item"
-          onClick={() => setTheme((t) => t === "dark" ? "light" : "dark")}
+          onClick={() => { setTheme((t) => t === "dark" ? "light" : "dark"); setMobileNavOpen(false); }}
           title={collapsed ? (theme === "dark" ? "Light mode" : "Dark mode") : undefined}
         >
           {theme === "dark" ? <SunIcon /> : <MoonIcon />}
@@ -285,6 +294,7 @@ function App() {
           className={`sidebar-item${page === "whatsNew" ? " active" : ""}`}
           onClick={() => {
             setPage("whatsNew");
+            setMobileNavOpen(false);
             if (!whatsNewSeen) {
               localStorage.setItem("whats_new_seen", WHATS_NEW_VERSION);
               setWhatsNewSeen(true);

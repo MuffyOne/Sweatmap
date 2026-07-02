@@ -279,7 +279,6 @@ export function RecordsPage({ activities, koms }: Props) {
             dataKey="prs"
             labelKey="name"
             yAxisWidth={88}
-            leftMargin={90}
             xAxisAllowDecimals={false}
             tooltipFormatter={(value, _name, props) => [
               `${value} PRs across ${(props as { payload: { acts: number } }).payload.acts} activities` as never,

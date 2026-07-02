@@ -26,6 +26,18 @@
   grid-template-columns: 1fr 80px 70px 70px 90px;
 }
 
+@media (max-width: 768px) {
+  .komsGrid {
+    grid-template-columns: 1fr 70px 80px !important;
+  }
+
+  /* Hide avg grade (col 3) and max grade (col 4) */
+  .komsGrid > :nth-child(3),
+  .komsGrid > :nth-child(4) {
+    display: none;
+  }
+}
+
 .yearBestDate {
   font-size: 0.75rem;
   color: var(--text-muted);

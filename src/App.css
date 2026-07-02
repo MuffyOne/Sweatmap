@@ -1857,3 +1857,191 @@ body {
 .info-tip:hover::after {
   opacity: 1;
 }
+
+/* ── Mobile / Responsive ── */
+
+.mobile-header {
+  display: none;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 1rem;
+  background: var(--sidebar-bg);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.mobile-page-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-heading);
+  letter-spacing: -0.02em;
+  flex: 1;
+}
+
+.mobile-hamburger {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 0.3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: background 0.15s ease, color 0.15s ease;
+  flex-shrink: 0;
+}
+
+.mobile-hamburger:hover {
+  background: var(--surface-hover);
+  color: var(--text-primary);
+}
+
+.mobile-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 1001;
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+@media (max-width: 768px) {
+  .mobile-header {
+    display: flex;
+  }
+
+  .layout {
+    flex-direction: column;
+  }
+
+  /* Sidebar becomes a fixed slide-in drawer with opaque background */
+  .sidebar,
+  .sidebar.collapsed {
+    position: fixed !important;
+    top: 0;
+    left: -280px;
+    width: 260px !important;
+    height: 100dvh;
+    z-index: 1002;
+    transition: left 0.25s ease, width 0s;
+    overflow-y: auto;
+    background: var(--bg-base) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  .sidebar.mobile-open {
+    left: 0;
+    box-shadow: 8px 0 40px rgba(0, 0, 0, 0.4);
+  }
+
+  /* Restore full sidebar appearance even when "collapsed" class is set */
+  .sidebar.collapsed .sidebar-item {
+    justify-content: flex-start;
+    padding: 0.62rem 0.75rem;
+    gap: 0.75rem;
+  }
+
+  .sidebar.collapsed .sidebar-item span {
+    opacity: 1;
+    width: auto;
+    overflow: visible;
+    pointer-events: auto;
+  }
+
+  .sidebar.collapsed .sidebar-profile {
+    justify-content: flex-start;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+
+  .sidebar.collapsed .sidebar-profile-info {
+    opacity: 1;
+    pointer-events: auto;
+    width: auto;
+  }
+
+  .sidebar.collapsed .sidebar-new-badge {
+    top: 50%;
+    right: 0.75rem;
+    transform: translateY(-50%);
+  }
+
+  /* Hide the desktop collapse toggle */
+  .sidebar-toggle {
+    display: none;
+  }
+
+  /* Main content fills full width */
+  .main-content {
+    padding: 0.75rem 0.9rem 2rem;
+    width: 100%;
+  }
+
+  /* Desktop page title is hidden – mobile header shows it */
+  .page-header {
+    display: none;
+  }
+
+  /* Stack label above delta badge on mobile */
+  .stat-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.2rem;
+  }
+
+  /* Stat cards – tighter on small screens */
+  .stats-grid {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.6rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .stat-card {
+    padding: 1rem 1.1rem;
+  }
+
+  .stat-card .value {
+    font-size: 1.65rem;
+  }
+
+  /* Activity row – reduce stat gap */
+  .activity-row .activity-stats {
+    gap: 0.75rem;
+    font-size: 0.78rem;
+  }
+
+  /* Records table – show name, distance, PRs; hide date & achievements */
+  .records-table-header,
+  .records-table-row {
+    grid-template-columns: 1fr 75px 50px;
+  }
+
+  .records-table-header > :nth-child(2),
+  .records-table-row > :nth-child(2),
+  .records-table-header > :nth-child(5),
+  .records-table-row > :nth-child(5) {
+    display: none;
+  }
+
+  /* Xert 4-column grids → 2 columns */
+  .xert-card-row,
+  .xert-info-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* PMC stats wrap naturally */
+  .pmc-stats {
+    gap: 0.5rem;
+  }
+
+  /* Period toggles wrap */
+  .period-toggle {
+    gap: 0.3rem;
+  }
+}

@@ -4,7 +4,7 @@ import styles from "./WhatsNewPage.module.css";
 
 // Bump this string whenever new entries are added — any user who hasn't seen
 // the current version will get the highlight dot on the sidebar button.
-export const WHATS_NEW_VERSION = "2026-06-30-records-year-bests";
+export const WHATS_NEW_VERSION = "2026-07-02-responsive";
 
 interface Entry {
   id?: string;
@@ -19,6 +19,21 @@ interface DateGroup {
 }
 
 const GROUPS: DateGroup[] = [
+  {
+    date: "2 July 2026",
+    entries: [
+      {
+        tag: "General",
+        title: "Mobile responsive layout",
+        body: "The entire dashboard is now optimised for phone screens. A slide-in navigation drawer replaces the sidebar on small screens, stat cards reflow to fit narrow viewports, tables collapse to show the most important columns, and the heatmap map fills the available screen height correctly.",
+      },
+      {
+        tag: "General",
+        title: "Minor bug fixes",
+        body: "Fixed the 'Best match' badge overlapping the card title in Training Distribution, fixed the PRs by Sport chart alignment, and fixed several other small layout issues across the app.",
+      },
+    ],
+  },
   {
     date: "30 June 2026",
     entries: [
