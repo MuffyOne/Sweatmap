@@ -12,6 +12,7 @@ const PowerCurve = React.lazy(() => import("./pages/performance/PowerCurve").the
 const ZoneDistribution = React.lazy(() => import("./pages/performance/ZoneDistribution").then(m => ({ default: m.ZoneDistribution })));
 const HRZoneDistribution = React.lazy(() => import("./pages/performance/HRZoneDistribution").then(m => ({ default: m.HRZoneDistribution })));
 const TempPerformance = React.lazy(() => import("./pages/performance/TempPerformance").then(m => ({ default: m.TempPerformance })));
+const Durability = React.lazy(() => import("./pages/performance/Durability").then(m => ({ default: m.Durability })));
 const WhatsNewPage = React.lazy(() => import("./pages/WhatsNewPage").then(m => ({ default: m.WhatsNewPage })));
 const MapPage = React.lazy(() => import("./pages/MapPage").then(m => ({ default: m.MapPage })));
 
@@ -40,6 +41,7 @@ function PageContent({ activities, koms, page, onNavigate, onForceSync, forceSyn
         <ZoneDistribution activities={activities} onNavigate={onNavigate} />
         <HRZoneDistribution activities={activities} onNavigate={onNavigate} />
         <TempPerformance activities={activities} />
+        <Durability activities={activities} />
       </>
     );
     case "settings":    return <Settings onForceSync={onForceSync} forceSyncing={forceSyncing} fetchedCount={fetchedCount} />;

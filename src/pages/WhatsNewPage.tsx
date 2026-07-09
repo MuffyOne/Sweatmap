@@ -4,7 +4,7 @@ import styles from "./WhatsNewPage.module.css";
 
 // Bump this string whenever new entries are added — any user who hasn't seen
 // the current version will get the highlight dot on the sidebar button.
-export const WHATS_NEW_VERSION = "2026-07-02-responsive";
+export const WHATS_NEW_VERSION = "2026-07-09-durability";
 
 interface Entry {
   id?: string;
@@ -19,6 +19,21 @@ interface DateGroup {
 }
 
 const GROUPS: DateGroup[] = [
+  {
+    date: "9 July 2026",
+    entries: [
+      {
+        tag: "Performance",
+        title: "Durability score",
+        body: "A new Durability panel on the Performance page measures aerobic decoupling — how much your power-to-heart-rate ratio drifts between the first and second half of long rides. Rides of 60+ minutes with power and heart-rate data are scored Excellent, Good, Moderate fade, or Significant fade, with a trend chart across your recent history.",
+      },
+      {
+        tag: "Fitness",
+        title: "More accurate training load",
+        body: "Fitness (CTL), Fatigue (ATL), and Form (TSB) on the Fitness page now use Strava's normalized power estimate when calculating training stress, instead of average power — a more accurate reflection of effort for rides with variable intensity (surges, climbs, intervals).",
+      },
+    ],
+  },
   {
     date: "2 July 2026",
     entries: [

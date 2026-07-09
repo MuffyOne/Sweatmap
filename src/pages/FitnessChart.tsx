@@ -50,10 +50,11 @@ function getFormStatus(tsb: number): { label: string; color: string } {
 }
 
 function computeLoad(a: Activity, ftp: number | null): number {
-  // Power-based TSS (approximate, uses avg watts instead of normalized power)
-  if (a.average_watts && ftp && ftp > 0) {
-    const if_ = a.average_watts / ftp;
-    return (a.moving_time * a.average_watts * if_) / (ftp * 3600) * 100;
+  // Power-based TSS, using Strava's normalized-power estimate when available
+  const power = a.weighted_average_watts ?? a.average_watts;
+  if (power && ftp && ftp > 0) {
+    const if_ = power / ftp;
+    return (a.moving_time * power * if_) / (ftp * 3600) * 100;
   }
   // Strava's HR-based suffer score
   if (a.suffer_score && a.suffer_score > 0) return a.suffer_score;
