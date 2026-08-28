@@ -3,7 +3,7 @@ import { subDays, parseISO, isAfter } from "date-fns";
 import { clsx } from "clsx";
 import { fetchActivityHeartrate, type Activity } from "../../api/strava";
 import { AGE_KEY } from "../Settings";
-import { formatTime } from "../../lib/utils";
+import { formatTime, type SportFilter } from "../../lib/utils";
 import { CollapsibleSection } from "../../lib/CollapsibleSection";
 import { PeriodToggle } from "../../components/PeriodToggle";
 import { StreamProgress } from "../../components/StreamProgress";
@@ -42,30 +42,44 @@ interface CachedZones {
   activityCount: number;
 }
 
-function loadCache(range: Range): CachedZones | null {
-  const raw = localStorage.getItem(CACHE_KEY_PREFIX + range);
+function loadCache(sportFilter: SportFilter, range: Range): CachedZones | null {
+  const raw = localStorage.getItem(`${CACHE_KEY_PREFIX}${sportFilter}_${range}`);
   if (!raw) return null;
-  const parsed = JSON.parse(raw);
-  if (Array.isArray(parsed)) return { data: parsed, activityCount: -1 };
-  return parsed as CachedZones;
+  try {
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) return { data: parsed, activityCount: -1 };
+    return parsed as CachedZones;
+  } catch {
+    return null;
+  }
 }
 
-function saveCache(range: Range, data: ZonePoint[], activityCount: number) {
-  localStorage.setItem(CACHE_KEY_PREFIX + range, JSON.stringify({ data, activityCount }));
+function saveCache(sportFilter: SportFilter, range: Range, data: ZonePoint[], activityCount: number) {
+  localStorage.setItem(`${CACHE_KEY_PREFIX}${sportFilter}_${range}`, JSON.stringify({ data, activityCount }));
 }
 
 interface Props {
   activities: Activity[];
+  sportFilter: SportFilter;
   onNavigate: (page: "settings") => void;
 }
 
-export function HRZoneDistribution({ activities, onNavigate }: Props) {
+export function HRZoneDistribution({ activities, sportFilter, onNavigate }: Props) {
   const [range, setRange] = useState<Range>("30d");
   const [zones, setZones] = useState<Partial<Record<Range, CachedZones>>>(() => ({
-    "30d": loadCache("30d") ?? undefined,
-    "90d": loadCache("90d") ?? undefined,
+    "30d": loadCache(sportFilter, "30d") ?? undefined,
+    "90d": loadCache(sportFilter, "90d") ?? undefined,
   }));
   const [loading, setLoading] = useState(false);
+
+  // Sport filter changed — reset to whatever is cached (or nothing) for the new filter
+  // instead of leaving the previous filter's chart on screen.
+  useEffect(() => {
+    setZones({
+      "30d": loadCache(sportFilter, "30d") ?? undefined,
+      "90d": loadCache(sportFilter, "90d") ?? undefined,
+    });
+  }, [sportFilter]);
   const [progress, setProgress] = useState({ done: 0, total: 0 });
   const [error, setError] = useState<string | null>(null);
 
@@ -131,9 +145,9 @@ export function HRZoneDistribution({ activities, onNavigate }: Props) {
 
     const entry: CachedZones = { data: result, activityCount: eligible.length };
     setZones((prev) => ({ ...prev, [range]: entry }));
-    saveCache(range, result, eligible.length);
+    saveCache(sportFilter, range, result, eligible.length);
     setLoading(false);
-  }, [activities, range, maxHR]);
+  }, [activities, range, maxHR, sportFilter]);
 
   const eligibleCount = useMemo(() => {
     const since = subDays(new Date(), range === "30d" ? 30 : 90);

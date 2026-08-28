@@ -1,5 +1,6 @@
 import React, { Suspense } from "react";
 import type { Activity, SegmentEffort } from "./api/strava";
+import type { SportFilter } from "./lib/utils";
 
 const HomePage = React.lazy(() => import("./pages/HomePage").then(m => ({ default: m.HomePage })));
 const ActivitiesPage = React.lazy(() => import("./pages/ActivitiesPage").then(m => ({ default: m.ActivitiesPage })));
@@ -22,6 +23,7 @@ interface Props {
   activities: Activity[];
   koms: SegmentEffort[];
   page: Page;
+  sportFilter: SportFilter;
   onNavigate: (page: Page) => void;
   onForceSync: () => Promise<void>;
   forceSyncing: boolean;
@@ -29,7 +31,7 @@ interface Props {
   onXertChange: () => void;
 }
 
-function PageContent({ activities, koms, page, onNavigate, onForceSync, forceSyncing, fetchedCount, onXertChange }: Props) {
+function PageContent({ activities, koms, page, sportFilter, onNavigate, onForceSync, forceSyncing, fetchedCount, onXertChange }: Props) {
   switch (page) {
     case "home":        return <HomePage activities={activities} />;
     case "activities":  return <ActivitiesPage activities={activities} />;
@@ -37,18 +39,18 @@ function PageContent({ activities, koms, page, onNavigate, onForceSync, forceSyn
     case "records":     return <RecordsPage activities={activities} koms={koms} />;
     case "performance": return (
       <>
-        <PowerCurve activities={activities} />
-        <ZoneDistribution activities={activities} onNavigate={onNavigate} />
-        <HRZoneDistribution activities={activities} onNavigate={onNavigate} />
+        <PowerCurve activities={activities} sportFilter={sportFilter} />
+        <ZoneDistribution activities={activities} sportFilter={sportFilter} onNavigate={onNavigate} />
+        <HRZoneDistribution activities={activities} sportFilter={sportFilter} onNavigate={onNavigate} />
         <TempPerformance activities={activities} />
-        <Durability activities={activities} />
+        <Durability activities={activities} sportFilter={sportFilter} />
       </>
     );
     case "settings":    return <Settings onForceSync={onForceSync} forceSyncing={forceSyncing} fetchedCount={fetchedCount} />;
     case "services":    return <ServicesPage onXertChange={onXertChange} />;
     case "xert":        return <XertPage />;
     case "whatsNew":    return <WhatsNewPage onNavigate={onNavigate} />;
-    case "map":         return <MapPage activities={activities} />;
+    case "map":         return <MapPage activities={activities} sportFilter={sportFilter} />;
   }
 }
 

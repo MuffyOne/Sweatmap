@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   getAuthUrl,
   getStoredTokens,
@@ -21,6 +21,8 @@ import {
   FitnessIcon, TrophyIcon, SettingsIcon, ServicesIcon, XertIcon, ChevronLeftIcon, ChevronRightIcon,
   SunIcon, MoonIcon, SparkleIcon, MapIcon, HamburgerIcon,
 } from "./lib/icons";
+import { PeriodToggle } from "./components/PeriodToggle";
+import { SPORT_FILTER_OPTIONS, SPORT_FILTER_LABELS, matchesSportFilter, type SportFilter } from "./lib/utils";
 import "./App.css";
 
 
@@ -35,6 +37,8 @@ const NAV_ITEMS: { id: Page; label: string; Icon: () => React.ReactElement; cond
   { id: "services", label: "Services", Icon: ServicesIcon },
   { id: "settings", label: "Settings", Icon: SettingsIcon },
 ];
+
+const PAGES_WITH_SPORT_FILTER = new Set<Page>(["home", "fitness", "performance", "activities", "records", "map"]);
 
 const PAGE_TITLES: Record<Page, string> = {
   home: "Overview",
@@ -60,6 +64,7 @@ function App() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState<Page>("home");
+  const [sportFilter, setSportFilter] = useState<SportFilter>("all");
   const [collapsed, setCollapsed] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [, setTick] = useState(0);
@@ -90,6 +95,11 @@ function App() {
     document.documentElement.scrollTop = 0;
     document.body.scrollTop = 0;
   }, [page]);
+  const filteredActivities = useMemo(
+    () => activities.filter((a) => matchesSportFilter(a, sportFilter)),
+    [activities, sportFilter]
+  );
+
   const [forceSyncing, setForceSyncing] = useState(false);
   const [whatsNewSeen, setWhatsNewSeen] = useState(
     () => localStorage.getItem("whats_new_seen") === WHATS_NEW_VERSION
@@ -97,12 +107,15 @@ function App() {
 
   async function handleForceSync() {
     if (refreshing || forceSyncing) return;
-    // Clear computed performance caches so they recompute with fresh stream data
-    ["30d", "90d"].forEach((r) => localStorage.removeItem(`power_curve_${r}`));
-    localStorage.removeItem("power_curve_alltime");
-    ["30d", "90d"].forEach((r) => {
-      localStorage.removeItem(`power_zones_${r}`);
-      localStorage.removeItem(`hr_zones_v2_${r}`);
+    // Clear computed performance caches (per sport filter) so they recompute with fresh stream data
+    SPORT_FILTER_OPTIONS.forEach((sf) => {
+      ["30d", "90d"].forEach((r) => {
+        localStorage.removeItem(`power_curve_${sf}_${r}`);
+        localStorage.removeItem(`power_zones_${sf}_${r}`);
+        localStorage.removeItem(`hr_zones_v2_${sf}_${r}`);
+      });
+      localStorage.removeItem(`power_curve_alltime_${sf}`);
+      localStorage.removeItem(`durability_alltime_${sf}`);
     });
     setForceSyncing(true);
     setFetchedCount(0);
@@ -328,8 +341,17 @@ function App() {
       <main className="main-content">
         <div className="page-header">
           <h2 className="page-title">{PAGE_TITLES[page]}</h2>
+          {PAGES_WITH_SPORT_FILTER.has(page) && (
+            <PeriodToggle
+              options={SPORT_FILTER_OPTIONS}
+              selected={sportFilter}
+              onSelect={setSportFilter}
+              renderLabel={(v) => SPORT_FILTER_LABELS[v]}
+              inline
+            />
+          )}
         </div>
-        <Dashboard activities={activities} koms={koms} page={page} onNavigate={setPage} onForceSync={handleForceSync} forceSyncing={forceSyncing} fetchedCount={fetchedCount} onXertChange={refreshNav} />
+        <Dashboard activities={filteredActivities} koms={koms} page={page} sportFilter={sportFilter} onNavigate={setPage} onForceSync={handleForceSync} forceSyncing={forceSyncing} fetchedCount={fetchedCount} onXertChange={refreshNav} />
       </main>
     </div>
   );

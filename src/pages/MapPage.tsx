@@ -8,10 +8,10 @@ import {
   fetchAndCacheAllTime,
 } from "../api/strava";
 import { PeriodToggle } from "../components/PeriodToggle";
+import { matchesSportFilter, type SportFilter } from "../lib/utils";
 import styles from "./MapPage.module.css";
 
 type TimeRange = "30d" | "90d" | "1y" | "all";
-type SportFilter = "all" | "rides" | "runs" | "hikes";
 type RenderMode = "heatmap" | "routes";
 
 function decodePolyline(encoded: string): [number, number][] {
@@ -65,20 +65,17 @@ function FitBounds({ routes }: { routes: [number, number][][] }) {
 
 interface Props {
   activities: Activity[];
+  sportFilter: SportFilter;
 }
 
 const RANGE_OPTIONS = ["30d", "90d", "1y", "all"] as const satisfies readonly TimeRange[];
 const RANGE_LABELS: Record<TimeRange, string> = { "30d": "30d", "90d": "90d", "1y": "1y", all: "All time" };
 
-const SPORT_OPTIONS = ["all", "rides", "runs", "hikes"] as const satisfies readonly SportFilter[];
-const SPORT_LABELS: Record<SportFilter, string> = { all: "All", rides: "Rides", runs: "Runs", hikes: "Hikes" };
-
 const MODE_OPTIONS = ["heatmap", "routes"] as const satisfies readonly RenderMode[];
 const MODE_LABELS: Record<RenderMode, string> = { heatmap: "Heatmap", routes: "Routes" };
 
-export function MapPage({ activities }: Props) {
+export function MapPage({ activities, sportFilter }: Props) {
   const [range, setRange] = useState<TimeRange>("1y");
-  const [sport, setSport] = useState<SportFilter>("all");
   const [renderMode, setRenderMode] = useState<RenderMode>("heatmap");
   const [isDark, setIsDark] = useState(() => !document.body.classList.contains("light"));
   const [today] = useState<number>(Date.now);
@@ -135,14 +132,11 @@ export function MapPage({ activities }: Props) {
       .filter((a) => {
         if (a.sport_type === "VirtualRide" || a.type === "VirtualRide") return false;
         if (range !== "all" && new Date(a.start_date).getTime() < cutoffMs) return false;
-        if (sport === "rides") return a.type === "Ride" || a.sport_type === "Ride" || a.sport_type === "GravelRide" || a.sport_type === "MountainBikeRide";
-        if (sport === "runs") return a.type === "Run" || a.sport_type === "Run" || a.sport_type === "TrailRun";
-        if (sport === "hikes") return a.sport_type === "Hike" || a.type === "Hike";
-        return true;
+        return matchesSportFilter(a, sportFilter);
       })
       .map((a) => (a.map?.summary_polyline ? decodePolyline(a.map.summary_polyline) : []))
       .filter((r) => r.length > 0);
-  }, [activities, allTimeActivities, range, sport, cutoffMs]);
+  }, [activities, allTimeActivities, range, sportFilter, cutoffMs]);
 
   const tileUrl = isDark
     ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
@@ -166,14 +160,6 @@ export function MapPage({ activities }: Props) {
           selected={range}
           onSelect={setRange}
           renderLabel={(v) => RANGE_LABELS[v]}
-          inline
-        />
-        <span className={styles.divider} />
-        <PeriodToggle
-          options={SPORT_OPTIONS}
-          selected={sport}
-          onSelect={setSport}
-          renderLabel={(v) => SPORT_LABELS[v]}
           inline
         />
         <span className={styles.divider} />

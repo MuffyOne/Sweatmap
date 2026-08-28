@@ -11,7 +11,7 @@ import {
 import { subDays, parseISO, isAfter } from "date-fns";
 import { clsx } from "clsx";
 import { fetchActivityWatts, type Activity } from "../../api/strava";
-import { TOOLTIP_STYLE } from "../../lib/utils";
+import { TOOLTIP_STYLE, type SportFilter } from "../../lib/utils";
 import { CollapsibleSection } from "../../lib/CollapsibleSection";
 import { PeriodToggle } from "../../components/PeriodToggle";
 import { StreamProgress } from "../../components/StreamProgress";
@@ -70,8 +70,8 @@ interface CachedCurve {
   activityCount: number;
 }
 
-function loadCachedCurve(range: CurveRange): CachedCurve | null {
-  const raw = localStorage.getItem(CACHE_KEY_PREFIX + range);
+function loadCachedCurve(sportFilter: SportFilter, range: CurveRange): CachedCurve | null {
+  const raw = localStorage.getItem(`${CACHE_KEY_PREFIX}${sportFilter}_${range}`);
   if (!raw) return null;
   try {
     const parsed = JSON.parse(raw);
@@ -82,27 +82,38 @@ function loadCachedCurve(range: CurveRange): CachedCurve | null {
   }
 }
 
-function loadBestCurve(): CachedCurve | null {
-  const raw = localStorage.getItem(BEST_CACHE_KEY);
+function loadBestCurve(sportFilter: SportFilter): CachedCurve | null {
+  const raw = localStorage.getItem(`${BEST_CACHE_KEY}_${sportFilter}`);
   if (!raw) return null;
   try { return JSON.parse(raw) as CachedCurve; } catch { return null; }
 }
 
-function saveCurveCache(range: CurveRange, data: CurvePoint[], activityCount: number) {
-  localStorage.setItem(CACHE_KEY_PREFIX + range, JSON.stringify({ data, activityCount }));
+function saveCurveCache(sportFilter: SportFilter, range: CurveRange, data: CurvePoint[], activityCount: number) {
+  localStorage.setItem(`${CACHE_KEY_PREFIX}${sportFilter}_${range}`, JSON.stringify({ data, activityCount }));
 }
 
 interface Props {
   activities: Activity[];
+  sportFilter: SportFilter;
 }
 
-export function PowerCurve({ activities }: Props) {
+export function PowerCurve({ activities, sportFilter }: Props) {
   const [range, setRange] = useState<CurveRange>("30d");
   const [curves, setCurves] = useState<Partial<Record<CurveRange, CachedCurve>>>(() => ({
-    "30d": loadCachedCurve("30d") ?? undefined,
-    "90d": loadCachedCurve("90d") ?? undefined,
+    "30d": loadCachedCurve(sportFilter, "30d") ?? undefined,
+    "90d": loadCachedCurve(sportFilter, "90d") ?? undefined,
   }));
-  const [bestCurve, setBestCurve] = useState<CachedCurve | null>(loadBestCurve);
+  const [bestCurve, setBestCurve] = useState<CachedCurve | null>(() => loadBestCurve(sportFilter));
+
+  // Sport filter changed — reset to whatever is cached (or nothing) for the new filter
+  // instead of leaving the previous filter's chart on screen.
+  useEffect(() => {
+    setCurves({
+      "30d": loadCachedCurve(sportFilter, "30d") ?? undefined,
+      "90d": loadCachedCurve(sportFilter, "90d") ?? undefined,
+    });
+    setBestCurve(loadBestCurve(sportFilter));
+  }, [sportFilter]);
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState({ done: 0, total: 0 });
   const [error, setError] = useState<string | null>(null);
@@ -161,15 +172,15 @@ export function PowerCurve({ activities }: Props) {
     const chartData = buildCurve(rangeStreams);
     const entry: CachedCurve = { data: chartData, activityCount: inRangeIds.size };
     setCurves((prev) => ({ ...prev, [range]: entry }));
-    saveCurveCache(range, chartData, inRangeIds.size);
+    saveCurveCache(sportFilter, range, chartData, inRangeIds.size);
 
     const bestData = buildCurve(allStreams);
     const bestEntry: CachedCurve = { data: bestData, activityCount: allPowerActs.length };
     setBestCurve(bestEntry);
-    localStorage.setItem(BEST_CACHE_KEY, JSON.stringify(bestEntry));
+    localStorage.setItem(`${BEST_CACHE_KEY}_${sportFilter}`, JSON.stringify(bestEntry));
 
     setLoading(false);
-  }, [activities, range]);
+  }, [activities, range, sportFilter]);
 
   const eligibleCount = useMemo(() => {
     const since = subDays(new Date(), range === "30d" ? 30 : 90);

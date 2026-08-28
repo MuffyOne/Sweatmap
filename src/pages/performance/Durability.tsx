@@ -12,7 +12,7 @@ import {
 } from "recharts";
 import { format, parseISO } from "date-fns";
 import { fetchActivityStreams, type Activity } from "../../api/strava";
-import { TOOLTIP_STYLE } from "../../lib/utils";
+import { TOOLTIP_STYLE, type SportFilter } from "../../lib/utils";
 import { CollapsibleSection } from "../../lib/CollapsibleSection";
 import { StreamProgress } from "../../components/StreamProgress";
 import styles from "./Durability.module.css";
@@ -65,23 +65,30 @@ interface CachedDurability {
 
 const CACHE_KEY = "durability_alltime";
 
-function loadCache(): CachedDurability | null {
-  const raw = localStorage.getItem(CACHE_KEY);
+function loadCache(sportFilter: SportFilter): CachedDurability | null {
+  const raw = localStorage.getItem(`${CACHE_KEY}_${sportFilter}`);
   if (!raw) return null;
   try { return JSON.parse(raw) as CachedDurability; } catch { return null; }
 }
 
-function saveCache(data: RidePoint[], activityCount: number) {
-  localStorage.setItem(CACHE_KEY, JSON.stringify({ data, activityCount }));
+function saveCache(sportFilter: SportFilter, data: RidePoint[], activityCount: number) {
+  localStorage.setItem(`${CACHE_KEY}_${sportFilter}`, JSON.stringify({ data, activityCount }));
 }
 
 interface Props {
   activities: Activity[];
+  sportFilter: SportFilter;
 }
 
-export function Durability({ activities }: Props) {
-  const [cached, setCached] = useState<CachedDurability | null>(loadCache);
+export function Durability({ activities, sportFilter }: Props) {
+  const [cached, setCached] = useState<CachedDurability | null>(() => loadCache(sportFilter));
   const [loading, setLoading] = useState(false);
+
+  // Sport filter changed — reset to whatever is cached (or nothing) for the new filter
+  // instead of leaving the previous filter's chart on screen.
+  useEffect(() => {
+    setCached(loadCache(sportFilter));
+  }, [sportFilter]);
   const [progress, setProgress] = useState({ done: 0, total: 0 });
   const [error, setError] = useState<string | null>(null);
 
@@ -145,9 +152,9 @@ export function Durability({ activities }: Props) {
 
     const entry: CachedDurability = { data: results, activityCount: eligible.length };
     setCached(entry);
-    saveCache(results, eligible.length);
+    saveCache(sportFilter, results, eligible.length);
     setLoading(false);
-  }, [eligible]);
+  }, [eligible, sportFilter]);
 
   useEffect(() => {
     const stale = !cached || cached.activityCount !== eligible.length;

@@ -46,3 +46,21 @@ export function normalizeSportLabel(raw: string): string {
 
 export const RUN_TYPES = new Set(["Run", "TrailRun", "Treadmill", "VirtualRun"]);
 export const RIDE_TYPES = new Set(["Ride", "VirtualRide", "EBikeRide", "GravelRide", "MountainBikeRide"]);
+
+export type SportFilter = "all" | "rides" | "runs" | "hikes";
+
+export const SPORT_FILTER_OPTIONS = ["all", "rides", "runs", "hikes"] as const satisfies readonly SportFilter[];
+
+export const SPORT_FILTER_LABELS: Record<SportFilter, string> = {
+  all: "All",
+  rides: "Rides",
+  runs: "Runs",
+  hikes: "Hikes",
+};
+
+export function matchesSportFilter(a: { type: string; sport_type: string }, filter: SportFilter): boolean {
+  if (filter === "all") return true;
+  if (filter === "rides") return RIDE_TYPES.has(a.type) || RIDE_TYPES.has(a.sport_type);
+  if (filter === "runs") return RUN_TYPES.has(a.type) || RUN_TYPES.has(a.sport_type);
+  return a.type === "Hike" || a.sport_type === "Hike";
+}

@@ -4,7 +4,7 @@ import styles from "./WhatsNewPage.module.css";
 
 // Bump this string whenever new entries are added — any user who hasn't seen
 // the current version will get the highlight dot on the sidebar button.
-export const WHATS_NEW_VERSION = "2026-07-09-durability";
+export const WHATS_NEW_VERSION = "2026-08-28-sport-filter";
 
 interface Entry {
   id?: string;
@@ -19,6 +19,16 @@ interface DateGroup {
 }
 
 const GROUPS: DateGroup[] = [
+  {
+    date: "28 August 2026",
+    entries: [
+      {
+        tag: "General",
+        title: "Activity type filter everywhere",
+        body: "The All / Rides / Runs / Hikes filter from the Heatmap page now lives in the header and applies across the whole dashboard — Home, Fitness, Performance, Activities, Records, and Map all update together when you switch it. It defaults to All, so nothing changes until you use it.",
+      },
+    ],
+  },
   {
     date: "9 July 2026",
     entries: [

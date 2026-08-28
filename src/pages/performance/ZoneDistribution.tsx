@@ -3,7 +3,7 @@ import { subDays, parseISO, isAfter } from "date-fns";
 import { clsx } from "clsx";
 import { fetchActivityWatts, type Activity } from "../../api/strava";
 import { FTP_KEY } from "../Settings";
-import { formatTime } from "../../lib/utils";
+import { formatTime, type SportFilter } from "../../lib/utils";
 import { CollapsibleSection } from "../../lib/CollapsibleSection";
 import { PeriodToggle } from "../../components/PeriodToggle";
 import { StreamProgress } from "../../components/StreamProgress";
@@ -53,8 +53,8 @@ interface CachedZones {
   activityCount: number;
 }
 
-function loadCache(range: Range): CachedZones | null {
-  const raw = localStorage.getItem(CACHE_KEY_PREFIX + range);
+function loadCache(sportFilter: SportFilter, range: Range): CachedZones | null {
+  const raw = localStorage.getItem(`${CACHE_KEY_PREFIX}${sportFilter}_${range}`);
   if (!raw) return null;
   try {
     const parsed = JSON.parse(raw);
@@ -65,12 +65,13 @@ function loadCache(range: Range): CachedZones | null {
   }
 }
 
-function saveCache(range: Range, data: ZonePoint[], activityCount: number) {
-  localStorage.setItem(CACHE_KEY_PREFIX + range, JSON.stringify({ data, activityCount }));
+function saveCache(sportFilter: SportFilter, range: Range, data: ZonePoint[], activityCount: number) {
+  localStorage.setItem(`${CACHE_KEY_PREFIX}${sportFilter}_${range}`, JSON.stringify({ data, activityCount }));
 }
 
 interface Props {
   activities: Activity[];
+  sportFilter: SportFilter;
   onNavigate: (page: "settings") => void;
 }
 
@@ -188,13 +189,22 @@ function TrainingDistribution({ data }: { data: ZonePoint[] }) {
   );
 }
 
-export function ZoneDistribution({ activities, onNavigate }: Props) {
+export function ZoneDistribution({ activities, sportFilter, onNavigate }: Props) {
   const [range, setRange] = useState<Range>("30d");
   const [zones, setZones] = useState<Partial<Record<Range, CachedZones>>>(() => ({
-    "30d": loadCache("30d") ?? undefined,
-    "90d": loadCache("90d") ?? undefined,
+    "30d": loadCache(sportFilter, "30d") ?? undefined,
+    "90d": loadCache(sportFilter, "90d") ?? undefined,
   }));
   const [loading, setLoading] = useState(false);
+
+  // Sport filter changed — reset to whatever is cached (or nothing) for the new filter
+  // instead of leaving the previous filter's chart on screen.
+  useEffect(() => {
+    setZones({
+      "30d": loadCache(sportFilter, "30d") ?? undefined,
+      "90d": loadCache(sportFilter, "90d") ?? undefined,
+    });
+  }, [sportFilter]);
   const [progress, setProgress] = useState({ done: 0, total: 0 });
   const [error, setError] = useState<string | null>(null);
 
@@ -259,9 +269,9 @@ export function ZoneDistribution({ activities, onNavigate }: Props) {
 
     const entry: CachedZones = { data: result, activityCount: eligible.length };
     setZones((prev) => ({ ...prev, [range]: entry }));
-    saveCache(range, result, eligible.length);
+    saveCache(sportFilter, range, result, eligible.length);
     setLoading(false);
-  }, [activities, range, ftpValid, ftpVal]);
+  }, [activities, range, ftpValid, ftpVal, sportFilter]);
 
   const eligibleCount = useMemo(() => {
     const since = subDays(new Date(), RANGE_DAYS[range]);
