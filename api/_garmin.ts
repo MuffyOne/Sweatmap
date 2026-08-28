@@ -70,6 +70,10 @@ export async function garminFetchHealth(
     client.getBodyBattery(startDate, endDate),
   ]);
 
+  // Garmin returns these newest-first; sort ascending (oldest -> newest) so
+  // charts read left-to-right chronologically and "last entry = latest" holds.
+  const byDateAsc = (a: { date: string }, b: { date: string }) => a.date.localeCompare(b.date);
+
   const weight: GarminWeightEntry[] =
     weightResult.status === "fulfilled"
       ? weightResult.value.dailyWeightSummaries
@@ -78,6 +82,7 @@ export async function garminFetchHealth(
             date: day.summaryDate,
             weightKg: Math.round((day.latestWeight.weight / 1000) * 10) / 10,
           }))
+          .sort(byDateAsc)
       : (console.error("Garmin weight fetch failed:", weightResult.reason), []);
 
   const sleep: GarminSleepEntry[] =
@@ -93,15 +98,18 @@ export async function garminFetchHealth(
             awakeMin: Math.round(day.values.awakeTime / 60),
             totalMin: Math.round(day.values.totalSleepTimeInSeconds / 60),
           }))
+          .sort(byDateAsc)
       : (console.error("Garmin sleep fetch failed:", sleepResult.reason), []);
 
   const bodyBattery: GarminBodyBatteryEntry[] =
     bodyBatteryResult.status === "fulfilled"
-      ? bodyBatteryResult.value.map((day) => ({
-          date: day.calendarDate,
-          low: day.values.lowBodyBattery,
-          high: day.values.highBodyBattery,
-        }))
+      ? bodyBatteryResult.value
+          .map((day) => ({
+            date: day.calendarDate,
+            low: day.values.lowBodyBattery,
+            high: day.values.highBodyBattery,
+          }))
+          .sort(byDateAsc)
       : (console.error("Garmin body battery fetch failed:", bodyBatteryResult.reason), []);
 
   return { weight, sleep, bodyBattery, tokens: client.exportToken() };

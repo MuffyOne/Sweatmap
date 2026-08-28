@@ -70,6 +70,14 @@ export function HealthPage() {
     [health]
   );
 
+  const weightDomain = useMemo((): [number, number] | undefined => {
+    if (weightChart.length === 0) return undefined;
+    const values = weightChart.map((d) => d.weightKg);
+    // Whole-kg bounds (not fractional padding) so recharts' tick generator
+    // lands on clean round numbers instead of odd decimals.
+    return [Math.floor(Math.min(...values) - 1), Math.ceil(Math.max(...values) + 1)];
+  }, [weightChart]);
+
   const latestWeight = weightChart.length > 0 ? weightChart[weightChart.length - 1] : null;
   const earliestWeight = weightChart.length > 0 ? weightChart[0] : null;
   const latestSleep = sleepChart.length > 0 ? sleepChart[sleepChart.length - 1] : null;
@@ -107,7 +115,7 @@ export function HealthPage() {
               <LineChart data={weightChart} margin={{ top: 8, right: 16, bottom: 4, left: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--grid-stroke)" vertical={false} />
                 <XAxis dataKey="label" tick={{ fill: "var(--tick-color)", fontSize: 11 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: "var(--tick-color)", fontSize: 11 }} axisLine={false} tickLine={false} width={36} unit="kg" domain={["dataMin - 1", "dataMax + 1"]} />
+                <YAxis tick={{ fill: "var(--tick-color)", fontSize: 11 }} axisLine={false} tickLine={false} width={48} unit="kg" domain={weightDomain} allowDecimals={false} />
                 <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v) => [`${v} kg`, "Weight"]} />
                 <Line type="monotone" dataKey="weightKg" stroke="#fc4c02" strokeWidth={2} dot={{ fill: "#fc4c02", r: 3 }} isAnimationActive={false} />
               </LineChart>
