@@ -10,7 +10,10 @@ const { GarminConnect } = garminConnectPkg;
 // garmin-health.ts) and the local Vite dev-server proxy (vite.config.ts), so the
 // two runtimes can't drift out of sync.
 
-const HISTORY_DAYS = 30;
+// Garmin's daily-stats endpoints (sleep, body battery) page in blocks of up to
+// 28 days and 400 on a longer span — weight uses a different endpoint family
+// that accepts 30, but 28 is used everywhere here to stay safely under that cap.
+const HISTORY_DAYS = 28;
 
 export interface GarminWeightEntry {
   date: string;
@@ -59,38 +62,49 @@ export async function garminFetchHealth(
   const endDate = new Date();
   const startDate = new Date(endDate.getTime() - HISTORY_DAYS * 24 * 60 * 60 * 1000);
 
-  const [weightRange, sleepSummary, bodyBattery] = await Promise.all([
+  // Fetched independently (not Promise.all) so a hiccup on one of Garmin's
+  // unofficial endpoints doesn't take down the other two metrics with it.
+  const [weightResult, sleepResult, bodyBatteryResult] = await Promise.allSettled([
     client.getWeightRange(startDate, endDate),
     client.getSleepDailySummary(startDate, endDate),
     client.getBodyBattery(startDate, endDate),
   ]);
 
-  const weight: GarminWeightEntry[] = weightRange.dailyWeightSummaries
-    .filter((day) => day.numOfWeightEntries > 0)
-    .map((day) => ({
-      date: day.summaryDate,
-      weightKg: Math.round((day.latestWeight.weight / 1000) * 10) / 10,
-    }));
+  const weight: GarminWeightEntry[] =
+    weightResult.status === "fulfilled"
+      ? weightResult.value.dailyWeightSummaries
+          .filter((day) => day.numOfWeightEntries > 0)
+          .map((day) => ({
+            date: day.summaryDate,
+            weightKg: Math.round((day.latestWeight.weight / 1000) * 10) / 10,
+          }))
+      : (console.error("Garmin weight fetch failed:", weightResult.reason), []);
 
-  const sleep: GarminSleepEntry[] = sleepSummary.individualStats
-    .filter((day) => day.values.totalSleepTimeInSeconds > 0)
-    .map((day) => ({
-      date: day.calendarDate,
-      score: day.values.sleepScore,
-      deepMin: Math.round(day.values.deepTime / 60),
-      lightMin: Math.round(day.values.lightTime / 60),
-      remMin: Math.round(day.values.remTime / 60),
-      awakeMin: Math.round(day.values.awakeTime / 60),
-      totalMin: Math.round(day.values.totalSleepTimeInSeconds / 60),
-    }));
+  const sleep: GarminSleepEntry[] =
+    sleepResult.status === "fulfilled"
+      ? sleepResult.value.individualStats
+          .filter((day) => day.values.totalSleepTimeInSeconds > 0)
+          .map((day) => ({
+            date: day.calendarDate,
+            score: day.values.sleepScore,
+            deepMin: Math.round(day.values.deepTime / 60),
+            lightMin: Math.round(day.values.lightTime / 60),
+            remMin: Math.round(day.values.remTime / 60),
+            awakeMin: Math.round(day.values.awakeTime / 60),
+            totalMin: Math.round(day.values.totalSleepTimeInSeconds / 60),
+          }))
+      : (console.error("Garmin sleep fetch failed:", sleepResult.reason), []);
 
-  const bodyBatteryEntries: GarminBodyBatteryEntry[] = bodyBattery.map((day) => ({
-    date: day.calendarDate,
-    low: day.values.lowBodyBattery,
-    high: day.values.highBodyBattery,
-  }));
+  const bodyBattery: GarminBodyBatteryEntry[] =
+    bodyBatteryResult.status === "fulfilled"
+      ? bodyBatteryResult.value.map((day) => ({
+          date: day.calendarDate,
+          low: day.values.lowBodyBattery,
+          high: day.values.highBodyBattery,
+        }))
+      : (console.error("Garmin body battery fetch failed:", bodyBatteryResult.reason), []);
 
-  return { weight, sleep, bodyBattery: bodyBatteryEntries, tokens: client.exportToken() };
+  return { weight, sleep, bodyBattery, tokens: client.exportToken() };
 }
 
 export function describeGarminError(e: unknown): string {
