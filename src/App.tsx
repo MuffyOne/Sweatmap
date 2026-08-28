@@ -18,11 +18,12 @@ import { Dashboard, type Page } from "./Dashboard";
 import { WHATS_NEW_VERSION } from "./pages/WhatsNewPage";
 import {
   HomeIcon, ZapIcon, ListIcon, LogOutIcon,
-  FitnessIcon, TrophyIcon, SettingsIcon, ServicesIcon, XertIcon, ChevronLeftIcon, ChevronRightIcon,
+  FitnessIcon, TrophyIcon, SettingsIcon, ServicesIcon, XertIcon, HeartIcon, ChevronLeftIcon, ChevronRightIcon,
   SunIcon, MoonIcon, SparkleIcon, MapIcon, HamburgerIcon,
 } from "./lib/icons";
 import { PeriodToggle } from "./components/PeriodToggle";
 import { SPORT_FILTER_OPTIONS, SPORT_FILTER_LABELS, matchesSportFilter, type SportFilter } from "./lib/utils";
+import { isGarminConnected } from "./api/garmin";
 import "./App.css";
 
 
@@ -30,6 +31,7 @@ const NAV_ITEMS: { id: Page; label: string; Icon: () => React.ReactElement; cond
   { id: "home", label: "Home", Icon: HomeIcon },
   { id: "fitness", label: "Fitness", Icon: FitnessIcon },
   { id: "performance", label: "Performance", Icon: ZapIcon },
+  { id: "health", label: "Health", Icon: HeartIcon, condition: () => isGarminConnected() },
   { id: "activities", label: "Activities", Icon: ListIcon },
   { id: "records", label: "Records", Icon: TrophyIcon },
   { id: "xert", label: "XERT", Icon: XertIcon, condition: () => !!localStorage.getItem("xert_tokens") },
@@ -47,6 +49,7 @@ const PAGE_TITLES: Record<Page, string> = {
   performance: "Performance",
   activities: "Activities",
   xert: "XERT",
+  health: "Health",
   services: "Services",
   map: "Heatmap",
   settings: "Settings",

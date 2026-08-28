@@ -52,12 +52,53 @@ function xertDevProxy(): Plugin {
   };
 }
 
+function garminDevProxy(): Plugin {
+  return {
+    name: 'garmin-dev-proxy',
+    configureServer(server) {
+      async function readJsonBody(req: import('node:http').IncomingMessage) {
+        const chunks: Buffer[] = [];
+        for await (const chunk of req) chunks.push(chunk as Buffer);
+        return JSON.parse(Buffer.concat(chunks).toString() || '{}');
+      }
+
+      server.middlewares.use('/api/garmin-login', async (req, res) => {
+        if (req.method !== 'POST') { res.writeHead(405); res.end(); return; }
+        const { username, password } = await readJsonBody(req);
+        const { garminLogin, describeGarminError } = await server.ssrLoadModule('/api/_garmin.ts');
+        try {
+          const tokens = await garminLogin(username, password);
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify(tokens));
+        } catch (e) {
+          res.writeHead(401, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: `Garmin login failed: ${describeGarminError(e)}` }));
+        }
+      });
+
+      server.middlewares.use('/api/garmin-health', async (req, res) => {
+        if (req.method !== 'POST') { res.writeHead(405); res.end(); return; }
+        const { oauth1, oauth2 } = await readJsonBody(req);
+        const { garminFetchHealth, describeGarminError } = await server.ssrLoadModule('/api/_garmin.ts');
+        try {
+          const result = await garminFetchHealth(oauth1, oauth2);
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify(result));
+        } catch (e) {
+          res.writeHead(401, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: `Garmin health fetch failed: ${describeGarminError(e)}` }));
+        }
+      });
+    },
+  };
+}
+
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
   const useMock = mode === 'development' && process.env.VITE_MOCK_DATA === 'true';
 
   return {
-    plugins: [react(), xertDevProxy()],
+    plugins: [react(), xertDevProxy(), garminDevProxy()],
     resolve: {
       alias: useMock
         ? [{ find: /\/api\/strava$/, replacement: path.resolve(__dirname, 'src/api/strava.mock') }]

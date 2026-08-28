@@ -4,7 +4,7 @@ import styles from "./WhatsNewPage.module.css";
 
 // Bump this string whenever new entries are added — any user who hasn't seen
 // the current version will get the highlight dot on the sidebar button.
-export const WHATS_NEW_VERSION = "2026-08-28-sport-filter";
+export const WHATS_NEW_VERSION = "2026-08-28-garmin-health";
 
 interface Entry {
   id?: string;
@@ -26,6 +26,11 @@ const GROUPS: DateGroup[] = [
         tag: "General",
         title: "Activity type filter everywhere",
         body: "The All / Rides / Runs / Hikes filter from the Heatmap page now lives in the header and applies across the whole dashboard — Home, Fitness, Performance, Activities, Records, and Map all update together when you switch it. It defaults to All, so nothing changes until you use it.",
+      },
+      {
+        tag: "Health",
+        title: "Garmin Connect health data",
+        body: "A new Health page (just below Performance) shows weight, sleep, and recovery data imported from Garmin Connect — sleep score with a nightly breakdown of deep/light/REM/awake time, and Body Battery as a recovery gauge. Connect your Garmin account from Settings → Services to enable it. Since Garmin doesn't offer a public API, this uses an unofficial login and may occasionally break or be rejected by Garmin.",
       },
     ],
   },

@@ -9,6 +9,7 @@ const RecordsPage = React.lazy(() => import("./pages/RecordsPage").then(m => ({ 
 const Settings = React.lazy(() => import("./pages/Settings").then(m => ({ default: m.Settings })));
 const ServicesPage = React.lazy(() => import("./pages/ServicesPage").then(m => ({ default: m.ServicesPage })));
 const XertPage = React.lazy(() => import("./pages/XertPage").then(m => ({ default: m.XertPage })));
+const HealthPage = React.lazy(() => import("./pages/HealthPage").then(m => ({ default: m.HealthPage })));
 const PowerCurve = React.lazy(() => import("./pages/performance/PowerCurve").then(m => ({ default: m.PowerCurve })));
 const ZoneDistribution = React.lazy(() => import("./pages/performance/ZoneDistribution").then(m => ({ default: m.ZoneDistribution })));
 const HRZoneDistribution = React.lazy(() => import("./pages/performance/HRZoneDistribution").then(m => ({ default: m.HRZoneDistribution })));
@@ -17,7 +18,7 @@ const Durability = React.lazy(() => import("./pages/performance/Durability").the
 const WhatsNewPage = React.lazy(() => import("./pages/WhatsNewPage").then(m => ({ default: m.WhatsNewPage })));
 const MapPage = React.lazy(() => import("./pages/MapPage").then(m => ({ default: m.MapPage })));
 
-export type Page = "home" | "performance" | "activities" | "settings" | "fitness" | "records" | "services" | "xert" | "whatsNew" | "map";
+export type Page = "home" | "performance" | "activities" | "settings" | "fitness" | "records" | "services" | "xert" | "health" | "whatsNew" | "map";
 
 interface Props {
   activities: Activity[];
@@ -49,6 +50,7 @@ function PageContent({ activities, koms, page, sportFilter, onNavigate, onForceS
     case "settings":    return <Settings onForceSync={onForceSync} forceSyncing={forceSyncing} fetchedCount={fetchedCount} />;
     case "services":    return <ServicesPage onXertChange={onXertChange} />;
     case "xert":        return <XertPage />;
+    case "health":      return <HealthPage />;
     case "whatsNew":    return <WhatsNewPage onNavigate={onNavigate} />;
     case "map":         return <MapPage activities={activities} sportFilter={sportFilter} />;
   }
