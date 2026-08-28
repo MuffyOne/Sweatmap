@@ -11,9 +11,13 @@ const { GarminConnect } = garminConnectPkg;
 // two runtimes can't drift out of sync.
 
 // Garmin's daily-stats endpoints (sleep, body battery) page in blocks of up to
-// 28 days and 400 on a longer span — weight uses a different endpoint family
-// that accepts 30, but 28 is used everywhere here to stay safely under that cap.
-const HISTORY_DAYS = 28;
+// 28 days and 400 on a longer span. Using 21 to stay safely clear of that
+// boundary (28 was still 400-ing, likely an inclusive/off-by-one edge).
+const HISTORY_DAYS = 21;
+
+function formatDate(d: Date): string {
+  return d.toISOString().slice(0, 10);
+}
 
 export interface GarminWeightEntry {
   date: string;
@@ -43,6 +47,38 @@ export interface GarminHealthData {
   tokens: IGarminTokens;
 }
 
+// The library's own getBodyBattery() hits a stale/broken endpoint
+// (usersummary-service/stats/bodybattery/daily) that 400s. The actively
+// maintained python-garminconnect uses this one instead — call it directly
+// via the library's generic authenticated request helper.
+const BODY_BATTERY_URL = "/wellness-service/wellness/bodyBattery/reports/daily";
+
+// Response shape for this endpoint isn't in the library's types (we're
+// bypassing its typed method), so this parses defensively: known field names
+// first, then falls back to scanning any nested arrays for battery-level
+// numbers (0-100, distinguishable from epoch timestamps which are far larger).
+function parseBodyBatteryDay(day: unknown): GarminBodyBatteryEntry | null {
+  if (!day || typeof day !== "object") return null;
+  const d = day as Record<string, unknown>;
+  const date = (d.calendarDate ?? d.date) as string | undefined;
+  if (!date) return null;
+
+  const values = d.values as { lowBodyBattery?: number; highBodyBattery?: number } | undefined;
+  if (values && typeof values.lowBodyBattery === "number" && typeof values.highBodyBattery === "number") {
+    return { date, low: values.lowBodyBattery, high: values.highBodyBattery };
+  }
+
+  const levels: number[] = [];
+  const walk = (node: unknown) => {
+    if (Array.isArray(node)) node.forEach(walk);
+    else if (typeof node === "number" && Number.isInteger(node) && node >= 0 && node <= 100) levels.push(node);
+  };
+  for (const v of Object.values(d)) if (Array.isArray(v)) walk(v);
+
+  if (levels.length === 0) return null;
+  return { date, low: Math.min(...levels), high: Math.max(...levels) };
+}
+
 export async function garminLogin(username: string, password: string): Promise<IGarminTokens> {
   const client = new GarminConnect({ username, password });
   await client.login();
@@ -67,7 +103,9 @@ export async function garminFetchHealth(
   const [weightResult, sleepResult, bodyBatteryResult] = await Promise.allSettled([
     client.getWeightRange(startDate, endDate),
     client.getSleepDailySummary(startDate, endDate),
-    client.getBodyBattery(startDate, endDate),
+    client.get<unknown[]>(BODY_BATTERY_URL, {
+      params: { startDate: formatDate(startDate), endDate: formatDate(endDate) },
+    }),
   ]);
 
   // Garmin returns these newest-first; sort ascending (oldest -> newest) so
@@ -101,16 +139,21 @@ export async function garminFetchHealth(
           .sort(byDateAsc)
       : (console.error("Garmin sleep fetch failed:", sleepResult.reason), []);
 
-  const bodyBattery: GarminBodyBatteryEntry[] =
-    bodyBatteryResult.status === "fulfilled"
-      ? bodyBatteryResult.value
-          .map((day) => ({
-            date: day.calendarDate,
-            low: day.values.lowBodyBattery,
-            high: day.values.highBodyBattery,
-          }))
-          .sort(byDateAsc)
-      : (console.error("Garmin body battery fetch failed:", bodyBatteryResult.reason), []);
+  let bodyBattery: GarminBodyBatteryEntry[] = [];
+  if (bodyBatteryResult.status === "fulfilled") {
+    const raw = Array.isArray(bodyBatteryResult.value) ? bodyBatteryResult.value : [];
+    bodyBattery = raw
+      .map(parseBodyBatteryDay)
+      .filter((d): d is GarminBodyBatteryEntry => d !== null)
+      .sort(byDateAsc);
+    if (raw.length > 0 && bodyBattery.length === 0) {
+      // Parsing assumptions didn't match reality — log the real shape so it
+      // can be fixed precisely instead of guessed at again.
+      console.error("Garmin body battery: unrecognized response shape:", JSON.stringify(raw[0]));
+    }
+  } else {
+    console.error("Garmin body battery fetch failed:", bodyBatteryResult.reason);
+  }
 
   return { weight, sleep, bodyBattery, tokens: client.exportToken() };
 }

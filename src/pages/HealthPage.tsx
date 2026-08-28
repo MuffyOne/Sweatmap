@@ -103,7 +103,7 @@ export function HealthPage() {
               </div>
               {earliestWeight && earliestWeight !== latestWeight && (
                 <div className="stat-card">
-                  <div className="label">30 Days Ago</div>
+                  <div className="label">21 Days Ago</div>
                   <div className="value">
                     {earliestWeight.weightKg}
                     <span className="unit">kg</span>
@@ -122,7 +122,7 @@ export function HealthPage() {
             </ResponsiveContainer>
           </>
         ) : (
-          <div className="power-curve-empty">No weight entries found in the last 30 days.</div>
+          <div className="power-curve-empty">No weight entries found in the last 21 days.</div>
         )}
       </CollapsibleSection>
 
@@ -169,7 +169,7 @@ export function HealthPage() {
             </div>
           </>
         ) : (
-          <div className="power-curve-empty">No sleep data found in the last 30 days.</div>
+          <div className="power-curve-empty">No sleep data found in the last 21 days.</div>
         )}
       </CollapsibleSection>
 
@@ -203,7 +203,7 @@ export function HealthPage() {
             </div>
           </>
         ) : (
-          <div className="power-curve-empty">No recovery data found in the last 30 days.</div>
+          <div className="power-curve-empty">No recovery data found in the last 21 days.</div>
         )}
       </CollapsibleSection>
 
