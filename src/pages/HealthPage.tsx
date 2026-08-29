@@ -83,6 +83,12 @@ export function HealthPage() {
   const earliestWeight = weightChart.length > 0 ? weightChart[0] : null;
   const latestSleep = sleepChart.length > 0 ? sleepChart[sleepChart.length - 1] : null;
 
+  const todayStr = format(new Date(), "yyyy-MM-dd");
+  const todayWeight = (health?.weight ?? []).find((d) => d.date === todayStr) ?? null;
+  const todaySleep = (health?.sleep ?? []).find((d) => d.date === todayStr) ?? null;
+  const todayReadiness = health?.trainingReadiness ?? null;
+  const hasToday = todayWeight || todaySleep || todayReadiness;
+
   if (!connected) {
     return (
       <div className="power-curve-empty">
@@ -96,27 +102,59 @@ export function HealthPage() {
       {loading && <div className="xert-loading">Loading health data...</div>}
       {error && <div className="xert-error">{error}</div>}
 
-      <CollapsibleSection title="Weight">
-        {latestWeight ? (
+      <CollapsibleSection title="Today">
+        {hasToday ? (
           <>
             <div className="stats-grid">
-              <div className="stat-card">
-                <div className="label">Latest</div>
-                <div className="value">
-                  {latestWeight.weightKg}
-                  <span className="unit">kg</span>
-                </div>
-              </div>
-              {earliestWeight && earliestWeight !== latestWeight && (
+              {todaySleep && (
                 <div className="stat-card">
-                  <div className="label">21 Days Ago</div>
+                  <div className="label">Sleep Score</div>
+                  <div className="value">{todaySleep.score}</div>
+                </div>
+              )}
+              {todayWeight && (
+                <div className="stat-card">
+                  <div className="label">Weight</div>
                   <div className="value">
-                    {earliestWeight.weightKg}
+                    {todayWeight.weightKg}
                     <span className="unit">kg</span>
                   </div>
                 </div>
               )}
+              {todayReadiness && (
+                <div className="stat-card">
+                  <div className="label">Training Readiness</div>
+                  <div className="value">
+                    {todayReadiness.score}
+                    {todayReadiness.level && <span className="unit">{todayReadiness.level}</span>}
+                  </div>
+                </div>
+              )}
             </div>
+            {todayReadiness?.feedback && (
+              <div className="settings-field-hint">{todayReadiness.feedback}</div>
+            )}
+          </>
+        ) : (
+          <div className="power-curve-empty">No Garmin data recorded yet for today.</div>
+        )}
+      </CollapsibleSection>
+
+      <CollapsibleSection title="Weight History">
+        {latestWeight ? (
+          <>
+            {earliestWeight && earliestWeight !== latestWeight && (
+              <div className="stats-grid">
+                <div className="stat-card">
+                  <div className="label">Change Over 21 Days</div>
+                  <div className="value">
+                    {(latestWeight.weightKg - earliestWeight.weightKg > 0 ? "+" : "") +
+                      Math.round((latestWeight.weightKg - earliestWeight.weightKg) * 10) / 10}
+                    <span className="unit">kg</span>
+                  </div>
+                </div>
+              </div>
+            )}
             <ResponsiveContainer width="100%" height={200}>
               <LineChart data={weightChart} margin={{ top: 8, right: 16, bottom: 4, left: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--grid-stroke)" vertical={false} />
@@ -132,16 +170,12 @@ export function HealthPage() {
         )}
       </CollapsibleSection>
 
-      <CollapsibleSection title="Sleep">
+      <CollapsibleSection title="Sleep History">
         {latestSleep ? (
           <>
             <div className="stats-grid">
               <div className="stat-card">
-                <div className="label">Latest Sleep Score</div>
-                <div className="value">{latestSleep.score}</div>
-              </div>
-              <div className="stat-card">
-                <div className="label">Total Sleep</div>
+                <div className="label">Last Recorded Total Sleep</div>
                 <div className="value">
                   {Math.floor(latestSleep.totalMin / 60)}h {latestSleep.totalMin % 60}m
                 </div>

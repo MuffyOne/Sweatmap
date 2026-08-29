@@ -33,9 +33,16 @@ export interface GarminSleepEntry {
   totalMin: number;
 }
 
+export interface GarminTrainingReadiness {
+  score: number;
+  level: string;
+  feedback: string;
+}
+
 export interface GarminHealthData {
   weight: GarminWeightEntry[];
   sleep: GarminSleepEntry[];
+  trainingReadiness: GarminTrainingReadiness | null;
 }
 
 // Thrown (after clearing stored tokens) when Garmin rejects the session
@@ -99,7 +106,11 @@ export async function fetchGarminHealth(): Promise<GarminHealthData> {
     throw new GarminSessionExpiredError("Your Garmin session has expired. Please reconnect.");
   }
 
-  const health: GarminHealthData = { weight: data.weight, sleep: data.sleep };
+  const health: GarminHealthData = {
+    weight: data.weight,
+    sleep: data.sleep,
+    trainingReadiness: data.trainingReadiness,
+  };
   localStorage.setItem(HEALTH_CACHE_KEY, JSON.stringify(health));
   return health;
 }

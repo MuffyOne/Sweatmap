@@ -30,9 +30,16 @@ export interface GarminSleepEntry {
   totalMin: number;
 }
 
+export interface GarminTrainingReadiness {
+  score: number;
+  level: string;
+  feedback: string;
+}
+
 export interface GarminHealthData {
   weight: GarminWeightEntry[];
   sleep: GarminSleepEntry[];
+  trainingReadiness: GarminTrainingReadiness | null;
   tokens: IGarminTokens;
   // True when a metric failed because Garmin rejected the session itself
   // (401), as opposed to some other per-endpoint hiccup — the client should
@@ -65,10 +72,11 @@ export async function garminFetchHealth(
   const startDate = new Date(endDate.getTime() - HISTORY_DAYS * 24 * 60 * 60 * 1000);
 
   // Fetched independently (not Promise.all) so a hiccup on one of Garmin's
-  // unofficial endpoints doesn't take down the other metric with it.
-  const [weightResult, sleepResult] = await Promise.allSettled([
+  // unofficial endpoints doesn't take down the other metrics with it.
+  const [weightResult, sleepResult, readinessResult] = await Promise.allSettled([
     client.getWeightRange(startDate, endDate),
     client.getSleepDailySummary(startDate, endDate),
+    client.getMorningTrainingReadiness(),
   ]);
 
   // Garmin returns these newest-first; sort ascending (oldest -> newest) so
@@ -102,9 +110,21 @@ export async function garminFetchHealth(
           .sort(byDateAsc)
       : (console.error("Garmin sleep fetch failed:", sleepResult.reason), []);
 
+  const trainingReadiness: GarminTrainingReadiness | null =
+    readinessResult.status === "fulfilled" && readinessResult.value
+      ? {
+          score: readinessResult.value.score ?? 0,
+          level: readinessResult.value.level ?? "",
+          feedback: readinessResult.value.feedbackLong ?? readinessResult.value.feedbackShort ?? "",
+        }
+      : (readinessResult.status === "rejected" &&
+          console.error("Garmin training readiness fetch failed:", readinessResult.reason),
+        null);
+
   const authExpired =
     (weightResult.status === "rejected" && isAuthError(weightResult.reason)) ||
-    (sleepResult.status === "rejected" && isAuthError(sleepResult.reason));
+    (sleepResult.status === "rejected" && isAuthError(sleepResult.reason)) ||
+    (readinessResult.status === "rejected" && isAuthError(readinessResult.reason));
 
   // A failed refresh attempt (triggered by the 401s above) can leave the
   // client without a usable OAuth2 token, which makes exportToken() throw.
@@ -117,7 +137,7 @@ export async function garminFetchHealth(
     tokens = { oauth1, oauth2 };
   }
 
-  return { weight, sleep, tokens, authExpired };
+  return { weight, sleep, trainingReadiness, tokens, authExpired };
 }
 
 export function describeGarminError(e: unknown): string {
