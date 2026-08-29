@@ -30,7 +30,7 @@ const GROUPS: DateGroup[] = [
       {
         tag: "Health",
         title: "Garmin Connect health data",
-        body: "A new Health page (just below Performance) shows weight, sleep, and recovery data imported from Garmin Connect — sleep score with a nightly breakdown of deep/light/REM/awake time, and Body Battery as a recovery gauge. Connect your Garmin account from Settings → Services to enable it. Since Garmin doesn't offer a public API, this uses an unofficial login and may occasionally break or be rejected by Garmin.",
+        body: "A new Health page (just below Performance) shows weight and sleep data imported from Garmin Connect — sleep score with a nightly breakdown of deep/light/REM/awake time. Connect your Garmin account from Settings → Services to enable it. Since Garmin doesn't offer a public API, this uses an unofficial login and may occasionally break or be rejected by Garmin.",
       },
     ],
   },

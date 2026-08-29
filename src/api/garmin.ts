@@ -33,17 +33,15 @@ export interface GarminSleepEntry {
   totalMin: number;
 }
 
-export interface GarminBodyBatteryEntry {
-  date: string;
-  low: number;
-  high: number;
-}
-
 export interface GarminHealthData {
   weight: GarminWeightEntry[];
   sleep: GarminSleepEntry[];
-  bodyBattery: GarminBodyBatteryEntry[];
 }
+
+// Thrown (after clearing stored tokens) when Garmin rejects the session
+// itself rather than just one request — callers should revert their
+// "connected" UI state back to the connect form rather than just show an error.
+export class GarminSessionExpiredError extends Error {}
 
 export function getStoredGarminTokens(): GarminTokens | null {
   const raw = localStorage.getItem(TOKEN_KEY);
@@ -95,7 +93,13 @@ export async function fetchGarminHealth(): Promise<GarminHealthData> {
   if (!res.ok) throw new Error(data.error || `Health fetch failed: ${res.status}`);
 
   if (data.tokens) storeTokens(data.tokens);
-  const health: GarminHealthData = { weight: data.weight, sleep: data.sleep, bodyBattery: data.bodyBattery };
+
+  if (data.authExpired) {
+    disconnectGarmin();
+    throw new GarminSessionExpiredError("Your Garmin session has expired. Please reconnect.");
+  }
+
+  const health: GarminHealthData = { weight: data.weight, sleep: data.sleep };
   localStorage.setItem(HEALTH_CACHE_KEY, JSON.stringify(health));
   return health;
 }

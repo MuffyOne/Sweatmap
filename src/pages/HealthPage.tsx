@@ -16,6 +16,7 @@ import {
   isGarminConnected,
   fetchGarminHealth,
   getCachedGarminHealth,
+  GarminSessionExpiredError,
   type GarminHealthData,
 } from "../api/garmin";
 import { TOOLTIP_STYLE } from "../lib/utils";
@@ -24,7 +25,7 @@ import { CollapsibleSection } from "../lib/CollapsibleSection";
 const STAGE_COLORS = { deep: "#3b8fd4", light: "#7c90aa", rem: "#9333ea", awake: "#e03535" };
 
 export function HealthPage() {
-  const connected = isGarminConnected();
+  const [connected, setConnected] = useState(isGarminConnected);
   const [health, setHealth] = useState<GarminHealthData | null>(() => {
     try {
       return getCachedGarminHealth();
@@ -41,7 +42,10 @@ export function HealthPage() {
     setError("");
     fetchGarminHealth()
       .then(setHealth)
-      .catch((e) => setError(e instanceof Error ? e.message : "Failed to load"))
+      .catch((e) => {
+        if (e instanceof GarminSessionExpiredError) setConnected(false);
+        setError(e instanceof Error ? e.message : "Failed to load");
+      })
       .finally(() => setLoading(false));
   }, [connected]);
 
@@ -51,6 +55,7 @@ export function HealthPage() {
     try {
       setHealth(await fetchGarminHealth());
     } catch (e) {
+      if (e instanceof GarminSessionExpiredError) setConnected(false);
       setError(e instanceof Error ? e.message : "Refresh failed");
     } finally {
       setLoading(false);
@@ -65,10 +70,6 @@ export function HealthPage() {
     () => (health?.sleep ?? []).map((d) => ({ ...d, label: format(parseISO(d.date), "MMM d") })),
     [health]
   );
-  const batteryChart = useMemo(
-    () => (health?.bodyBattery ?? []).map((d) => ({ ...d, label: format(parseISO(d.date), "MMM d") })),
-    [health]
-  );
 
   const weightDomain = useMemo((): [number, number] | undefined => {
     if (weightChart.length === 0) return undefined;
@@ -81,9 +82,14 @@ export function HealthPage() {
   const latestWeight = weightChart.length > 0 ? weightChart[weightChart.length - 1] : null;
   const earliestWeight = weightChart.length > 0 ? weightChart[0] : null;
   const latestSleep = sleepChart.length > 0 ? sleepChart[sleepChart.length - 1] : null;
-  const latestBattery = batteryChart.length > 0 ? batteryChart[batteryChart.length - 1] : null;
 
-  if (!connected) return null;
+  if (!connected) {
+    return (
+      <div className="power-curve-empty">
+        {error || "Not connected to Garmin."} Connect (or reconnect) from Settings → Services.
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -170,40 +176,6 @@ export function HealthPage() {
           </>
         ) : (
           <div className="power-curve-empty">No sleep data found in the last 21 days.</div>
-        )}
-      </CollapsibleSection>
-
-      <CollapsibleSection title="Recovery (Body Battery)">
-        {latestBattery ? (
-          <>
-            <div className="stats-grid">
-              <div className="stat-card">
-                <div className="label">Latest High</div>
-                <div className="value">{latestBattery.high}</div>
-              </div>
-              <div className="stat-card">
-                <div className="label">Latest Low</div>
-                <div className="value">{latestBattery.low}</div>
-              </div>
-            </div>
-            <ResponsiveContainer width="100%" height={200}>
-              <LineChart data={batteryChart} margin={{ top: 8, right: 16, bottom: 4, left: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--grid-stroke)" vertical={false} />
-                <XAxis dataKey="label" tick={{ fill: "var(--tick-color)", fontSize: 11 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: "var(--tick-color)", fontSize: 11 }} axisLine={false} tickLine={false} width={30} domain={[0, 100]} />
-                <Tooltip contentStyle={TOOLTIP_STYLE} />
-                <Legend wrapperStyle={{ fontSize: 12 }} />
-                <Line type="monotone" dataKey="high" name="High" stroke="#22a06b" strokeWidth={2} dot={{ fill: "#22a06b", r: 3 }} isAnimationActive={false} />
-                <Line type="monotone" dataKey="low" name="Low" stroke="#d4a820" strokeWidth={2} dot={{ fill: "#d4a820", r: 3 }} isAnimationActive={false} />
-              </LineChart>
-            </ResponsiveContainer>
-            <div className="settings-field-hint">
-              Body Battery is Garmin's energy-reserve gauge (0-100), used here as a recovery proxy since Garmin
-              has no public recovery/readiness endpoint that supports fetching a date range efficiently.
-            </div>
-          </>
-        ) : (
-          <div className="power-curve-empty">No recovery data found in the last 21 days.</div>
         )}
       </CollapsibleSection>
 

@@ -10,6 +10,7 @@ import {
   loginGarmin,
   disconnectGarmin,
   fetchGarminHealth,
+  GarminSessionExpiredError,
 } from "../api/garmin";
 import styles from "./ServicesPage.module.css";
 
@@ -36,7 +37,10 @@ export function ServicesPage({ onXertChange }: Props) {
     if (garminConnected) {
       setGarminLoading(true);
       fetchGarminHealth()
-        .catch((e) => setGarminError(e instanceof Error ? e.message : "Failed to load"))
+        .catch((e) => {
+          if (e instanceof GarminSessionExpiredError) setGarminConnected(false);
+          setGarminError(e instanceof Error ? e.message : "Failed to load");
+        })
         .finally(() => setGarminLoading(false));
     }
   }, [garminConnected]);
@@ -66,6 +70,7 @@ export function ServicesPage({ onXertChange }: Props) {
     try {
       await fetchGarminHealth();
     } catch (e) {
+      if (e instanceof GarminSessionExpiredError) setGarminConnected(false);
       setGarminError(e instanceof Error ? e.message : "Refresh failed");
     } finally {
       setGarminLoading(false);
@@ -123,7 +128,7 @@ export function ServicesPage({ onXertChange }: Props) {
         <div className="settings-field">
           <div className="settings-field-label">Garmin Connect</div>
           <div className="settings-field-hint">
-            Import weight, sleep, and recovery data from Garmin Connect. This uses an unofficial
+            Import weight and sleep data from Garmin Connect. This uses an unofficial
             login (Garmin has no public API), so it may occasionally break or be rejected by Garmin.
           </div>
 
