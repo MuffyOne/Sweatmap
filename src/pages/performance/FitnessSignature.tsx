@@ -103,7 +103,7 @@ export function FitnessSignature({ sportFilter }: Props) {
     <CollapsibleSection title="Fitness Signature">
       <div className={`stats-grid ${styles.cards}`}>
         {cards.map((c) => {
-          const value = c.recent ?? c.peak;
+          const value = c.recent;
           const pct = c.recent != null && c.peak ? ((c.recent - c.peak) / c.peak) * 100 : null;
           return (
             <div className="stat-card" key={c.label}>

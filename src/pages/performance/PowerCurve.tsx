@@ -123,6 +123,7 @@ export function PowerCurve({ activities, sportFilter }: Props) {
   const curve = cached?.data ?? null;
 
   const computingRef = useRef(false);
+  const recentTriedRef = useRef<SportFilter | null>(null);
 
   const compute = useCallback(async () => {
     const now = new Date();
@@ -146,6 +147,10 @@ export function PowerCurve({ activities, sportFilter }: Props) {
 
     const rangeStreams: number[][] = [];
     const allStreams: number[][] = [];
+    // Streams per range, so every range's curve is cached from a single pass over the activities
+    // (the Fitness Signature reads the 90-day curve regardless of which range is selected here).
+    const streamsByRange: Record<CurveRange, number[][]> = { "30d": [], "90d": [] };
+    const rangeSince: Record<CurveRange, Date> = { "30d": subDays(now, 30), "90d": subDays(now, 90) };
 
     for (let i = 0; i < allPowerActs.length; i++) {
       try {
@@ -153,6 +158,10 @@ export function PowerCurve({ activities, sportFilter }: Props) {
         if (watts && watts.length > 0) {
           allStreams.push(watts);
           if (inRangeIds.has(allPowerActs[i].id)) rangeStreams.push(watts);
+          const started = parseISO(allPowerActs[i].start_date_local);
+          for (const r of ["30d", "90d"] as const) {
+            if (isAfter(started, rangeSince[r])) streamsByRange[r].push(watts);
+          }
         }
       } catch (e: unknown) {
         if (e instanceof Error && e.message === "rate_limited") {
@@ -174,6 +183,13 @@ export function PowerCurve({ activities, sportFilter }: Props) {
     const entry: CachedCurve = { data: chartData, activityCount: inRangeIds.size };
     setCurves((prev) => ({ ...prev, [range]: entry }));
     saveCurveCache(sportFilter, range, chartData, inRangeIds.size);
+
+    for (const r of ["30d", "90d"] as const) {
+      if (r === range || streamsByRange[r].length === 0) continue;
+      const data = buildCurve(streamsByRange[r]);
+      saveCurveCache(sportFilter, r, data, streamsByRange[r].length);
+      setCurves((prev) => ({ ...prev, [r]: { data, activityCount: streamsByRange[r].length } }));
+    }
 
     const bestData = buildCurve(allStreams);
     const bestEntry: CachedCurve = { data: bestData, activityCount: allPowerActs.length };
@@ -197,14 +213,18 @@ export function PowerCurve({ activities, sportFilter }: Props) {
   useEffect(() => {
     const rangeStale = !cached || cached.activityCount !== eligibleCount;
     const bestStale = !bestCurve || bestCurve.activityCount !== allPowerCount;
-    if ((rangeStale || bestStale) && !computingRef.current && eligibleCount > 0) {
+    // The Fitness Signature needs the 90-day curve even when the 30-day range is selected.
+    // Attempted once per sport filter so activities without stream data can't cause a refetch loop.
+    const recentMissing = !curves["90d"] && recentTriedRef.current !== sportFilter;
+    if ((rangeStale || bestStale || recentMissing) && !computingRef.current && eligibleCount > 0) {
       const id = setTimeout(() => {
         computingRef.current = true;
+        recentTriedRef.current = sportFilter;
         compute().finally(() => { computingRef.current = false; });
       }, 0);
       return () => clearTimeout(id);
     }
-  }, [range, cached, bestCurve, eligibleCount, allPowerCount, compute]);
+  }, [range, cached, bestCurve, curves, eligibleCount, allPowerCount, compute, sportFilter]);
 
   const mergedCurve = useMemo((): ChartPoint[] | null => {
     if (!curve && !bestCurve?.data.length) return null;
