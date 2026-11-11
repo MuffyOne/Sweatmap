@@ -11,6 +11,7 @@ import {
 import { subDays, parseISO, isAfter } from "date-fns";
 import { clsx } from "clsx";
 import { fetchActivityWatts, type Activity } from "../../api/strava";
+import { POWER_CURVE_UPDATED } from "../../lib/powerModel";
 import { TOOLTIP_STYLE, type SportFilter } from "../../lib/utils";
 import { CollapsibleSection } from "../../lib/CollapsibleSection";
 import { PeriodToggle } from "../../components/PeriodToggle";
@@ -178,6 +179,7 @@ export function PowerCurve({ activities, sportFilter }: Props) {
     const bestEntry: CachedCurve = { data: bestData, activityCount: allPowerActs.length };
     setBestCurve(bestEntry);
     localStorage.setItem(`${BEST_CACHE_KEY}_${sportFilter}`, JSON.stringify(bestEntry));
+    window.dispatchEvent(new Event(POWER_CURVE_UPDATED));
 
     setLoading(false);
   }, [activities, range, sportFilter]);

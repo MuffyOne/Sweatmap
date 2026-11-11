@@ -11,6 +11,7 @@ const ServicesPage = React.lazy(() => import("./pages/ServicesPage").then(m => (
 const XertPage = React.lazy(() => import("./pages/XertPage").then(m => ({ default: m.XertPage })));
 const HealthPage = React.lazy(() => import("./pages/HealthPage").then(m => ({ default: m.HealthPage })));
 const PowerCurve = React.lazy(() => import("./pages/performance/PowerCurve").then(m => ({ default: m.PowerCurve })));
+const FitnessSignature = React.lazy(() => import("./pages/performance/FitnessSignature").then(m => ({ default: m.FitnessSignature })));
 const ZoneDistribution = React.lazy(() => import("./pages/performance/ZoneDistribution").then(m => ({ default: m.ZoneDistribution })));
 const HRZoneDistribution = React.lazy(() => import("./pages/performance/HRZoneDistribution").then(m => ({ default: m.HRZoneDistribution })));
 const TempPerformance = React.lazy(() => import("./pages/performance/TempPerformance").then(m => ({ default: m.TempPerformance })));
@@ -41,6 +42,7 @@ function PageContent({ activities, koms, page, sportFilter, onNavigate, onForceS
     case "performance": return (
       <>
         <PowerCurve activities={activities} sportFilter={sportFilter} />
+        <FitnessSignature sportFilter={sportFilter} />
         <ZoneDistribution activities={activities} sportFilter={sportFilter} onNavigate={onNavigate} />
         <HRZoneDistribution activities={activities} sportFilter={sportFilter} onNavigate={onNavigate} />
         <TempPerformance activities={activities} />
