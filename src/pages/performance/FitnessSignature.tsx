@@ -174,7 +174,7 @@ export function FitnessSignature({ sportFilter }: Props) {
       <p className={styles.note}>
         Current = last 90 days, Peak = best across synced history. FTP is the modelled 60-minute power
         {recent && ` (CP ${recent.cp} W`}{recent?.ftp20 != null && `, 95% of best 20 min ${recent.ftp20} W`}{recent && ")"}.
-        LTP is estimated as 75% of CP. Morton 3-parameter model fitted to efforts from 5 s to 30 min
+        LTP is estimated as 78% of CP. Morton 3-parameter model fitted to efforts from 2 min to 1 h
         {err != null && ` (fit error ${(err * 100).toFixed(1)}%)`}. Experimental: compare against XERT before trusting it.
       </p>
     </CollapsibleSection>

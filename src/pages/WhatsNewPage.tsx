@@ -25,7 +25,7 @@ const GROUPS: DateGroup[] = [
       {
         tag: "Performance",
         title: "Fitness Signature",
-        body: "A new Fitness Signature panel on the Performance page estimates your FTP, LTP, HIE, and Peak Power automatically from your power data — no FTP test needed. It fits a 3-parameter critical power model to your best efforts from 5 seconds to 30 minutes, with stat cards for each value, a modelled power curve over your measured efforts, and a comparison between your last 90 days and your best across synced history. This is experimental: LTP is a simple estimate (75% of critical power), so treat the numbers as a guide.",
+        body: "A new Fitness Signature panel on the Performance page estimates your FTP, LTP, HIE, and Peak Power automatically from your power data — no FTP test needed. It fits a 3-parameter critical power model to your best efforts from 2 minutes to 1 hour, with stat cards for each value, a modelled power curve over your measured efforts, and a comparison between your last 90 days and your best across synced history. This is experimental: LTP is a simple estimate (78% of critical power), so treat the numbers as a guide.",
       },
     ],
   },

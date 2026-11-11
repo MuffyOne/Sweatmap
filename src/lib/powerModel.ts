@@ -23,7 +23,7 @@ export interface FitnessSignature {
   ftp: number;
   /** Critical power from the model (W). Usually a bit above `ftp`. */
   cp: number;
-  /** Lower threshold power estimate (W). Heuristic: 75% of CP. */
+  /** Lower threshold power estimate (W). Heuristic: 78% of CP (XERT's observed ratio). */
   ltp: number;
   /** High intensity energy (kJ). */
   hie: number;
@@ -37,9 +37,13 @@ export interface FitnessSignature {
   model: PowerModel;
 }
 
-/** Durations used for the fit: short enough to exclude durability effects, long enough to avoid neuromuscular noise. */
-const FIT_MIN_SECONDS = 5;
-const FIT_MAX_SECONDS = 1800;
+/**
+ * Durations used for the fit. Sprint efforts (< 2 min) follow a different regime and distort CP and W'
+ * (they pushed CP up and W' down in testing), so they are excluded. Peak power is taken from the
+ * measured best 1 s instead. Validated against XERT: 2 min to 1 h gave <1% fit error.
+ */
+const FIT_MIN_SECONDS = 120;
+const FIT_MAX_SECONDS = 3600;
 const MIN_POINTS = 4;
 
 export function modelPower(m: PowerModel, t: number): number {
@@ -134,7 +138,7 @@ export function computeSignature(curve: MmpPoint[]): FitnessSignature | null {
   return {
     ftp: Math.round(modelPower(model, 3600)),
     cp: Math.round(model.cp),
-    ltp: Math.round(model.cp * 0.75),
+    ltp: Math.round(model.cp * 0.78),
     hie: Math.round(model.wPrime / 100) / 10,
     pp: Math.round(best1s ?? model.pMax),
     ftp20: best20 ? Math.round(best20 * 0.95) : null,
