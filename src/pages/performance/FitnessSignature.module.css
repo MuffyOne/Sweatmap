@@ -1,24 +1,5 @@
-.table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.9rem;
-}
-
-.table th,
-.table td {
-  padding: 0.4rem 0.6rem;
-  text-align: right;
-  border-bottom: 1px solid var(--grid-stroke);
-}
-
-.table th:first-child,
-.table td:first-child {
-  text-align: left;
-}
-
-.table th {
-  color: var(--tick-color);
-  font-weight: 500;
+.cards {
+  margin-bottom: 1rem;
 }
 
 .note {

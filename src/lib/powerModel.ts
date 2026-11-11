@@ -33,6 +33,8 @@ export interface FitnessSignature {
   ftp20: number | null;
   /** RMS relative error of the fit (0.02 = 2%). */
   fitError: number;
+  /** The fitted model, for drawing the curve. */
+  model: PowerModel;
 }
 
 /** Durations used for the fit: short enough to exclude durability effects, long enough to avoid neuromuscular noise. */
@@ -137,6 +139,7 @@ export function computeSignature(curve: MmpPoint[]): FitnessSignature | null {
     pp: Math.round(best1s ?? model.pMax),
     ftp20: best20 ? Math.round(best20 * 0.95) : null,
     fitError: fit.error,
+    model,
   };
 }
 

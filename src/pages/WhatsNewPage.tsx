@@ -4,7 +4,7 @@ import styles from "./WhatsNewPage.module.css";
 
 // Bump this string whenever new entries are added — any user who hasn't seen
 // the current version will get the highlight dot on the sidebar button.
-export const WHATS_NEW_VERSION = "2026-08-28-garmin-health";
+export const WHATS_NEW_VERSION = "2026-11-11-fitness-signature";
 
 interface Entry {
   id?: string;
@@ -19,6 +19,16 @@ interface DateGroup {
 }
 
 const GROUPS: DateGroup[] = [
+  {
+    date: "11 November 2026",
+    entries: [
+      {
+        tag: "Performance",
+        title: "Fitness Signature",
+        body: "A new Fitness Signature panel on the Performance page estimates your FTP, LTP, HIE, and Peak Power automatically from your power data — no FTP test needed. It fits a 3-parameter critical power model to your best efforts from 5 seconds to 30 minutes, with stat cards for each value, a modelled power curve over your measured efforts, and a comparison between your last 90 days and your best across synced history. This is experimental: LTP is a simple estimate (75% of critical power), so treat the numbers as a guide.",
+      },
+    ],
+  },
   {
     date: "28 August 2026",
     entries: [
