@@ -301,13 +301,14 @@ body {
 
 .page-header {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
   gap: 1rem;
   position: sticky;
   top: 0;
   z-index: 20;
   margin: -2rem -2.5rem 1.75rem;
-  padding: 2rem 2.5rem 1.25rem;
+  padding: 1.1rem 2.5rem;
   background: var(--bg-base);
   border-bottom: 1px solid var(--border);
 }
@@ -1889,6 +1890,15 @@ body {
   color: var(--text-heading);
   letter-spacing: -0.02em;
   flex: 1;
+}
+
+.mobile-sport-select {
+  background: var(--surface-elevated);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  border-radius: 8px;
+  padding: 0.3rem 0.5rem;
+  font-size: 0.8rem;
 }
 
 .mobile-hamburger {

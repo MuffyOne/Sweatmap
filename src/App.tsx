@@ -21,7 +21,7 @@ import {
   FitnessIcon, TrophyIcon, SettingsIcon, ServicesIcon, XertIcon, HeartIcon, ChevronLeftIcon, ChevronRightIcon,
   SunIcon, MoonIcon, SparkleIcon, MapIcon, HamburgerIcon,
 } from "./lib/icons";
-import { PeriodToggle } from "./components/PeriodToggle";
+import { SegmentedControl } from "./components/SegmentedControl";
 import { SPORT_FILTER_OPTIONS, SPORT_FILTER_LABELS, matchesSportFilter, type SportFilter } from "./lib/utils";
 import { isGarminConnected } from "./api/garmin";
 import "./App.css";
@@ -266,6 +266,18 @@ function App() {
           <HamburgerIcon />
         </button>
         <span className="mobile-page-title">{PAGE_TITLES[page]}</span>
+        {PAGES_WITH_SPORT_FILTER.has(page) && (
+          <select
+            className="mobile-sport-select"
+            value={sportFilter}
+            onChange={(e) => setSportFilter(e.target.value as SportFilter)}
+            aria-label="Activity type"
+          >
+            {SPORT_FILTER_OPTIONS.map((o) => (
+              <option key={o} value={o}>{SPORT_FILTER_LABELS[o]}</option>
+            ))}
+          </select>
+        )}
         {athleteAvatar && <img src={athleteAvatar} alt="" className="athlete-avatar" />}
       </div>
       {mobileNavOpen && <div className="mobile-backdrop" onClick={() => setMobileNavOpen(false)} />}
@@ -345,12 +357,12 @@ function App() {
         <div className="page-header">
           <h2 className="page-title">{PAGE_TITLES[page]}</h2>
           {PAGES_WITH_SPORT_FILTER.has(page) && (
-            <PeriodToggle
+            <SegmentedControl
               options={SPORT_FILTER_OPTIONS}
               selected={sportFilter}
               onSelect={setSportFilter}
               renderLabel={(v) => SPORT_FILTER_LABELS[v]}
-              inline
+              ariaLabel="Activity type"
             />
           )}
         </div>
