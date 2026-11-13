@@ -4,7 +4,7 @@ import styles from "./WhatsNewPage.module.css";
 
 // Bump this string whenever new entries are added — any user who hasn't seen
 // the current version will get the highlight dot on the sidebar button.
-export const WHATS_NEW_VERSION = "2026-11-11-fitness-signature";
+export const WHATS_NEW_VERSION = "2026-11-13-history-import";
 
 interface Entry {
   id?: string;
@@ -19,6 +19,46 @@ interface DateGroup {
 }
 
 const GROUPS: DateGroup[] = [
+  {
+    date: "13 November 2026",
+    entries: [
+      {
+        tag: "Performance",
+        title: "Fitness Signature follows your recent training",
+        body: "The signature now weights recent efforts more heavily, so your FTP, LTP, and HIE drop when you stop training and recover as you ride again. A new history chart shows how each value has moved over the last 26 weeks, with a dot on the weeks where it rose noticeably. HIE is also much steadier than before: a single ride can no longer make it jump wildly.",
+      },
+      {
+        tag: "Data",
+        title: "Import your full Strava history",
+        body: "A banner on Home and a card in Settings now let you import rides older than the default one-year window. Once imported, Records, Fitness, and Performance use your complete history. Strava limits how fast data can be fetched, so a long history can be slow and power-based stats fill in gradually over the following sessions. Progress is saved as it goes, so you can stop and continue later.",
+      },
+      {
+        tag: "Data",
+        title: "Gentler on Strava's rate limits",
+        body: "Requests to Strava are now paced and kept under its limit of 100 per 15 minutes, so loading a lot of rides no longer risks getting blocked. If the budget runs out, the dashboard pauses with a message and picks up where it stopped when you try again later.",
+      },
+      {
+        tag: "Performance",
+        title: "Temperature vs Performance redesign",
+        body: "The scatter of dots is now a clear trend: a median line per 5°C band with a shaded area for the middle half of your rides, and the individual rides faint behind it. A summary line tells you where you perform best and how much you lose in the coldest and warmest bands. There's a new Efficiency metric (power per heartbeat) that shows the effect of heat better than average power, and a 45 min+ filter that leaves out short, easy rides. The panel now sits at the bottom of the Performance page.",
+      },
+      {
+        tag: "Records",
+        title: "Longest Ride",
+        body: "A new card on the Records page shows your longest ride of the year by distance, with its date and moving time. Click it to open the activity on Strava. It follows the activity type filter, like the other year bests.",
+      },
+      {
+        tag: "Heatmap",
+        title: "Map background fixed",
+        body: "The map background had stopped loading because our previous map provider started requiring an API key. The map now uses OpenStreetMap tiles, which are free and need no key, with a muted dark version in dark mode.",
+      },
+      {
+        tag: "General",
+        title: "UI and UX improvements",
+        body: "A round of polish across the app: the activity type filter now sits on the title row as a compact switch, the same switch style is used for the toggles inside each section, the dividers under the page title and your name are gone for a cleaner look, and the filter is now available on phones too.",
+      },
+    ],
+  },
   {
     date: "11 November 2026",
     entries: [
