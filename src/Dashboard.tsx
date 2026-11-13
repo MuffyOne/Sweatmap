@@ -1,6 +1,7 @@
 import React, { Suspense } from "react";
 import type { Activity, SegmentEffort } from "./api/strava";
 import type { SportFilter } from "./lib/utils";
+import type { HistoryState } from "./components/HistoryImport";
 
 const HomePage = React.lazy(() => import("./pages/HomePage").then(m => ({ default: m.HomePage })));
 const ActivitiesPage = React.lazy(() => import("./pages/ActivitiesPage").then(m => ({ default: m.ActivitiesPage })));
@@ -31,11 +32,12 @@ interface Props {
   forceSyncing: boolean;
   fetchedCount: number;
   onXertChange: () => void;
+  history: HistoryState;
 }
 
-function PageContent({ activities, koms, page, sportFilter, onNavigate, onForceSync, forceSyncing, fetchedCount, onXertChange }: Props) {
+function PageContent({ activities, koms, page, sportFilter, onNavigate, onForceSync, forceSyncing, fetchedCount, onXertChange, history }: Props) {
   switch (page) {
-    case "home":        return <HomePage activities={activities} />;
+    case "home":        return <HomePage activities={activities} history={history} />;
     case "activities":  return <ActivitiesPage activities={activities} />;
     case "fitness":     return <FitnessChart activities={activities} />;
     case "records":     return <RecordsPage activities={activities} koms={koms} />;
@@ -49,7 +51,7 @@ function PageContent({ activities, koms, page, sportFilter, onNavigate, onForceS
         <Durability activities={activities} sportFilter={sportFilter} />
       </>
     );
-    case "settings":    return <Settings onForceSync={onForceSync} forceSyncing={forceSyncing} fetchedCount={fetchedCount} />;
+    case "settings":    return <Settings onForceSync={onForceSync} forceSyncing={forceSyncing} fetchedCount={fetchedCount} history={history} />;
     case "services":    return <ServicesPage onXertChange={onXertChange} />;
     case "xert":        return <XertPage />;
     case "health":      return <HealthPage />;

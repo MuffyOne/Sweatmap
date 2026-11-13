@@ -180,10 +180,11 @@ export async function fetchActivity(activityId: number): Promise<Activity | null
   return res.json();
 }
 
-export async function fetchActivities(page = 1, perPage = 200, after?: number): Promise<Activity[]> {
+export async function fetchActivities(page = 1, perPage = 200, after?: number, before?: number): Promise<Activity[]> {
   const token = await getValidToken();
   const params = new URLSearchParams({ page: String(page), per_page: String(perPage) });
   if (after !== undefined) params.set("after", String(after));
+  if (before !== undefined) params.set("before", String(before));
   const res = await fetch(
     `https://www.strava.com/api/v3/athlete/activities?${params}`,
     { headers: { Authorization: `Bearer ${token}` } }
@@ -222,6 +223,44 @@ export async function fetchAndCacheAllTime(
   }
   await saveAllTimeCache(all);
   return all;
+}
+
+// Imports everything older than the oldest cached activity into the main cache, so every page
+// (records, fitness history, performance) sees the full history. Works backwards in pages and saves
+// after each one, so if Strava rate-limits the request the progress is kept and a re-run continues.
+export async function importOlderActivities(
+  existing: Activity[],
+  onProgress?: (imported: number) => void,
+  onPage?: (merged: Activity[]) => void
+): Promise<Activity[]> {
+  const startEpoch = (a: Activity) => Math.floor(new Date(a.start_date).getTime() / 1000);
+  let merged = existing;
+  let before = existing.reduce((min, a) => Math.min(min, startEpoch(a)), Math.floor(Date.now() / 1000));
+  const cache = await loadCache();
+  let imported = 0;
+
+  while (true) {
+    const batch = await fetchActivities(1, 200, undefined, before);
+    if (batch.length === 0) break;
+
+    const known = new Set(merged.map((a) => a.id));
+    const fresh = batch.filter((a) => !known.has(a.id));
+    merged = [...merged, ...fresh];
+    imported += fresh.length;
+    onProgress?.(imported);
+
+    if (cache) await saveCache({ athlete: cache.athlete, activities: merged, koms: cache.koms });
+    onPage?.(merged);
+
+    const nextBefore = Math.min(...batch.map(startEpoch));
+    if (batch.length < 200 || nextBefore >= before) break;
+    before = nextBefore;
+    await new Promise((r) => setTimeout(r, 1100)); // throttle between pages
+  }
+
+  // The map's separate all-time cache is now redundant, so refresh it and skip its own prompt.
+  await saveAllTimeCache(merged);
+  return merged;
 }
 
 export async function fetchActivityHeartrate(activityId: number): Promise<number[] | null> {

@@ -1,3 +1,4 @@
+import { HistoryImport, type HistoryState } from "../components/HistoryImport";
 import { useState, useMemo } from "react";
 import {
   AreaChart,
@@ -210,9 +211,10 @@ function DeltaBadge({ current, previous }: { current: number; previous: number }
 
 interface Props {
   activities: Activity[];
+  history: HistoryState;
 }
 
-export function HomePage({ activities }: Props) {
+export function HomePage({ activities, history }: Props) {
   const [period, setPeriod] = useState<Period>("week");
   const [enabledStats, setEnabledStats] = useState<Set<StatId>>(getDefaultStats);
   const [statsMenuOpen, setStatsMenuOpen] = useState(false);
@@ -412,6 +414,7 @@ export function HomePage({ activities }: Props) {
 
   return (
     <div>
+      <HistoryImport variant="banner" {...history} />
       <CollapsibleSection title="Stats">
         <div className={styles.statsHeader}>
           {periodToggle}

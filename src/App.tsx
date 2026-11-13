@@ -8,6 +8,7 @@ import {
   fetchAndCache,
   fetchNewActivities,
   syncAndCache,
+  importOlderActivities,
   processPendingWebhookEvents,
   updateCachedActivities,
   logout,
@@ -22,6 +23,7 @@ import {
   SunIcon, MoonIcon, SparkleIcon, MapIcon, HamburgerIcon,
 } from "./lib/icons";
 import { SegmentedControl } from "./components/SegmentedControl";
+import type { HistoryState } from "./components/HistoryImport";
 import { SPORT_FILTER_OPTIONS, SPORT_FILTER_LABELS, matchesSportFilter, type SportFilter } from "./lib/utils";
 import { isGarminConnected } from "./api/garmin";
 import "./App.css";
@@ -104,9 +106,40 @@ function App() {
   );
 
   const [forceSyncing, setForceSyncing] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const [importCount, setImportCount] = useState(0);
+  const [importError, setImportError] = useState<string | null>(null);
   const [whatsNewSeen, setWhatsNewSeen] = useState(
     () => localStorage.getItem("whats_new_seen") === WHATS_NEW_VERSION
   );
+
+  async function handleImportHistory() {
+    if (importing || refreshing || forceSyncing) return;
+    setImporting(true);
+    setImportCount(0);
+    setImportError(null);
+    let imported = 0;
+    try {
+      await importOlderActivities(activities, (n) => { imported = n; setImportCount(n); }, setActivities);
+    } catch (e) {
+      // Progress is saved page by page, so a re-run continues from where this stopped.
+      setImportError(
+        `Stopped early${imported > 0 ? ` after importing ${imported} activities` : ""} (${e instanceof Error ? e.message : "request failed"}). ` +
+        "This is usually Strava's rate limit: wait a few minutes and run it again to continue."
+      );
+    } finally {
+      setImporting(false);
+    }
+  }
+
+  const history: HistoryState = {
+    oldest: activities.length > 0 ? Math.min(...activities.map((a) => new Date(a.start_date).getTime())) : null,
+    total: activities.length,
+    importing,
+    count: importCount,
+    error: importError,
+    onImport: handleImportHistory,
+  };
 
   async function handleForceSync() {
     if (refreshing || forceSyncing) return;
@@ -366,7 +399,7 @@ function App() {
             />
           )}
         </div>
-        <Dashboard activities={filteredActivities} koms={koms} page={page} sportFilter={sportFilter} onNavigate={setPage} onForceSync={handleForceSync} forceSyncing={forceSyncing} fetchedCount={fetchedCount} onXertChange={refreshNav} />
+        <Dashboard activities={filteredActivities} koms={koms} page={page} sportFilter={sportFilter} onNavigate={setPage} onForceSync={handleForceSync} forceSyncing={forceSyncing} fetchedCount={fetchedCount} onXertChange={refreshNav} history={history} />
       </main>
     </div>
   );

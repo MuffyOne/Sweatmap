@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { HistoryImport, type HistoryState } from "../components/HistoryImport";
 
 export const FTP_KEY = "power_zones_ftp";
 export const AGE_KEY = "settings_age";
@@ -9,9 +10,10 @@ interface Props {
   onForceSync: () => Promise<void>;
   forceSyncing: boolean;
   fetchedCount: number;
+  history: HistoryState;
 }
 
-export function Settings({ onForceSync, forceSyncing, fetchedCount }: Props) {
+export function Settings({ onForceSync, forceSyncing, fetchedCount, history }: Props) {
   const [ftp, setFtp] = useState(() => localStorage.getItem(FTP_KEY) ?? "");
   const [age, setAge] = useState(() => localStorage.getItem(AGE_KEY) ?? "");
   const [weeklyGoal, setWeeklyGoal] = useState(() => localStorage.getItem(WEEKLY_KM_GOAL_KEY) ?? "");
@@ -49,6 +51,7 @@ export function Settings({ onForceSync, forceSyncing, fetchedCount }: Props) {
 
   return (
     <div className="settings-page">
+      <HistoryImport variant="card" {...history} />
       <div className="settings-section">
         <div className="settings-field">
           <div className="settings-field-label">FTP — Functional Threshold Power</div>
