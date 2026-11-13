@@ -51,8 +51,9 @@ export function modelPower(m: PowerModel, t: number): number {
   return m.cp + m.wPrime / (t + k);
 }
 
-function objective(x: number[], pts: MmpPoint[]): number {
-  const [cp, wPrime, pMax] = x;
+/** Sum of squared relative errors of the model against the measured curve, for given CP and W'. */
+function objective(x: number[], pMax: number, pts: MmpPoint[]): number {
+  const [cp, wPrime] = x;
   if (cp <= 0 || wPrime <= 1000 || wPrime > 80000 || pMax <= cp * 1.05) return 1e9;
   const m = { cp, wPrime, pMax };
   let sum = 0;
@@ -107,22 +108,30 @@ function nelderMead(f: (x: number[]) => number, start: number[], steps: number[]
   return simplex[best];
 }
 
+/**
+ * Fits CP and W' with Pmax pinned to the measured sprint power.
+ *
+ * Pmax is the model's power at t=0, but the fit only sees efforts from 2 min upward, so left free it is barely
+ * constrained and trades off against W': a 5% better 5-minute effort moved W' by +45% (20 to 29 kJ), and the
+ * all-time curve gave 40 kJ against 19 kJ once pinned. Pinning it makes W' respond in proportion to the data.
+ * The result is insensitive to the exact pin: 1000 W and 1147 W gave the same CP and W' within 1 kJ.
+ */
 export function fitPowerModel(curve: MmpPoint[]): { model: PowerModel; error: number } | null {
   const pts = curve.filter((p) => p.seconds >= FIT_MIN_SECONDS && p.seconds <= FIT_MAX_SECONDS && p.watts > 0);
   if (pts.length < MIN_POINTS) return null;
 
-  const at = (s: number) => pts.reduce((best, p) => (Math.abs(p.seconds - s) < Math.abs(best.seconds - s) ? p : best));
-  const longest = pts.reduce((a, b) => (b.seconds > a.seconds ? b : a));
+  const sprint = Math.max(0, ...curve.filter((p) => p.seconds <= 10).map((p) => p.watts));
   const peak = Math.max(...pts.map((p) => p.watts));
+  const pMax = sprint > peak * 1.2 ? sprint : peak * 2;
 
-  // Start from rough guesses: CP slightly below the longest effort, W' of 15 kJ.
-  const x0 = [longest.watts * (longest.seconds >= 1200 ? 0.97 : 0.9), 15000, Math.max(peak * 1.1, at(5).watts * 1.05)];
-  const x = nelderMead((v) => objective(v, pts), x0, [x0[0] * 0.1, 5000, x0[2] * 0.1]);
-  const err = objective(x, pts);
+  const longest = pts.reduce((a, b) => (b.seconds > a.seconds ? b : a));
+  const x0 = [longest.watts * (longest.seconds >= 1200 ? 0.97 : 0.9), 15000];
+  const x = nelderMead((v) => objective(v, pMax, pts), x0, [x0[0] * 0.1, 5000]);
+  const err = objective(x, pMax, pts);
   if (err >= 1e9) return null;
 
   return {
-    model: { cp: x[0], wPrime: x[1], pMax: x[2] },
+    model: { cp: x[0], wPrime: x[1], pMax },
     error: Math.sqrt(err / pts.length),
   };
 }
