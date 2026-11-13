@@ -127,6 +127,14 @@ export function RecordsPage({ activities, koms }: Props) {
     [activities, currentYear]
   );
 
+  const longestRide = useMemo(
+    () => activities
+      .filter((a) => new Date(a.start_date_local).getFullYear() === currentYear && a.distance > 0)
+      .reduce<Activity | null>((best, a) =>
+        a.distance > (best?.distance ?? 0) ? a : best, null),
+    [activities, currentYear]
+  );
+
   const topSpeedActivity = useMemo(
     () => activities
       .filter((a) => new Date(a.start_date_local).getFullYear() === currentYear && (a.max_speed ?? 0) > 0)
@@ -204,6 +212,22 @@ export function RecordsPage({ activities, koms }: Props) {
                 {bestActivity.pr_count} <span className="unit">PRs</span>
               </div>
               <div className="records-best-name">{bestActivity.name}</div>
+            </div>
+          )}
+          {longestRide && (
+            <div
+              className="stat-card stat-card--clickable"
+              onClick={() => window.open(`https://www.strava.com/activities/${longestRide.id}`, "_blank", "noopener,noreferrer")}
+            >
+              <div className="label">Longest Ride</div>
+              <div className="value">
+                {formatDistance(longestRide.distance)}
+                <span className="unit">km</span>
+              </div>
+              <div className="records-best-name">{longestRide.name}</div>
+              <div className={styles.yearBestDate}>
+                {format(parseISO(longestRide.start_date_local), "MMM d")} · {formatTime(longestRide.moving_time)}
+              </div>
             </div>
           )}
           {topClimbDay && (
