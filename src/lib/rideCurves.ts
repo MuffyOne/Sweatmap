@@ -4,7 +4,9 @@
  * the fitness signature weight recent efforts more heavily than old ones.
  */
 
-export const MMP_DURATIONS = [1, 5, 10, 30, 60, 120, 300, 600, 1200, 1800, 3600, 5400, 7200, 10800, 14400, 18000, 21600];
+export const MMP_DURATIONS = [
+  1, 5, 10, 30, 60, 120, 300, 600, 1200, 1800, 3600, 5400, 7200, 10800, 14400, 18000, 21600,
+];
 
 export interface RideCurve {
   /** Activity start (start_date_local). */
@@ -56,7 +58,7 @@ export function saveRideCurves(curves: Record<string, RideCurve>) {
 /** Efforts newer than this count in full. */
 export const DECAY_GRACE_DAYS = 7;
 /** After the grace period, fraction of power lost per day of age. */
-export const DECAY_PER_DAY = 0.0025;
+export const DECAY_PER_DAY = 0.0015;
 /** Efforts older than this are ignored. */
 export const WINDOW_DAYS = 90;
 /** Decay never takes an effort below this fraction of its power. */
@@ -77,7 +79,7 @@ const DAY_MS = 86_400_000;
 export function curveAsOf(
   rides: RideCurve[],
   asOf: Date,
-  opts: { decay: boolean; windowDays: number },
+  opts: { decay: boolean; windowDays: number }
 ): { seconds: number; watts: number }[] {
   const best = MMP_DURATIONS.map(() => 0);
   for (const ride of rides) {
@@ -89,5 +91,7 @@ export function curveAsOf(
       if (v > best[i]) best[i] = v;
     });
   }
-  return MMP_DURATIONS.map((seconds, i) => ({ seconds, watts: Math.round(best[i]) })).filter((p) => p.watts > 0);
+  return MMP_DURATIONS.map((seconds, i) => ({ seconds, watts: Math.round(best[i]) })).filter(
+    (p) => p.watts > 0
+  );
 }
