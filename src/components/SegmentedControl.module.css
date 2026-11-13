@@ -5,6 +5,9 @@
   background: var(--surface-elevated);
   border: 1px solid var(--border);
   border-radius: 10px;
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
 }
 
 .segment {
@@ -16,6 +19,8 @@
   cursor: pointer;
   font-size: 0.8rem;
   transition: background 0.15s ease, color 0.15s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .segment:hover {

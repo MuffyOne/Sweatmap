@@ -1,4 +1,5 @@
 import { clsx } from "clsx";
+import { SegmentedControl } from "./SegmentedControl";
 import styles from "./PeriodToggle.module.css";
 
 interface Props<T extends string> {
@@ -10,21 +11,15 @@ interface Props<T extends string> {
   className?: string;
 }
 
-export function PeriodToggle<T extends string>({
-  options,
-  selected,
-  onSelect,
-  renderLabel,
-  inline,
-  className,
-}: Props<T>) {
+/** Section-level toggle. Uses the same segmented style as the page-level sport filter. */
+export function PeriodToggle<T extends string>({ options, selected, onSelect, renderLabel, inline, className }: Props<T>) {
   return (
-    <div className={clsx("period-toggle", inline && styles.inline, className)}>
-      {options.map((o) => (
-        <button key={o} className={selected === o ? "active" : ""} onClick={() => onSelect(o)}>
-          {renderLabel ? renderLabel(o) : o}
-        </button>
-      ))}
-    </div>
+    <SegmentedControl
+      options={options}
+      selected={selected}
+      onSelect={onSelect}
+      renderLabel={renderLabel}
+      className={clsx(inline ? styles.inline : styles.spaced, className)}
+    />
   );
 }

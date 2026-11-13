@@ -480,37 +480,6 @@ body {
 }
 
 /* ── Period toggle ── */
-.period-toggle {
-  display: flex;
-  gap: 0.4rem;
-  margin-bottom: 1.5rem;
-  flex-wrap: wrap;
-}
-
-.period-toggle button {
-  background: var(--surface-elevated);
-  border: 1px solid var(--border);
-  color: var(--text-secondary);
-  padding: 0.4rem 1.05rem;
-  border-radius: 50px;
-  cursor: pointer;
-  font-size: 0.82rem;
-  transition: all 0.2s ease;
-}
-
-.period-toggle button:hover {
-  border-color: var(--accent-border);
-  color: var(--text-primary);
-  background: var(--accent-glow);
-}
-
-.period-toggle button.active {
-  background: var(--accent-bg);
-  border-color: var(--accent-border);
-  color: var(--accent-text);
-  box-shadow: 0 0 16px var(--accent-glow);
-}
-
 /* ── Stats header / filter ── */
 .stats-section-header {
   display: flex;
@@ -2060,7 +2029,4 @@ body {
   }
 
   /* Period toggles wrap */
-  .period-toggle {
-    gap: 0.3rem;
-  }
 }
