@@ -124,8 +124,8 @@ function App() {
     } catch (e) {
       // Progress is saved page by page, so a re-run continues from where this stopped.
       setImportError(
-        `Stopped early${imported > 0 ? ` after importing ${imported} activities` : ""} (${e instanceof Error ? e.message : "request failed"}). ` +
-        "This is usually Strava's rate limit: wait a few minutes and run it again to continue."
+        `Stopped early${imported > 0 ? ` after importing ${imported} activities` : ""} (${e instanceof Error && e.message !== "rate_limited" ? e.message : "Strava rate limit reached"}). ` +
+        "Wait about 15 minutes and run it again to continue from where it stopped."
       );
     } finally {
       setImporting(false);

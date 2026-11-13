@@ -150,7 +150,46 @@ async function refreshTokens(refreshToken: string): Promise<Tokens> {
   return tokens;
 }
 
+// ── Request pacing ──
+// Strava allows 100 requests per 15 minutes (1,000 per day) by default and answers 429 beyond that.
+// Every API call fetches a token first, so pacing here covers all callers: bulk loops such as
+// per-activity stream fetches and paged imports can't burst. Two rules apply:
+//  1. a minimum gap between requests, so nothing fires in a tight loop;
+//  2. a budget per 15 minutes kept below the limit. When it runs out we throw "rate_limited" (the same
+//     error a real 429 produces, which callers already handle and resume from) instead of triggering it.
+const REQUEST_GAP_MS = 1100;
+const RATE_WINDOW_MS = 15 * 60 * 1000;
+const RATE_BUDGET = 90;
+const REQUEST_LOG_KEY = "strava_request_times";
+let nextRequestSlot = 0;
+
+// Persisted so a page reload can't reset the budget while Strava's own 15-minute window carries on.
+const requestTimes: number[] = (() => {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(REQUEST_LOG_KEY) ?? "[]");
+    return Array.isArray(parsed) ? parsed.filter((t): t is number => typeof t === "number") : [];
+  } catch {
+    return [];
+  }
+})();
+
+function saveRequestLog() {
+  try { localStorage.setItem(REQUEST_LOG_KEY, JSON.stringify(requestTimes)); } catch { /* ignore */ }
+}
+
+async function paceRequest(): Promise<void> {
+  const now = Date.now();
+  while (requestTimes.length > 0 && now - requestTimes[0] > RATE_WINDOW_MS) requestTimes.shift();
+  if (requestTimes.length >= RATE_BUDGET) throw new Error("rate_limited");
+  requestTimes.push(now);
+  saveRequestLog();
+  const start = Math.max(now, nextRequestSlot);
+  nextRequestSlot = start + REQUEST_GAP_MS;
+  if (start > now) await new Promise((r) => setTimeout(r, start - now));
+}
+
 async function getValidToken(): Promise<string> {
+  await paceRequest();
   let tokens = getStoredTokens();
   if (!tokens) throw new Error("Not authenticated");
   const now = Math.floor(Date.now() / 1000);
@@ -219,7 +258,6 @@ export async function fetchAndCacheAllTime(
     onProgress?.(all.length);
     if (batch.length < 200) break;
     page++;
-    await new Promise((r) => setTimeout(r, 1100)); // throttle between pages
   }
   await saveAllTimeCache(all);
   return all;
@@ -255,7 +293,6 @@ export async function importOlderActivities(
     const nextBefore = Math.min(...batch.map(startEpoch));
     if (batch.length < 200 || nextBefore >= before) break;
     before = nextBefore;
-    await new Promise((r) => setTimeout(r, 1100)); // throttle between pages
   }
 
   // The map's separate all-time cache is now redundant, so refresh it and skip its own prompt.
