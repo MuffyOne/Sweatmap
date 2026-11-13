@@ -121,7 +121,7 @@ export function FitnessSignature({ activities }: Props) {
   }
 
   const cards: { label: string; unit: string; recent?: number; peak?: number; xert?: number }[] = [
-    { label: "FTP", unit: "W", recent: recent?.ftp, peak: allTime?.ftp, xert: xert?.ftp },
+    { label: "Estimated FTP", unit: "W", recent: recent?.ftp, peak: allTime?.ftp, xert: xert?.ftp },
     { label: "LTP", unit: "W", recent: recent?.ltp, peak: allTime?.ltp, xert: xert?.ltp },
     { label: "HIE", unit: "kJ", recent: recent?.hie, peak: allTime?.hie, xert: xert?.hie },
     { label: "Peak Power", unit: "W", recent: recent?.pp, peak: allTime?.pp, xert: xert?.pp },
