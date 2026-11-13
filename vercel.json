@@ -1,7 +1,0 @@
-{
-  "functions": {
-    "api/garmin-*.ts": {
-      "includeFiles": "{node_modules/@{gooin,ioredis,redis,upstash}/**,node_modules/{agent-base,app-root-path,asynckit,axios,axios-cookiejar-support,call-bind-apply-helpers,call-bound,cluster-key-slot,combined-stream,crypto,debug,delayed-stream,denque,dunder-proto,es-define-property,es-errors,es-object-atoms,es-set-tostringtag,follow-redirects,form-data,function-bind,generic-pool,get-intrinsic,get-proto,gopd,has-symbols,has-tostringtag,hasown,http-cookie-agent,ioredis,lodash,luxon,math-intrinsics,mime-db,mime-types,ms,oauth-1.0a,object-inspect,proxy-from-env,qs,redis,redis-errors,redis-parser,side-channel,side-channel-list,side-channel-map,side-channel-weakmap,standard-as-callback,tldts,tldts-core,tough-cookie,uncrypto}/**}"
-    }
-  }
-}
