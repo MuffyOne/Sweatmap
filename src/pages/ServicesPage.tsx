@@ -12,6 +12,10 @@ import {
   fetchGarminHealth,
   GarminSessionExpiredError,
 } from "../api/garmin";
+
+// Garmin login currently crashes on the deployed server (the library fails to load there), so connecting
+// is switched off until that is fixed. Already-connected accounts keep working.
+const GARMIN_LOGIN_DISABLED = true;
 import styles from "./ServicesPage.module.css";
 
 interface Props {
@@ -46,6 +50,7 @@ export function ServicesPage({ onXertChange }: Props) {
   }, [garminConnected]);
 
   async function handleGarminLogin() {
+    if (GARMIN_LOGIN_DISABLED) return;
     setGarminError("");
     setGarminLogging(true);
     try {
@@ -134,11 +139,15 @@ export function ServicesPage({ onXertChange }: Props) {
 
           {!garminConnected ? (
             <div className="xert-login">
+              {GARMIN_LOGIN_DISABLED && (
+                <div className="settings-field-hint">Connecting to Garmin is temporarily unavailable while we fix a problem with the login.</div>
+              )}
               <div className="settings-input-row">
                 <input
                   type="text"
                   className="settings-input"
                   placeholder="Username"
+                  disabled={GARMIN_LOGIN_DISABLED}
                   value={garminUsername}
                   onChange={(e) => setGarminUsername(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleGarminLogin()}
@@ -149,6 +158,7 @@ export function ServicesPage({ onXertChange }: Props) {
                   type="password"
                   className="settings-input"
                   placeholder="Password"
+                  disabled={GARMIN_LOGIN_DISABLED}
                   value={garminPassword}
                   onChange={(e) => setGarminPassword(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleGarminLogin()}
@@ -157,7 +167,7 @@ export function ServicesPage({ onXertChange }: Props) {
               {garminError && <div className="xert-error">{garminError}</div>}
               <button
                 className={`btn-service btn-service-active ${styles.mt12}`}
-                disabled={garminLogging || !garminUsername || !garminPassword}
+                disabled={GARMIN_LOGIN_DISABLED || garminLogging || !garminUsername || !garminPassword}
                 onClick={handleGarminLogin}
               >
                 {garminLogging ? "Connecting..." : "Connect to Garmin"}
