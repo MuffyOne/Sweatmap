@@ -42,9 +42,9 @@ export function HistoryImport({ variant, oldest, total, importing, count, error,
       ? "Only your last year is loaded"
       : "Full history loaded";
   const body = importing
-    ? "Keep this tab open. Requests are throttled to stay within Strava's rate limits, and progress is saved as it goes."
+    ? "Keep this tab open. Requests are throttled to stay within Strava's rate limits, so this can take a while. Progress is saved as it goes."
     : missing
-      ? `Showing ${total.toLocaleString()} activities since ${since}. Import your full Strava history for all-time records, a longer fitness trend and a better peak signature.`
+      ? `Showing ${total.toLocaleString()} activities since ${since}. Import your full Strava history for all-time records, a longer fitness trend and a better peak signature. Strava limits how fast we can fetch, so a long history can be slow, and power-based stats fill in gradually over the following sessions.`
       : `${total.toLocaleString()} activities since ${since}. Import again to pick up anything older that's still missing.`;
 
   function dismiss() {
