@@ -42,7 +42,7 @@ function PageContent({ activities, koms, page, sportFilter, onNavigate, onForceS
     case "performance": return (
       <>
         <PowerCurve activities={activities} sportFilter={sportFilter} />
-        <FitnessSignature sportFilter={sportFilter} />
+        <FitnessSignature activities={activities} />
         <ZoneDistribution activities={activities} sportFilter={sportFilter} onNavigate={onNavigate} />
         <HRZoneDistribution activities={activities} sportFilter={sportFilter} onNavigate={onNavigate} />
         <TempPerformance activities={activities} />

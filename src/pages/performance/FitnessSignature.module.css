@@ -7,3 +7,16 @@
   font-size: 0.8rem;
   color: var(--tick-color);
 }
+
+.historyHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 1.5rem 0 0.75rem;
+}
+
+.historyTitle {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
