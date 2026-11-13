@@ -12,13 +12,14 @@ import { subDays, parseISO, isAfter } from "date-fns";
 import { clsx } from "clsx";
 import { fetchActivityWatts, type Activity } from "../../api/strava";
 import { POWER_CURVE_UPDATED } from "../../lib/powerModel";
+import { MMP_DURATIONS, computeRideCurve, loadRideCurves, saveRideCurves, type RideCurve } from "../../lib/rideCurves";
 import { TOOLTIP_STYLE, type SportFilter } from "../../lib/utils";
 import { CollapsibleSection } from "../../lib/CollapsibleSection";
 import { PeriodToggle } from "../../components/PeriodToggle";
 import { StreamProgress } from "../../components/StreamProgress";
 import styles from "./PowerCurve.module.css";
 
-const ALL_DURATIONS = [1, 5, 10, 30, 60, 120, 300, 600, 1200, 1800, 3600, 5400, 7200, 10800, 14400, 18000, 21600];
+const ALL_DURATIONS = MMP_DURATIONS;
 
 function formatDuration(secs: number): string {
   if (secs < 60) return `${secs}s`;
@@ -26,26 +27,11 @@ function formatDuration(secs: number): string {
   return `${secs / 3600}h`;
 }
 
-function computeMMP(watts: number[], secs: number): number {
-  if (watts.length < secs) return 0;
-  let sum = 0;
-  for (let i = 0; i < secs; i++) sum += watts[i];
-  let max = sum;
-  for (let i = secs; i < watts.length; i++) {
-    sum += watts[i] - watts[i - secs];
-    if (sum > max) max = sum;
-  }
-  return Math.round(max / secs);
-}
-
-function buildCurve(streams: number[][]): CurvePoint[] {
-  if (streams.length === 0) return [];
-  const maxLen = Math.max(...streams.map((s) => s.length));
+function buildCurve(rides: RideCurve[]): CurvePoint[] {
   return ALL_DURATIONS
-    .filter((d) => d <= maxLen)
-    .map((d) => ({
+    .map((d, i) => ({
       label: formatDuration(d),
-      watts: Math.max(...streams.map((w) => computeMMP(w, d)).filter((v) => v > 0), 0),
+      watts: Math.max(0, ...rides.map((r) => r.w[i] ?? 0)),
     }))
     .filter((p) => p.watts > 0);
 }
@@ -145,53 +131,55 @@ export function PowerCurve({ activities, sportFilter }: Props) {
     setError(null);
     setProgress({ done: 0, total: allPowerActs.length });
 
-    const rangeStreams: number[][] = [];
-    const allStreams: number[][] = [];
-    // Streams per range, so every range's curve is cached from a single pass over the activities
-    // (the Fitness Signature reads the 90-day curve regardless of which range is selected here).
-    const streamsByRange: Record<CurveRange, number[][]> = { "30d": [], "90d": [] };
-    const rangeSince: Record<CurveRange, Date> = { "30d": subDays(now, 30), "90d": subDays(now, 90) };
+    const rideCache = loadRideCurves();
+    const rides: RideCurve[] = [];
 
     for (let i = 0; i < allPowerActs.length; i++) {
-      try {
-        const watts = await fetchActivityWatts(allPowerActs[i].id);
-        if (watts && watts.length > 0) {
-          allStreams.push(watts);
-          if (inRangeIds.has(allPowerActs[i].id)) rangeStreams.push(watts);
-          const started = parseISO(allPowerActs[i].start_date_local);
-          for (const r of ["30d", "90d"] as const) {
-            if (isAfter(started, rangeSince[r])) streamsByRange[r].push(watts);
+      const act = allPowerActs[i];
+      let ride: RideCurve | undefined = rideCache[act.id];
+      if (!ride) {
+        try {
+          const watts = await fetchActivityWatts(act.id);
+          if (watts && watts.length > 0) {
+            ride = computeRideCurve(watts, act.start_date_local);
+            rideCache[act.id] = ride;
+          }
+        } catch (e: unknown) {
+          if (e instanceof Error && e.message === "rate_limited") {
+            saveRideCurves(rideCache); // keep the progress made so far
+            setError(`Strava's API rate limit was reached after ${i} activities. This happens when too many requests are made in a short period — please wait 15 minutes and try again.`);
+            setLoading(false);
+            return;
           }
         }
-      } catch (e: unknown) {
-        if (e instanceof Error && e.message === "rate_limited") {
-          setError(`Strava's API rate limit was reached after ${i} activities. This happens when too many requests are made in a short period — please wait 15 minutes and try again.`);
-          setLoading(false);
-          return;
-        }
       }
+      if (ride) rides.push(ride);
       setProgress({ done: i + 1, total: allPowerActs.length });
     }
+    saveRideCurves(rideCache);
 
-    if (rangeStreams.length === 0) {
+    const inRange = (r: RideCurve, days: number) => isAfter(parseISO(r.date), subDays(now, days));
+    const rangeRides = rides.filter((r) => inRange(r, range === "30d" ? 30 : 90));
+
+    if (rangeRides.length === 0) {
       setError("No power stream data found for activities in this period.");
       setLoading(false);
       return;
     }
 
-    const chartData = buildCurve(rangeStreams);
-    const entry: CachedCurve = { data: chartData, activityCount: inRangeIds.size };
-    setCurves((prev) => ({ ...prev, [range]: entry }));
-    saveCurveCache(sportFilter, range, chartData, inRangeIds.size);
-
-    for (const r of ["30d", "90d"] as const) {
-      if (r === range || streamsByRange[r].length === 0) continue;
-      const data = buildCurve(streamsByRange[r]);
-      saveCurveCache(sportFilter, r, data, streamsByRange[r].length);
-      setCurves((prev) => ({ ...prev, [r]: { data, activityCount: streamsByRange[r].length } }));
+    // Cache every range from the same pass: the Fitness Signature reads the 90-day curve
+    // regardless of which range is selected here.
+    for (const [r, days] of [["30d", 30], ["90d", 90]] as const) {
+      const subset = rides.filter((x) => inRange(x, days));
+      if (subset.length === 0) continue;
+      const data = buildCurve(subset);
+      // Same count the staleness check uses (activities with power), not just those with streams.
+      const count = allPowerActs.filter((a) => isAfter(parseISO(a.start_date_local), subDays(now, days))).length;
+      saveCurveCache(sportFilter, r, data, count);
+      setCurves((prev) => ({ ...prev, [r]: { data, activityCount: count } }));
     }
 
-    const bestData = buildCurve(allStreams);
+    const bestData = buildCurve(rides);
     const bestEntry: CachedCurve = { data: bestData, activityCount: allPowerActs.length };
     setBestCurve(bestEntry);
     localStorage.setItem(`${BEST_CACHE_KEY}_${sportFilter}`, JSON.stringify(bestEntry));
