@@ -495,10 +495,12 @@ body {
   background: var(--surface-elevated);
   border: 1px solid var(--border);
   color: var(--text-secondary);
-  padding: 0.32rem 0.8rem;
-  border-radius: 50px;
+  /* Matches the SegmentedControl: 10px radius and the same overall height
+     (its 3px container padding + 1px borders are folded into the vertical padding). */
+  padding: calc(0.28rem + 4px) 0.85rem;
+  border-radius: 10px;
   cursor: pointer;
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   transition: all 0.2s ease;
 }
 
