@@ -47,8 +47,8 @@ function PageContent({ activities, koms, page, sportFilter, onNavigate, onForceS
         <FitnessSignature activities={activities} />
         <ZoneDistribution activities={activities} sportFilter={sportFilter} onNavigate={onNavigate} />
         <HRZoneDistribution activities={activities} sportFilter={sportFilter} onNavigate={onNavigate} />
-        <TempPerformance activities={activities} />
         <Durability activities={activities} sportFilter={sportFilter} />
+        <TempPerformance activities={activities} />
       </>
     );
     case "settings":    return <Settings onForceSync={onForceSync} forceSyncing={forceSyncing} fetchedCount={fetchedCount} history={history} />;
