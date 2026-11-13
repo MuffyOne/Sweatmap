@@ -138,9 +138,6 @@ export function MapPage({ activities, sportFilter }: Props) {
       .filter((r) => r.length > 0);
   }, [activities, allTimeActivities, range, sportFilter, cutoffMs]);
 
-  const tileUrl = isDark
-    ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-    : "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png";
 
   const pathOptions = useMemo(
     () =>
@@ -204,9 +201,17 @@ export function MapPage({ activities, sportFilter }: Props) {
             zoom={2}
             className={styles.map}
             zoomControl={true}
-            attributionControl={false}
+            attributionControl={true}
           >
-            <TileLayer url={tileUrl} />
+            {/* OpenStreetMap standard tiles: free, no API key. Dark mode inverts them with a CSS filter,
+                since OSM has no dark style. Keyed so the layer remounts when the theme changes. */}
+            <TileLayer
+              key={isDark ? "dark" : "light"}
+              url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              maxZoom={19}
+              className={isDark ? styles.darkTiles : undefined}
+            />
             <FitBounds routes={routes} />
             {routes.map((positions, i) => (
               <Polyline key={i} positions={positions} pathOptions={pathOptions} />

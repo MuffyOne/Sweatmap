@@ -128,3 +128,18 @@
   color: var(--text-muted);
   font-size: 0.875rem;
 }
+
+/* Dark theme: invert the light OSM tiles into a muted dark basemap that routes stand out on. */
+.darkTiles {
+  filter: invert(1) hue-rotate(180deg) brightness(0.8) contrast(0.9) saturate(0.5);
+}
+
+.map :global(.leaflet-control-attribution) {
+  background: rgba(0, 0, 0, 0.45);
+  color: var(--text-secondary);
+  font-size: 0.65rem;
+}
+
+.map :global(.leaflet-control-attribution a) {
+  color: inherit;
+}
