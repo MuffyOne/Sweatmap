@@ -9,3 +9,9 @@
   color: var(--text-muted);
   margin-top: 0.25rem;
 }
+
+.summary {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.75rem;
+}
