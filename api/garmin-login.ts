@@ -16,7 +16,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // Loaded lazily, inside the try: if the Garmin library fails to load in the serverless runtime the
     // caller gets the real error back, instead of Vercel's opaque plain-text FUNCTION_INVOCATION_FAILED page.
-    const { garminLogin, describeGarminError } = await import("./_garmin");
+    const { garminLogin, describeGarminError } = await import("./_garmin.js");
     try {
       const tokens = await garminLogin(username, password);
       return res.status(200).json(tokens);

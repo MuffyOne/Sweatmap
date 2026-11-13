@@ -13,7 +13,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     // Loaded lazily, inside the try, so a load failure comes back as a readable error (see garmin-login.ts).
-    const { garminFetchHealth, describeGarminError } = await import("./_garmin");
+    const { garminFetchHealth, describeGarminError } = await import("./_garmin.js");
     try {
       const result = await garminFetchHealth(oauth1, oauth2);
       return res.status(200).json(result);
